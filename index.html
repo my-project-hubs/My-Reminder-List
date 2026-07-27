@@ -104,23 +104,46 @@
   .page.active {
     display: block;
   }
+
+  .page-label {
+    text-align: center;
+    color: #000000;
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+
+  .switch-btn {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    background: linear-gradient(135deg, #ff3d81, #d40000);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 999px;
+    padding: 10px 22px;
+    box-shadow: 0 6px 16px rgba(212, 0, 0, 0.35);
+    cursor: pointer;
+    z-index: 10;
+  }
 </style>
 </head>
 <body>
 
-<div class="nav">
-  <button id="tab-alerts" class="active" onclick="showPage('alerts')">Alerts</button>
-  <button id="tab-data" onclick="showPage('data')">List</button>
-</div>
-
 <!-- PAGE 1: Alerts -->
 <div id="page-alerts" class="page active">
+  <button class="switch-btn" onclick="showPage('data')">List</button>
+  <div class="page-label">Alert</div>
   <div id="header-alerts" class="header-date"></div>
   <div id="list-alerts"><div class="loading">Loading...</div></div>
 </div>
 
 <!-- PAGE 2: All Data -->
 <div id="page-data" class="page">
+  <button class="switch-btn" onclick="showPage('alerts')">Alert</button>
   <div id="header-data" class="header-date"></div>
   <div id="list-data"><div class="loading">Loading...</div></div>
 </div>
@@ -131,6 +154,7 @@
 // ============================================================
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhnQJrsY7BIuA3h5iMxaU3-yr3J9skyPtSSL_YoQfmYYQYXfPFnGWDH1loxyXC3mtl9-PS-oLa5_0n/pub?output=csv";
 const ALERT_THRESHOLD_DAYS = 15;
+const CYLINDER_THRESHOLD_MONTHS = 3;
 
 // ============================================================
 // Tab switching
@@ -138,8 +162,6 @@ const ALERT_THRESHOLD_DAYS = 15;
 function showPage(name) {
   document.getElementById("page-alerts").classList.toggle("active", name === "alerts");
   document.getElementById("page-data").classList.toggle("active", name === "data");
-  document.getElementById("tab-alerts").classList.toggle("active", name === "alerts");
-  document.getElementById("tab-data").classList.toggle("active", name === "data");
 }
 
 // ============================================================
@@ -170,15 +192,24 @@ function parseSheetCSV(csvText) {
     if (!name || !countdown) continue;
 
     const dayMatch = countdown.match(/^(\d+)\s*\.\s*Day Left/i);
+    const monthMatch = countdown.match(/^(\d+)\s*\.\s*Months\s*-\s*(\d+)\s*\.\s*Days/i);
 
     let days = null;
     let isDayFormat = false;
+    let isMonthFormat = false;
+    let monthsElapsed = null;
+    let daysElapsed = null;
+
     if (dayMatch) {
       days = parseInt(dayMatch[1], 10);
       isDayFormat = true;
+    } else if (monthMatch) {
+      monthsElapsed = parseInt(monthMatch[1], 10);
+      daysElapsed = parseInt(monthMatch[2], 10);
+      isMonthFormat = true;
     }
 
-    events.push({ name, countdown, date, days, isDayFormat });
+    events.push({ name, countdown, date, days, isDayFormat, isMonthFormat, monthsElapsed, daysElapsed });
   }
 
   return { header, events };
@@ -223,10 +254,18 @@ async function loadAll() {
     // Page 2: all data, as-is
     renderEvents(listData, events);
 
-    // Page 1: only events with <= 15 days left (day-format only)
-    const alerts = events.filter(
-      (e) => e.isDayFormat && e.days !== null && e.days <= ALERT_THRESHOLD_DAYS
-    );
+    // Page 1: 
+    // - normal countdown events with <= 15 days left
+    // - cylinder-style count-up events once they reach 3 months
+    const alerts = events.filter((e) => {
+      if (e.isDayFormat && e.days !== null) {
+        return e.days <= ALERT_THRESHOLD_DAYS;
+      }
+      if (e.isMonthFormat && e.monthsElapsed !== null) {
+        return e.monthsElapsed >= CYLINDER_THRESHOLD_MONTHS;
+      }
+      return false;
+    });
 
     if (alerts.length === 0) {
       listAlerts.innerHTML = '<div class="empty-state">No alerts right now.</div>';
@@ -244,4 +283,5 @@ loadAll();
 setInterval(loadAll, 3000);
 </script>
 </body>
-</html>
+ </html>
+ 
