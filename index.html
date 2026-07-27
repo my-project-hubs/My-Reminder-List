@@ -17,33 +17,9 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     font-size: 17px;
     line-height: 1.5;
-    padding: 24px 20px 80px;
+    padding: 70px 20px 80px;
     max-width: 640px;
     margin: 0 auto;
-  }
-
-  .nav {
-    display: flex;
-    justify-content: flex-end;
-    gap: 20px;
-    margin-bottom: 24px;
-    font-size: 15px;
-  }
-
-  .nav button {
-    background: none;
-    border: none;
-    color: #e6e6e6;
-    font-size: 15px;
-    font-family: inherit;
-    cursor: pointer;
-    padding: 0 0 4px 0;
-    border-bottom: 2px solid transparent;
-  }
-
-  .nav button.active {
-    border-bottom: 2px solid #d40000;
-    font-weight: 600;
   }
 
   .header-date {
@@ -111,6 +87,21 @@
 
   .page.active {
     display: block;
+  }
+
+  .page-toggle-btn {
+    position: fixed;
+    top: 18px;
+    right: 0;
+    background: #000000;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px 10px 22px;
+    border-radius: 24px 0 0 24px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 15;
   }
 
   .settings-icon {
@@ -233,19 +224,35 @@
     border-radius: 6px;
   }
 
-  .settings-field input[type="color"] {
-    width: 44px;
+  .settings-field select {
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    max-width: 140px;
+  }
+
+  .color-combo {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .color-combo input[type="color"] {
+    width: 34px;
     height: 34px;
     padding: 0;
     border: 1px solid #ccc;
     border-radius: 6px;
   }
 
-  .settings-field select {
-    padding: 6px;
-    border: 1px solid #ccc;
+  .multicolor-swatch {
+    width: 34px;
+    height: 34px;
     border-radius: 6px;
-    max-width: 140px;
+    border: 1px solid #999;
+    cursor: pointer;
+    display: inline-block;
+    background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red);
   }
 
   .settings-field-bold {
@@ -288,6 +295,7 @@
 </head>
 <body>
 
+<button id="pageToggleBtn" class="page-toggle-btn" onclick="togglePage()">List</button>
 <button class="settings-icon" onclick="openSettings()" title="Settings">⚙</button>
 
 <div id="settingsOverlay" class="settings-overlay">
@@ -303,6 +311,19 @@
     </div>
 
     <div class="settings-row">
+      <div class="settings-row-label">Page Background</div>
+      <div class="settings-controls">
+        <div class="settings-field">
+          <label>Color</label>
+          <div class="color-combo">
+            <input type="color" id="page-bg-color">
+            <label for="page-bg-color" class="multicolor-swatch" title="Choose any color"></label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-row">
       <div class="settings-row-label">Date Header (Today - ...)</div>
       <div class="settings-controls">
         <div class="settings-field">
@@ -311,7 +332,10 @@
         </div>
         <div class="settings-field">
           <label>Color</label>
-          <input type="color" id="header-color">
+          <div class="color-combo">
+            <input type="color" id="header-color">
+            <label for="header-color" class="multicolor-swatch" title="Choose any color"></label>
+          </div>
         </div>
         <div class="settings-field">
           <label>Style</label>
@@ -333,7 +357,10 @@
         </div>
         <div class="settings-field">
           <label>Color</label>
-          <input type="color" id="name-color">
+          <div class="color-combo">
+            <input type="color" id="name-color">
+            <label for="name-color" class="multicolor-swatch" title="Choose any color"></label>
+          </div>
         </div>
         <div class="settings-field">
           <label>Style</label>
@@ -355,7 +382,10 @@
         </div>
         <div class="settings-field">
           <label>Color</label>
-          <input type="color" id="countdown-color">
+          <div class="color-combo">
+            <input type="color" id="countdown-color">
+            <label for="countdown-color" class="multicolor-swatch" title="Choose any color"></label>
+          </div>
         </div>
         <div class="settings-field">
           <label>Style</label>
@@ -377,7 +407,10 @@
         </div>
         <div class="settings-field">
           <label>Color</label>
-          <input type="color" id="date-color">
+          <div class="color-combo">
+            <input type="color" id="date-color">
+            <label for="date-color" class="multicolor-swatch" title="Choose any color"></label>
+          </div>
         </div>
         <div class="settings-field">
           <label>Style</label>
@@ -397,11 +430,6 @@
   </div>
 </div>
 
-<div class="nav">
-  <button id="tab-alerts" class="active" onclick="showPage('alerts')">Alerts</button>
-  <button id="tab-data" onclick="showPage('data')">List</button>
-</div>
-
 <!-- PAGE 1: Alerts -->
 <div id="page-alerts" class="page active">
   <div id="header-alerts" class="header-date"></div>
@@ -419,18 +447,25 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhnQJrsY
 const ALERT_THRESHOLD_DAYS = 15;
 const CYLINDER_THRESHOLD_MONTHS = 3;
 
+function getActivePageName() {
+  return document.getElementById("page-alerts").classList.contains("active") ? "alerts" : "data";
+}
+
 function showPage(name) {
   document.getElementById("page-alerts").classList.toggle("active", name === "alerts");
   document.getElementById("page-data").classList.toggle("active", name === "data");
-  document.getElementById("tab-alerts").classList.toggle("active", name === "alerts");
-  document.getElementById("tab-data").classList.toggle("active", name === "data");
+  document.getElementById("pageToggleBtn").textContent = name === "alerts" ? "List" : "Alerts";
   localStorage.setItem("activePage", name);
+  applyPageBackground(name);
+}
+
+function togglePage() {
+  const next = getActivePageName() === "alerts" ? "data" : "alerts";
+  showPage(next);
 }
 
 const savedPage = localStorage.getItem("activePage");
-if (savedPage === "data" || savedPage === "alerts") {
-  showPage(savedPage);
-}
+showPage(savedPage === "data" ? "data" : "alerts");
 
 function parseSheetCSV(csvText) {
   const rawLines = csvText.split("\n");
@@ -579,15 +614,16 @@ populateFontSelects();
 
 const FONT_TARGETS = ["header", "name", "countdown", "date"];
 
-const DEFAULT_FONT_SETTINGS = {
-  header:    { size: 19, color: "#000000", font: "inherit", bold: false },
-  name:      { size: 20, color: "#000000", font: "inherit", bold: false },
-  countdown: { size: 26, color: "#ff0000", font: "inherit", bold: true  },
-  date:      { size: 15, color: "#000000", font: "inherit", bold: false }
+const DEFAULT_PAGE_SETTINGS = {
+  header:     { size: 19, color: "#000000", font: "inherit", bold: false },
+  name:       { size: 20, color: "#000000", font: "inherit", bold: false },
+  countdown:  { size: 26, color: "#ff0000", font: "inherit", bold: true  },
+  date:       { size: 15, color: "#000000", font: "inherit", bold: false },
+  background: "#ffffff"
 };
 
 function cloneDefaults() {
-  return JSON.parse(JSON.stringify(DEFAULT_FONT_SETTINGS));
+  return JSON.parse(JSON.stringify(DEFAULT_PAGE_SETTINGS));
 }
 
 function getSavedFontSettings(page) {
@@ -603,7 +639,7 @@ function getSavedFontSettings(page) {
 function applyFontSettingsToContainer(containerId, settings) {
   const container = document.getElementById(containerId);
   FONT_TARGETS.forEach((target) => {
-    const s = settings[target] || DEFAULT_FONT_SETTINGS[target];
+    const s = settings[target] || DEFAULT_PAGE_SETTINGS[target];
     container.style.setProperty(`--${target}-size`, s.size + "px");
     container.style.setProperty(`--${target}-color`, s.color);
     container.style.setProperty(`--${target}-font`, s.font);
@@ -611,26 +647,33 @@ function applyFontSettingsToContainer(containerId, settings) {
   });
 }
 
+function applyPageBackground(page) {
+  const settings = getSavedFontSettings(page) || cloneDefaults();
+  document.body.style.backgroundColor = settings.background || "#ffffff";
+}
+
 function fillSettingsForm(settings) {
   FONT_TARGETS.forEach((target) => {
-    const s = settings[target] || DEFAULT_FONT_SETTINGS[target];
+    const s = settings[target] || DEFAULT_PAGE_SETTINGS[target];
     document.getElementById(`${target}-size`).value = s.size;
     document.getElementById(`${target}-color`).value = s.color;
     document.getElementById(`${target}-font`).value = s.font;
     document.getElementById(`${target}-bold`).checked = !!s.bold;
   });
+  document.getElementById("page-bg-color").value = settings.background || "#ffffff";
 }
 
 function readSettingsForm() {
   const settings = {};
   FONT_TARGETS.forEach((target) => {
     settings[target] = {
-      size: parseInt(document.getElementById(`${target}-size`).value, 10) || DEFAULT_FONT_SETTINGS[target].size,
+      size: parseInt(document.getElementById(`${target}-size`).value, 10) || DEFAULT_PAGE_SETTINGS[target].size,
       color: document.getElementById(`${target}-color`).value,
       font: document.getElementById(`${target}-font`).value,
       bold: document.getElementById(`${target}-bold`).checked
     };
   });
+  settings.background = document.getElementById("page-bg-color").value;
   return settings;
 }
 
@@ -672,28 +715,11 @@ function applySettings() {
 
   applyFontSettingsToContainer("page-alerts", configDrafts.alerts);
   applyFontSettingsToContainer("page-data", configDrafts.data);
+  applyPageBackground(getActivePageName());
 
   closeSettings();
 }
 
 function resetSettings() {
   const defaults = cloneDefaults();
-  configDrafts[currentConfigTab] = defaults;
-
-  localStorage.setItem(`fontSettings_${currentConfigTab}`, JSON.stringify(defaults));
-  applyFontSettingsToContainer(
-    currentConfigTab === "alerts" ? "page-alerts" : "page-data",
-    defaults
-  );
-  fillSettingsForm(defaults);
-}
-
-(function initFontSettings() {
-  const alertsSettings = getSavedFontSettings("alerts") || cloneDefaults();
-  const dataSettings = getSavedFontSettings("data") || cloneDefaults();
-  applyFontSettingsToContainer("page-alerts", alertsSettings);
-  applyFontSettingsToContainer("page-data", dataSettings);
-})();
-</script>
-</body>
- </html>
+  configDrafts[current
