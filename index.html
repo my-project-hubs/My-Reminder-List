@@ -433,16 +433,14 @@
 <div id="page-data" class="page">
   <div id="header-data" class="header-date"></div>
   <div id="list-data"><div class="loading">Loading...</div></div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+ </div>
+ <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhnQJrsY7BIuA3h5iMxaU3-yr3J9skyPtSSL_YoQfmYYQYXfPFnGWDH1loxyXC3mtl9-PS-oLa5_0n/pub?output=csv";
 const ALERT_THRESHOLD_DAYS = 15;
 const CYLINDER_THRESHOLD_MONTHS = 3;
 
-// ---------- FIREBASE (Realtime Database via official SDK) ----------
 const firebaseConfig = {
   apiKey: "AIzaSyAynuPWAbwu6etjBTqBejpppw4S4umoKPM",
   authDomain: "my-tracker-d4776.firebaseapp.com",
@@ -471,7 +469,6 @@ function setSyncStatus(text) {
   const el = document.getElementById("syncStatus");
   if (el) el.textContent = text;
 }
-// ------------------------------------------------------------------
 
 function getActivePageName() {
   return document.getElementById("page-alerts").classList.contains("active") ? "alerts" : "data";
@@ -489,9 +486,6 @@ function togglePage() {
   const next = getActivePageName() === "alerts" ? "data" : "alerts";
   showPage(next);
 }
-
-const savedPage = localStorage.getItem("activePage");
-showPage(savedPage === "data" ? "data" : "alerts");
 
 function parseSheetCSV(csvText) {
   const rawLines = csvText.split("\n");
@@ -652,7 +646,6 @@ function cloneDefaults() {
   return JSON.parse(JSON.stringify(DEFAULT_PAGE_SETTINGS));
 }
 
-// In-memory cache of cloud settings: { alerts: {...}, data: {...} }
 let cloudSettings = {
   alerts: cloneDefaults(),
   data: cloneDefaults()
@@ -661,6 +654,9 @@ let cloudSettings = {
 function getSavedFontSettings(page) {
   return cloudSettings[page] || cloneDefaults();
 }
+
+const savedPage = localStorage.getItem("activePage");
+showPage(savedPage === "data" ? "data" : "alerts");
 
 function applyFontSettingsToContainer(containerId, settings) {
   const container = document.getElementById(containerId);
@@ -760,7 +756,6 @@ function resetSettings() {
   fillSettingsForm(defaults);
 }
 
-// Realtime Firebase Settings Sync
 if (settingsRef) {
   settingsRef.on("value", (snapshot) => {
     const val = snapshot.val();
@@ -783,4 +778,4 @@ if (settingsRef) {
 }
 </script>
 </body>
-</html>
+ </html>
