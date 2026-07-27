@@ -57,7 +57,7 @@
 
   .event-name {
     color: #000000;
-    font-size: 19px;
+    font-size: 20px;
     margin-bottom: 4px;
   }
 
@@ -141,6 +141,13 @@ function showPage(name) {
   document.getElementById("page-data").classList.toggle("active", name === "data");
   document.getElementById("tab-alerts").classList.toggle("active", name === "alerts");
   document.getElementById("tab-data").classList.toggle("active", name === "data");
+  localStorage.setItem("activePage", name);
+}
+
+// Restore the page the user was on before refresh
+const savedPage = localStorage.getItem("activePage");
+if (savedPage === "data" || savedPage === "alerts") {
+  showPage(savedPage);
 }
 
 // ============================================================
