@@ -356,9 +356,10 @@
           <input type="checkbox" id="name-bold">
         </div>
       </div>
-       </div>
-     <div class="settings-row">
-      <div class="settings-row-label">Countdown (e.g. In 2 days)</div>
+    </div>
+
+    <div class="settings-row">
+      <div class="settings-row-label">Day Left (red line)</div>
       <div class="settings-controls">
         <div class="settings-field">
           <label>Size</label>
@@ -382,7 +383,7 @@
     </div>
 
     <div class="settings-row">
-      <div class="settings-row-label">Target Date (e.g. 29 Mar 2026)</div>
+      <div class="settings-row-label">Date</div>
       <div class="settings-controls">
         <div class="settings-field">
           <label>Size</label>
@@ -406,222 +407,308 @@
     </div>
 
     <div class="settings-actions">
-      <button class="settings-apply" onclick="saveCurrentConfig()">Apply</button>
-      <button class="settings-reset" onclick="resetCurrentConfig()">Reset Defaults</button>
+      <button class="settings-reset" onclick="resetSettings()">Reset (this page)</button>
+      <button class="settings-apply" onclick="applySettings()">Apply</button>
     </div>
   </div>
 </div>
 
+<!-- PAGE 1: Alerts -->
 <div id="page-alerts" class="page active">
-  <div id="header-alerts" class="header-date">Loading...</div>
-  <div id="list-alerts"></div>
+  <div id="header-alerts" class="header-date"></div>
+  <div id="list-alerts"><div class="loading">Loading...</div></div>
 </div>
 
+<!-- PAGE 2: All Data -->
 <div id="page-data" class="page">
-  <div id="header-data" class="header-date">Loading...</div>
-  <div id="list-data"></div>
+  <div id="header-data" class="header-date"></div>
+  <div id="list-data"><div class="loading">Loading...</div></div>
 </div>
 
 <script>
-  const fonts = [
-    { label: "Default", value: "inherit" },
-    { label: "Sans-Serif", value: "sans-serif" },
-    { label: "Serif", value: "serif" },
-    { label: "Monospace", value: "monospace" },
-    { label: "Arial", value: "Arial, sans-serif" },
-    { label: "Georgia", value: "Georgia, serif" },
-    { label: "Courier New", value: "'Courier New', monospace" }
-  ];
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhnQJrsY7BIuA3h5iMxaU3-yr3J9skyPtSSL_YoQfmYYQYXfPFnGWDH1loxyXC3mtl9-PS-oLa5_0n/pub?output=csv";
+const ALERT_THRESHOLD_DAYS = 15;
+const CYLINDER_THRESHOLD_MONTHS = 3;
 
-  const defaultConfigAlerts = {
-    bgColor: "#ffffff",
-    headerSize: 19, headerColor: "#000000", headerFont: "inherit", headerBold: false,
-    nameSize: 20, nameColor: "#000000", nameFont: "inherit", nameBold: false,
-    countdownSize: 26, countdownColor: "#ff0000", countdownFont: "inherit", countdownBold: true,
-    dateSize: 15, dateColor: "#000000", dateFont: "inherit", dateBold: false
-  };
+function getActivePageName() {
+  return document.getElementById("page-alerts").classList.contains("active") ? "alerts" : "data";
+}
 
-  const defaultConfigData = {
-    bgColor: "#ffffff",
-    headerSize: 19, headerColor: "#000000", headerFont: "inherit", headerBold: false,
-    nameSize: 20, nameColor: "#000000", nameFont: "inherit", nameBold: false,
-    countdownSize: 26, countdownColor: "#ff0000", countdownFont: "inherit", countdownBold: true,
-    dateSize: 15, dateColor: "#000000", dateFont: "inherit", dateBold: false
-  };
+function showPage(name) {
+  document.getElementById("page-alerts").classList.toggle("active", name === "alerts");
+  document.getElementById("page-data").classList.toggle("active", name === "data");
+  document.getElementById("pageToggleBtn").textContent = name === "alerts" ? "List" : "Alerts";
+  localStorage.setItem("activePage", name);
+  applyPageBackground(name);
+}
 
-  let activeConfigTab = 'alerts';
-  let currentPage = 'alerts';
+function togglePage() {
+  const next = getActivePageName() === "alerts" ? "data" : "alerts";
+  showPage(next);
+}
 
-  function populateFontDropdowns() {
-    ['header-font', 'name-font', 'countdown-font', 'date-font'].forEach(id => {
-      const select = document.getElementById(id);
-      if (!select) return;
-      select.innerHTML = '';
-      fonts.forEach(f => {
-        const opt = document.createElement('option');
-        opt.value = f.value;
-        opt.textContent = f.label;
-        select.appendChild(opt);
-      });
-    });
-  }
+const savedPage = localStorage.getItem("activePage");
+showPage(savedPage === "data" ? "data" : "alerts");
 
-  function togglePage() {
-    const alertsPage = document.getElementById('page-alerts');
-    const dataPage = document.getElementById('page-data');
-    const btn = document.getElementById('pageToggleBtn');
+function parseSheetCSV(csvText) {
+  const rawLines = csvText.split("\n");
 
-    if (currentPage === 'alerts') {
-      alertsPage.classList.remove('active');
-      dataPage.classList.add('active');
-      btn.textContent = 'Alerts';
-      currentPage = 'data';
-    } else {
-      dataPage.classList.remove('active');
-      alertsPage.classList.add('active');
-      btn.textContent = 'List';
-      currentPage = 'alerts';
-    }
-  }
-
-  function openSettings() {
-    document.getElementById('settingsOverlay').classList.add('open');
-    loadConfigToForm(activeConfigTab);
-  }
-
-  function closeSettings() {
-    document.getElementById('settingsOverlay').classList.remove('open');
-  }
-
-  function switchConfigTab(tab) {
-    activeConfigTab = tab;
-    document.getElementById('cfgtab-alerts').classList.toggle('active', tab === 'alerts');
-    document.getElementById('cfgtab-data').classList.toggle('active', tab === 'data');
-    loadConfigToForm(tab);
-  }
-
-  function loadConfigToForm(tab) {
-    const configKey = tab === 'alerts' ? 'configAlerts' : 'configData';
-    const defaultConfig = tab === 'alerts' ? defaultConfigAlerts : defaultConfigData;
-    const cfg = JSON.parse(localStorage.getItem(configKey)) || defaultConfig;
-
-    document.getElementById('page-bg-color').value = cfg.bgColor;
-    document.getElementById('header-size').value = cfg.headerSize;
-    document.getElementById('header-color').value = cfg.headerColor;
-    document.getElementById('header-font').value = cfg.headerFont;
-    document.getElementById('header-bold').checked = cfg.headerBold;
-
-    document.getElementById('name-size').value = cfg.nameSize;
-    document.getElementById('name-color').value = cfg.nameColor;
-    document.getElementById('name-font').value = cfg.nameFont;
-    document.getElementById('name-bold').checked = cfg.nameBold;
-
-    document.getElementById('countdown-size').value = cfg.countdownSize;
-    document.getElementById('countdown-color').value = cfg.countdownColor;
-    document.getElementById('countdown-font').value = cfg.countdownFont;
-    document.getElementById('countdown-bold').checked = cfg.countdownBold;
-
-    document.getElementById('date-size').value = cfg.dateSize;
-    document.getElementById('date-color').value = cfg.dateColor;
-    document.getElementById('date-font').value = cfg.dateFont;
-    document.getElementById('date-bold').checked = cfg.dateBold;
-  }
-
-  function saveCurrentConfig() {
-    const cfg = {
-      bgColor: document.getElementById('page-bg-color').value,
-      headerSize: document.getElementById('header-size').value,
-      headerColor: document.getElementById('header-color').value,
-      headerFont: document.getElementById('header-font').value,
-      headerBold: document.getElementById('header-bold').checked,
-      nameSize: document.getElementById('name-size').value,
-      nameColor: document.getElementById('name-color').value,
-      nameFont: document.getElementById('name-font').value,
-      nameBold: document.getElementById('name-bold').checked,
-      countdownSize: document.getElementById('countdown-size').value,
-      countdownColor: document.getElementById('countdown-color').value,
-      countdownFont: document.getElementById('countdown-font').value,
-      countdownBold: document.getElementById('countdown-bold').checked,
-      dateSize: document.getElementById('date-size').value,
-      dateColor: document.getElementById('date-color').value,
-      dateFont: document.getElementById('date-font').value,
-      dateBold: document.getElementById('date-bold').checked
-    };
-
-    const configKey = activeConfigTab === 'alerts' ? 'configAlerts' : 'configData';
-    localStorage.setItem(configKey, JSON.stringify(cfg));
-    applyStyles();
-    closeSettings();
-  }
-
-  function resetCurrentConfig() {
-    const configKey = activeConfigTab === 'alerts' ? 'configAlerts' : 'configData';
-    const defaultConfig = activeConfigTab === 'alerts' ? defaultConfigAlerts : defaultConfigData;
-    localStorage.setItem(configKey, JSON.stringify(defaultConfig));
-    loadConfigToForm(activeConfigTab);
-    applyStyles();
-  }
-
-  function applyStyles() {
-    const configKey = currentPage === 'alerts' ? 'configAlerts' : 'configData';
-    const defaultConfig = currentPage === 'alerts' ? defaultConfigAlerts : defaultConfigData;
-    const cfg = JSON.parse(localStorage.getItem(configKey)) || defaultConfig;
-
-    const root = document.documentElement;
-    root.style.setProperty('--header-size', cfg.headerSize + 'px');
-    root.style.setProperty('--header-color', cfg.headerColor);
-    root.style.setProperty('--header-font', cfg.headerFont);
-    root.style.setProperty('--header-weight', cfg.headerBold ? '700' : '400');
-
-    root.style.setProperty('--name-size', cfg.nameSize + 'px');
-    root.style.setProperty('--name-color', cfg.nameColor);
-    root.style.setProperty('--name-font', cfg.nameFont);
-    root.style.setProperty('--name-weight', cfg.nameBold ? '700' : '400');
-
-    root.style.setProperty('--countdown-size', cfg.countdownSize + 'px');
-    root.style.setProperty('--countdown-color', cfg.countdownColor);
-    root.style.setProperty('--countdown-font', cfg.countdownFont);
-    root.style.setProperty('--countdown-weight', cfg.countdownBold ? '700' : '400');
-
-    root.style.setProperty('--date-size', cfg.dateSize + 'px');
-    root.style.setProperty('--date-color', cfg.dateColor);
-    root.style.setProperty('--date-font', cfg.dateFont);
-    root.style.setProperty('--date-weight', cfg.dateBold ? '700' : '400');
-
-    document.body.style.backgroundColor = cfg.bgColor;
-  }
-
-  function loadPageData() {
-    const today = new Date();
-    const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
-    const dateString = "Today - " + today.toLocaleDateString('en-US', options);
-
-    document.getElementById('header-alerts').textContent = dateString;
-    document.getElementById('header-data').textContent = dateString;
-
-    document.getElementById('list-alerts').innerHTML = `
-      <div class="event">
-        <div class="event-name">V! Recharge</div>
-        <div class="event-countdown">In 2 days</div>
-        <div class="event-date">29 Jul 2026</div>
-      </div>
-    `;
-
-    document.getElementById('list-data').innerHTML = `
-      <div class="event">
-        <div class="event-name">V! Recharge</div>
-        <div class="event-countdown">In 2 days</div>
-        <div class="event-date">29 Jul 2026</div>
-      </div>
-    `;
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    populateFontDropdowns();
-    applyStyles();
-    loadPageData();
+  const values = rawLines.map((line) => {
+    const idx = line.indexOf(",");
+    const col = idx === -1 ? "" : line.slice(idx + 1);
+    return col.replace(/\r/g, "").trim();
   });
+
+  const nonEmpty = values.filter((v) => v.length > 0);
+  if (nonEmpty.length === 0) {
+    return { header: "", events: [] };
+  }
+
+  const header = nonEmpty[0];
+  const rest = nonEmpty.slice(1);
+
+  const events = [];
+  for (let i = 0; i < rest.length; i += 3) {
+    const name = rest[i];
+    const countdown = rest[i + 1];
+    const date = rest[i + 2];
+    if (!name || !countdown) continue;
+
+    const dayMatch = countdown.match(/^(\d+)\s*\.\s*Day Left/i);
+    const monthMatch = countdown.match(/^(\d+)\s*\.\s*Months\s*-\s*(\d+)\s*\.\s*Days/i);
+
+    let days = null;
+    let isDayFormat = false;
+    let isMonthFormat = false;
+    let monthsElapsed = null;
+    let daysElapsed = null;
+
+    if (dayMatch) {
+      days = parseInt(dayMatch[1], 10);
+      isDayFormat = true;
+    } else if (monthMatch) {
+      monthsElapsed = parseInt(monthMatch[1], 10);
+      daysElapsed = parseInt(monthMatch[2], 10);
+      isMonthFormat = true;
+    }
+
+    events.push({ name, countdown, date, days, isDayFormat, isMonthFormat, monthsElapsed, daysElapsed });
+  }
+
+  return { header, events };
+}
+
+async function fetchSheetData() {
+  const response = await fetch(SHEET_CSV_URL, { cache: "no-store" });
+  if (!response.ok) throw new Error("Network response was not ok");
+  const text = await response.text();
+  return parseSheetCSV(text);
+}
+
+function renderEvents(container, events) {
+  container.innerHTML = "";
+  events.forEach((e) => {
+    const item = document.createElement("div");
+    item.className = "event";
+    item.innerHTML = `
+      <div class="event-name">${e.name}</div>
+      <div class="event-countdown">${e.countdown}</div>
+      <div class="event-date">${e.date}</div>
+    `;
+    container.appendChild(item);
+  });
+}
+
+async function loadAll() {
+  const headerAlerts = document.getElementById("header-alerts");
+  const listAlerts = document.getElementById("list-alerts");
+  const headerData = document.getElementById("header-data");
+  const listData = document.getElementById("list-data");
+
+  try {
+    const { header, events } = await fetchSheetData();
+
+    headerAlerts.textContent = header;
+    headerData.textContent = header;
+
+    renderEvents(listData, events);
+
+    const alerts = events.filter((e) => {
+      if (e.isDayFormat && e.days !== null) {
+        return e.days <= ALERT_THRESHOLD_DAYS;
+      }
+      if (e.isMonthFormat && e.monthsElapsed !== null) {
+        return e.monthsElapsed >= CYLINDER_THRESHOLD_MONTHS;
+      }
+      return false;
+    });
+
+    if (alerts.length === 0) {
+      listAlerts.innerHTML = '<div class="empty-state">No alerts right now.</div>';
+    } else {
+      renderEvents(listAlerts, alerts);
+    }
+  } catch (err) {
+    const msg = '<div class="empty-state">Could not load data. Please try again later.</div>';
+    listAlerts.innerHTML = msg;
+    listData.innerHTML = msg;
+  }
+}
+
+loadAll();
+setInterval(loadAll, 3000);
+
+const FONT_OPTIONS = [
+  { label: "Default", value: "inherit" },
+  { label: "Arial", value: "Arial, sans-serif" },
+  { label: "Helvetica", value: "Helvetica, Arial, sans-serif" },
+  { label: "Verdana", value: "Verdana, sans-serif" },
+  { label: "Tahoma", value: "Tahoma, sans-serif" },
+  { label: "Trebuchet MS", value: "'Trebuchet MS', sans-serif" },
+  { label: "Segoe UI", value: "'Segoe UI', sans-serif" },
+  { label: "Calibri", value: "Calibri, sans-serif" },
+  { label: "Century Gothic", value: "'Century Gothic', sans-serif" },
+  { label: "Franklin Gothic", value: "'Franklin Gothic Medium', sans-serif" },
+  { label: "Arial Black", value: "'Arial Black', sans-serif" },
+  { label: "Georgia", value: "Georgia, serif" },
+  { label: "Times New Roman", value: "'Times New Roman', serif" },
+  { label: "Garamond", value: "Garamond, serif" },
+  { label: "Palatino", value: "'Palatino Linotype', serif" },
+  { label: "Book Antiqua", value: "'Book Antiqua', serif" },
+  { label: "Cambria", value: "Cambria, serif" },
+  { label: "Courier New", value: "'Courier New', monospace" },
+  { label: "Lucida Console", value: "'Lucida Console', monospace" },
+  { label: "Consolas", value: "Consolas, monospace" }
+];
+
+function populateFontSelects() {
+  ["header-font", "name-font", "countdown-font", "date-font"].forEach((id) => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = "";
+    FONT_OPTIONS.forEach((opt) => {
+      const o = document.createElement("option");
+      o.value = opt.value;
+      o.textContent = opt.label;
+      sel.appendChild(o);
+    });
+  });
+}
+populateFontSelects();
+
+const FONT_TARGETS = ["header", "name", "countdown", "date"];
+
+const DEFAULT_PAGE_SETTINGS = {
+  header:     { size: 19, color: "#000000", font: "inherit", bold: false },
+  name:       { size: 20, color: "#000000", font: "inherit", bold: false },
+  countdown:  { size: 26, color: "#ff0000", font: "inherit", bold: true  },
+  date:       { size: 15, color: "#000000", font: "inherit", bold: false },
+  background: "#ffffff"
+};
+
+function cloneDefaults() {
+  return JSON.parse(JSON.stringify(DEFAULT_PAGE_SETTINGS));
+}
+
+function getSavedFontSettings(page) {
+  try {
+    const raw = localStorage.getItem(`fontSettings_${page}`);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) {
+    return null;
+  }
+}
+
+function applyFontSettingsToContainer(containerId, settings) {
+  const container = document.getElementById(containerId);
+  FONT_TARGETS.forEach((target) => {
+    const s = settings[target] || DEFAULT_PAGE_SETTINGS[target];
+    container.style.setProperty(`--${target}-size`, s.size + "px");
+    container.style.setProperty(`--${target}-color`, s.color);
+    container.style.setProperty(`--${target}-font`, s.font);
+    container.style.setProperty(`--${target}-weight`, s.bold ? "700" : "400");
+  });
+}
+
+function applyPageBackground(page) {
+  const settings = getSavedFontSettings(page) || cloneDefaults();
+  document.body.style.backgroundColor = settings.background || "#ffffff";
+}
+
+function fillSettingsForm(settings) {
+  FONT_TARGETS.forEach((target) => {
+    const s = settings[target] || DEFAULT_PAGE_SETTINGS[target];
+    document.getElementById(`${target}-size`).value = s.size;
+    document.getElementById(`${target}-color`).value = s.color;
+    document.getElementById(`${target}-font`).value = s.font;
+    document.getElementById(`${target}-bold`).checked = !!s.bold;
+  });
+  document.getElementById("page-bg-color").value = settings.background || "#ffffff";
+}
+
+function readSettingsForm() {
+  const settings = {};
+  FONT_TARGETS.forEach((target) => {
+    settings[target] = {
+      size: parseInt(document.getElementById(`${target}-size`).value, 10) || DEFAULT_PAGE_SETTINGS[target].size,
+      color: document.getElementById(`${target}-color`).value,
+      font: document.getElementById(`${target}-font`).value,
+      bold: document.getElementById(`${target}-bold`).checked
+    };
+  });
+  settings.background = document.getElementById("page-bg-color").value;
+  return settings;
+}
+
+let configDrafts = null;
+let currentConfigTab = "alerts";
+
+function updateTabUI() {
+  document.getElementById("cfgtab-alerts").classList.toggle("active", currentConfigTab === "alerts");
+  document.getElementById("cfgtab-data").classList.toggle("active", currentConfigTab === "data");
+}
+
+function switchConfigTab(tab) {
+  configDrafts[currentConfigTab] = readSettingsForm();
+  currentConfigTab = tab;
+  updateTabUI();
+  fillSettingsForm(configDrafts[currentConfigTab]);
+}
+
+function openSettings() {
+  configDrafts = {
+    alerts: getSavedFontSettings("alerts") || cloneDefaults(),
+    data: getSavedFontSettings("data") || cloneDefaults()
+  };
+  currentConfigTab = "alerts";
+  updateTabUI();
+  fillSettingsForm(configDrafts.alerts);
+  document.getElementById("settingsOverlay").classList.add("open");
+}
+
+function closeSettings() {
+  document.getElementById("settingsOverlay").classList.remove("open");
+}
+
+function applySettings() {
+  configDrafts[currentConfigTab] = readSettingsForm();
+
+  localStorage.setItem("fontSettings_alerts", JSON.stringify(configDrafts.alerts));
+  localStorage.setItem("fontSettings_data", JSON.stringify(configDrafts.data));
+
+  applyFontSettingsToContainer("page-alerts", configDrafts.alerts);
+  applyFontSettingsToContainer("page-data", configDrafts.data);
+  applyPageBackground(getActivePageName());
+
+  closeSettings();
+}
+
+function resetSettings() {
+  const defaults = cloneDefaults();
+  configDrafts[currentConfigTab] = defaults;
+  fillSettingsForm(defaults);
+}
 </script>
 </body>
- </html>
-           
+       </html>
+ 
