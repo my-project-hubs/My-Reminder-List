@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reminders</title>
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background: #ffffff;
+    color: #000000;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.5;
+    padding: 24px 20px 60px;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .nav {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 24px;
+    font-size: 15px;
+  }
+
+  .nav button {
+    background: none;
+    border: none;
+    color: #000000;
+    font-size: 15px;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 0 0 4px 0;
+    border-bottom: 2px solid transparent;
+  }
+
+  .nav button.active {
+    border-bottom: 2px solid #d40000;
+    font-weight: 600;
+  }
+
+  .header-date {
+    font-size: 22px;
+    font-weight: 400;
+    margin-bottom: 28px;
+  }
+
+  .event {
+    margin-bottom: 22px;
+  }
+
+  .event-name {
+    color: #000000;
+    font-size: 17px;
+    margin-bottom: 4px;
+  }
+
+  .event-countdown {
+    color: #d40000;
+    font-weight: 700;
+    font-size: 20px;
+    margin-bottom: 2px;
+  }
+
+  .event-date {
+    color: #000000;
+    font-size: 16px;
+  }
+
+  .empty-state {
+    color: #555;
+    font-size: 16px;
+    margin-top: 12px;
+  }
+
+  .loading {
+    color: #555;
+  }
+
+  .page {
+    display: none;
+  }
+
+  .page.active {
+    display: block;
+  }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <button id="tab-alerts" class="active" onclick="showPage('alerts')">Alerts</button>
+  <button id="tab-data" onclick="showPage('data')">All Data</button>
+</div>
+
+<!-- PAGE 1: Alerts -->
+<div id="page-alerts" class="page active">
+  <div id="header-alerts" class="header-date"></div>
+  <div id="list-alerts"><div class="loading">Loading...</div></div>
+</div>
+
+<!-- PAGE 2: All Data -->
+<div id="page-data" class="page">
+  <div id="header-data" class="header-date"></div>
+  <div id="list-data"><div class="loading">Loading...</div></div>
+</div>
+
+<script>
+// ============================================================
+// SETTINGS - agar aage Google Sheet ka link badalna ho to yahan
+// ============================================================
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhnQJrsY7BIuA3h5iMxaU3-yr3J9skyPtSSL_YoQfmYYQYXfPFnGWDH1loxyXC3mtl9-PS-oLa5_0n/pub?output=csv";
+const ALERT_THRESHOLD_DAYS = 15;
+
+// ============================================================
+// Tab switching
+// ============================================================
+function showPage(name) {
+  document.getElementById("page-alerts").classList.toggle("active", name === "alerts");
+  document.getElementById("page-data").classList.toggle("active", name === "data");
+  document.getElementById("tab-alerts").classList.toggle("active", name === "alerts");
+  document.getElementById("tab-data").classList.toggle("active", name === "data");
+}
+
+// ============================================================
+// CSV parsing - Column B only, groups of 3 lines per event
+// ============================================================
+function parseSheetCSV(csvText) {
+  const rawLines = csvText.split("\n");
+
+  const values = rawLines.map((line) => {
+    const idx = line.indexOf(",");
+    const col = idx === -1 ? "" : line.slice(idx + 1);
+    return col.replace(/\r/g, "").trim();
+  });
+
+  const nonEmpty = values.filter((v) => v.length > 0);
+  if (nonEmpty.length === 0) {
+    return { header: "", events: [] };
+  }
+
+  const header = nonEmpty[0];
+  const rest = nonEmpty.slice(1);
+
+  const events = [];
+  for (let i = 0; i < rest.length; i += 3) {
+    const name = rest[i];
+    const countdown = rest[i + 1];
+    const date = rest[i + 2];
+    if (!name || !countdown) continue;
+
+    const dayMatch = countdown.match(/^(\d+)\s*\.\s*Day Left/i);
+
+    let days = null;
+    let isDayFormat = false;
+    if (dayMatch) {
+      days = parseInt(dayMatch[1], 10);
+      isDayFormat = true;
+    }
+
+    events.push({ name, countdown, date, days, isDayFormat });
+  }
+
+  return { header, events };
+}
+
+async function fetchSheetData() {
+  const response = await fetch(SHEET_CSV_URL, { cache: "no-store" });
+  if (!response.ok) throw new Error("Network response was not ok");
+  const text = await response.text();
+  return parseSheetCSV(text);
+}
+
+// ============================================================
+// Rendering
+// ============================================================
+function renderEvents(container, events) {
+  container.innerHTML = "";
+  events.forEach((e) => {
+    const item = document.createElement("div");
+    item.className = "event";
+    item.innerHTML = `
+      <div class="event-name">${e.name}</div>
+      <div class="event-countdown">${e.countdown}</div>
+      <div class="event-date">${e.date}</div>
+    `;
+    container.appendChild(item);
+  });
+}
+
+async function loadAll() {
+  const headerAlerts = document.getElementById("header-alerts");
+  const listAlerts = document.getElementById("list-alerts");
+  const headerData = document.getElementById("header-data");
+  const listData = document.getElementById("list-data");
+
+  try {
+    const { header, events } = await fetchSheetData();
+
+    headerAlerts.textContent = header;
+    headerData.textContent = header;
+
+    // Page 2: all data, as-is
+    renderEvents(listData, events);
+
+    // Page 1: only events with <= 15 days left (day-format only)
+    const alerts = events.filter(
+      (e) => e.isDayFormat && e.days !== null && e.days <= ALERT_THRESHOLD_DAYS
+    );
+
+    if (alerts.length === 0) {
+      listAlerts.innerHTML = '<div class="empty-state">No alerts right now.</div>';
+    } else {
+      renderEvents(listAlerts, alerts);
+    }
+  } catch (err) {
+    const msg = '<div class="empty-state">Could not load data. Please try again later.</div>';
+    listAlerts.innerHTML = msg;
+    listData.innerHTML = msg;
+  }
+}
+
+loadAll();
+</script>
+</body>
+  </html>
+  
