@@ -46,7 +46,7 @@
   }
 
   .header-date {
-    font-size: 22px;
+    font-size: 19px;
     font-weight: 400;
     margin-bottom: 28px;
   }
@@ -57,20 +57,24 @@
 
   .event-name {
     color: #000000;
-    font-size: 17px;
+    font-size: 18px;
     margin-bottom: 4px;
   }
 
   .event-countdown {
-    color: #d40000;
+    color: #ff0000;
     font-weight: 700;
-    font-size: 20px;
+    font-size: 23px;
     margin-bottom: 2px;
   }
 
   .event-date {
     color: #000000;
-    font-size: 16px;
+    font-size: 15px;
+  }
+
+  #page-alerts {
+    text-align: center;
   }
 
   .empty-state {
@@ -96,7 +100,7 @@
 
 <div class="nav">
   <button id="tab-alerts" class="active" onclick="showPage('alerts')">Alerts</button>
-  <button id="tab-data" onclick="showPage('data')">All Data</button>
+  <button id="tab-data" onclick="showPage('data')">List</button>
 </div>
 
 <!-- PAGE 1: Alerts -->
@@ -227,7 +231,7 @@ async function loadAll() {
 }
 
 loadAll();
+setInterval(loadAll, 3000);
 </script>
 </body>
-  </html>
-  
+</html>
