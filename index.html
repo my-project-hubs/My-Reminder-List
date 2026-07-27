@@ -94,7 +94,7 @@
     top: 18px;
     right: 16px;
     background: transparent;
-    color: #b3b3b3;
+    color: #e0dfdd;
     border: none;
     padding: 6px 10px;
     font-size: 14px;
@@ -110,7 +110,7 @@
     width: 38px;
     height: 38px;
     background: transparent;
-    color: #57534e;
+    color: #d8d6d4;
     border: none;
     font-size: 22px;
     cursor: pointer;
@@ -680,9 +680,9 @@ function openSettings() {
     alerts: getSavedFontSettings("alerts") || cloneDefaults(),
     data: getSavedFontSettings("data") || cloneDefaults()
   };
-  currentConfigTab = "alerts";
+  currentConfigTab = getActivePageName();
   updateTabUI();
-  fillSettingsForm(configDrafts.alerts);
+  fillSettingsForm(configDrafts[currentConfigTab]);
   document.getElementById("settingsOverlay").classList.add("open");
 }
 
@@ -710,5 +710,5 @@ function resetSettings() {
 }
 </script>
 </body>
- </html>
-   
+           </html>
+           
