@@ -279,10 +279,20 @@
     background: #eee;
     color: #000000;
   }
+
+  .sync-status {
+    position: fixed;
+    top: 18px;
+    left: 16px;
+    font-size: 11px;
+    color: #bbb;
+    z-index: 15;
+  }
 </style>
 </head>
 <body>
 
+<div id="syncStatus" class="sync-status"></div>
 <button id="pageToggleBtn" class="page-toggle-btn" onclick="togglePage()">List</button>
 <button class="settings-icon" onclick="openSettings()" title="Settings">⚙</button>
 
@@ -425,10 +435,37 @@
   <div id="list-data"><div class="loading">Loading...</div></div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhnQJrsY7BIuA3h5iMxaU3-yr3J9skyPtSSL_YoQfmYYQYXfPFnGWDH1loxyXC3mtl9-PS-oLa5_0n/pub?output=csv";
 const ALERT_THRESHOLD_DAYS = 15;
 const CYLINDER_THRESHOLD_MONTHS = 3;
+
+// ---------- FIREBASE (Realtime Database via official SDK) ----------
+const firebaseConfig = {
+  apiKey: "AIzaSyAynuPWAbwu6etjBTqBejpppw4S4umoKPM",
+  authDomain: "my-tracker-d4776.firebaseapp.com",
+  databaseURL: "https://my-tracker-d4776-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "my-tracker-d4776",
+  storageBucket: "my-tracker-d4776.firebasestorage.app",
+  messagingSenderId: "207196018290",
+  appId: "1:207196018290:web:e544ccd2eac3e84150d4eb",
+  measurementId: "G-HPDX62VBWK"
+};
+
+firebase.initializeApp(firebaseConfig);
+const settingsRef = firebase.database().ref("settings");
+
+function saveCloudSettings(data) {
+  return settingsRef.set(data);
+}
+
+function setSyncStatus(text) {
+  const el = document.getElementById("syncStatus");
+  if (el) el.textContent = text;
+}
+// ------------------------------------------------------------------
 
 function getActivePageName() {
   return document.getElementById("page-alerts").classList.contains("active") ? "alerts" : "data";
@@ -609,14 +646,14 @@ function cloneDefaults() {
   return JSON.parse(JSON.stringify(DEFAULT_PAGE_SETTINGS));
 }
 
+// In-memory cache of cloud settings: { alerts: {...}, data: {...} }
+let cloudSettings = {
+  alerts: cloneDefaults(),
+  data: cloneDefaults()
+};
+
 function getSavedFontSettings(page) {
-  try {
-    const raw = localStorage.getItem(`fontSettings_${page}`);
-    if (!raw) return null;
-    return JSON.parse(raw);
-  } catch (e) {
-    return null;
-  }
+  return cloudSettings[page] || cloneDefaults();
 }
 
 function applyFontSettingsToContainer(containerId, settings) {
@@ -631,7 +668,7 @@ function applyFontSettingsToContainer(containerId, settings) {
 }
 
 function applyPageBackground(page) {
-  const settings = getSavedFontSettings(page) || cloneDefaults();
+  const settings = getSavedFontSettings(page);
   document.body.style.backgroundColor = settings.background || "#ffffff";
 }
 
@@ -677,8 +714,8 @@ function switchConfigTab(tab) {
 
 function openSettings() {
   configDrafts = {
-    alerts: getSavedFontSettings("alerts") || cloneDefaults(),
-    data: getSavedFontSettings("data") || cloneDefaults()
+    alerts: JSON.parse(JSON.stringify(getSavedFontSettings("alerts"))),
+    data: JSON.parse(JSON.stringify(getSavedFontSettings("data")))
   };
   currentConfigTab = getActivePageName();
   updateTabUI();
@@ -690,15 +727,23 @@ function closeSettings() {
   document.getElementById("settingsOverlay").classList.remove("open");
 }
 
-function applySettings() {
+async function applySettings() {
   configDrafts[currentConfigTab] = readSettingsForm();
 
-  localStorage.setItem("fontSettings_alerts", JSON.stringify(configDrafts.alerts));
-  localStorage.setItem("fontSettings_data", JSON.stringify(configDrafts.data));
+  cloudSettings.alerts = configDrafts.alerts;
+  cloudSettings.data = configDrafts.data;
 
-  applyFontSettingsToContainer("page-alerts", configDrafts.alerts);
-  applyFontSettingsToContainer("page-data", configDrafts.data);
+  applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
+  applyFontSettingsToContainer("page-data", cloudSettings.data);
   applyPageBackground(getActivePageName());
+
+  setSyncStatus("Saving...");
+  try {
+    await saveCloudSettings(cloudSettings);
+    setSyncStatus("Synced");
+  } catch (err) {
+    setSyncStatus("Sync failed");
+  }
 
   closeSettings();
 }
@@ -708,7 +753,24 @@ function resetSettings() {
   configDrafts[currentConfigTab] = defaults;
   fillSettingsForm(defaults);
 }
+
+// Realtime Firebase Settings Sync
+settingsRef.on("value", (snapshot) => {
+  const val = snapshot.val();
+  if (val) {
+    if (val.alerts) cloudSettings.alerts = val.alerts;
+    if (val.data) cloudSettings.data = val.data;
+
+    applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
+    applyFontSettingsToContainer("page-data", cloudSettings.data);
+    applyPageBackground(getActivePageName());
+    setSyncStatus("Synced");
+  } else {
+    setSyncStatus("");
+  }
+}, (error) => {
+  setSyncStatus("Sync error");
+});
 </script>
 </body>
-           </html>
-           
+</html>
