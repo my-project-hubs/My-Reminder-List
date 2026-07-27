@@ -356,9 +356,8 @@
           <input type="checkbox" id="name-bold">
         </div>
       </div>
-    </div>
-
-    <div class="settings-row">
+       </div>
+     <div class="settings-row">
       <div class="settings-row-label">Countdown (e.g. In 2 days)</div>
       <div class="settings-controls">
         <div class="settings-field">
@@ -456,6 +455,7 @@
   function populateFontDropdowns() {
     ['header-font', 'name-font', 'countdown-font', 'date-font'].forEach(id => {
       const select = document.getElementById(id);
+      if (!select) return;
       select.innerHTML = '';
       fonts.forEach(f => {
         const opt = document.createElement('option');
@@ -563,13 +563,65 @@
   }
 
   function applyStyles() {
-    // Styles for alerts and data pages can be handled here or dynamically via CSS vars
+    const configKey = currentPage === 'alerts' ? 'configAlerts' : 'configData';
+    const defaultConfig = currentPage === 'alerts' ? defaultConfigAlerts : defaultConfigData;
+    const cfg = JSON.parse(localStorage.getItem(configKey)) || defaultConfig;
+
+    const root = document.documentElement;
+    root.style.setProperty('--header-size', cfg.headerSize + 'px');
+    root.style.setProperty('--header-color', cfg.headerColor);
+    root.style.setProperty('--header-font', cfg.headerFont);
+    root.style.setProperty('--header-weight', cfg.headerBold ? '700' : '400');
+
+    root.style.setProperty('--name-size', cfg.nameSize + 'px');
+    root.style.setProperty('--name-color', cfg.nameColor);
+    root.style.setProperty('--name-font', cfg.nameFont);
+    root.style.setProperty('--name-weight', cfg.nameBold ? '700' : '400');
+
+    root.style.setProperty('--countdown-size', cfg.countdownSize + 'px');
+    root.style.setProperty('--countdown-color', cfg.countdownColor);
+    root.style.setProperty('--countdown-font', cfg.countdownFont);
+    root.style.setProperty('--countdown-weight', cfg.countdownBold ? '700' : '400');
+
+    root.style.setProperty('--date-size', cfg.dateSize + 'px');
+    root.style.setProperty('--date-color', cfg.dateColor);
+    root.style.setProperty('--date-font', cfg.dateFont);
+    root.style.setProperty('--date-weight', cfg.dateBold ? '700' : '400');
+
+    document.body.style.backgroundColor = cfg.bgColor;
+  }
+
+  function loadPageData() {
+    const today = new Date();
+    const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+    const dateString = "Today - " + today.toLocaleDateString('en-US', options);
+
+    document.getElementById('header-alerts').textContent = dateString;
+    document.getElementById('header-data').textContent = dateString;
+
+    document.getElementById('list-alerts').innerHTML = `
+      <div class="event">
+        <div class="event-name">V! Recharge</div>
+        <div class="event-countdown">In 2 days</div>
+        <div class="event-date">29 Jul 2026</div>
+      </div>
+    `;
+
+    document.getElementById('list-data').innerHTML = `
+      <div class="event">
+        <div class="event-name">V! Recharge</div>
+        <div class="event-countdown">In 2 days</div>
+        <div class="event-date">29 Jul 2026</div>
+      </div>
+    `;
   }
 
   document.addEventListener('DOMContentLoaded', () => {
     populateFontDropdowns();
+    applyStyles();
+    loadPageData();
   });
 </script>
 </body>
-           </html>
-                      
+ </html>
+           
