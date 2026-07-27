@@ -454,10 +454,16 @@ const firebaseConfig = {
   measurementId: "G-HPDX62VBWK"
 };
 
-firebase.initializeApp(firebaseConfig);
-const settingsRef = firebase.database().ref("settings");
+let settingsRef = null;
+try {
+  firebase.initializeApp(firebaseConfig);
+  settingsRef = firebase.database().ref("settings");
+} catch (e) {
+  console.error("Firebase init failed:", e);
+}
 
 function saveCloudSettings(data) {
+  if (!settingsRef) return Promise.reject(new Error("Firebase not available"));
   return settingsRef.set(data);
 }
 
@@ -755,22 +761,26 @@ function resetSettings() {
 }
 
 // Realtime Firebase Settings Sync
-settingsRef.on("value", (snapshot) => {
-  const val = snapshot.val();
-  if (val) {
-    if (val.alerts) cloudSettings.alerts = val.alerts;
-    if (val.data) cloudSettings.data = val.data;
+if (settingsRef) {
+  settingsRef.on("value", (snapshot) => {
+    const val = snapshot.val();
+    if (val) {
+      if (val.alerts) cloudSettings.alerts = val.alerts;
+      if (val.data) cloudSettings.data = val.data;
 
-    applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
-    applyFontSettingsToContainer("page-data", cloudSettings.data);
-    applyPageBackground(getActivePageName());
-    setSyncStatus("Synced");
-  } else {
-    setSyncStatus("");
-  }
-}, (error) => {
-  setSyncStatus("Sync error");
-});
+      applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
+      applyFontSettingsToContainer("page-data", cloudSettings.data);
+      applyPageBackground(getActivePageName());
+      setSyncStatus("Synced");
+    } else {
+      setSyncStatus("");
+    }
+  }, (error) => {
+    setSyncStatus("Sync error");
+  });
+} else {
+  setSyncStatus("Offline");
+}
 </script>
 </body>
 </html>
