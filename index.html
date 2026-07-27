@@ -33,7 +33,7 @@
   .nav button {
     background: none;
     border: none;
-    color: #000000;
+    color: #e6e6e6;
     font-size: 15px;
     font-family: inherit;
     cursor: pointer;
@@ -234,19 +234,20 @@
     border-radius: 6px;
   }
 
-  .settings-field input[type="color"] {
-    width: 44px;
-    height: 34px;
-    padding: 0;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-  }
-
   .settings-field select {
     padding: 6px;
     border: 1px solid #ccc;
     border-radius: 6px;
-    max-width: 130px;
+    max-width: 140px;
+  }
+
+  .color-swatch {
+    width: 44px;
+    height: 34px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 0;
   }
 
   .settings-field-bold {
@@ -285,6 +286,130 @@
     background: #eee;
     color: #000000;
   }
+
+  /* ---------- Custom color picker ---------- */
+  .cp-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 40;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cp-overlay.open {
+    display: flex;
+  }
+
+  .cp-panel {
+    background: #ffffff;
+    width: 90%;
+    max-width: 360px;
+    border-radius: 14px;
+    padding: 20px;
+  }
+
+  .cp-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+
+  .cp-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .cp-tile {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border: 1px solid #999;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .cp-tile-rainbow {
+    background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red);
+  }
+
+  .cp-spectrum {
+    display: none;
+    margin-bottom: 16px;
+  }
+
+  .cp-spectrum.open {
+    display: block;
+  }
+
+  .cp-canvas {
+    width: 100%;
+    height: 160px;
+    border-radius: 8px;
+    touch-action: none;
+    display: block;
+  }
+
+  .cp-hue {
+    width: 100%;
+    height: 22px;
+    margin-top: 10px;
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: 11px;
+    background: linear-gradient(to right, red, yellow, lime, cyan, blue, magenta, red);
+  }
+
+  .cp-hue::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid #333;
+  }
+
+  .cp-preview-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .cp-preview {
+    width: 50px;
+    height: 34px;
+    border: 1px solid #999;
+    border-radius: 6px;
+  }
+
+  .cp-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .cp-actions button {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .cp-cancel {
+    background: #eee;
+    color: #000;
+  }
+
+  .cp-set {
+    background: #d40000;
+    color: #fff;
+  }
 </style>
 </head>
 <body>
@@ -312,17 +437,11 @@
         </div>
         <div class="settings-field">
           <label>Color</label>
-          <input type="color" id="header-color">
+          <button type="button" class="color-swatch" id="header-color-swatch" onclick="openColorPicker('header')"></button>
         </div>
         <div class="settings-field">
           <label>Style</label>
-          <select id="header-font">
-            <option value="inherit">Default</option>
-            <option value="Georgia, serif">Serif</option>
-            <option value="'Courier New', monospace">Monospace</option>
-            <option value="'Arial Black', sans-serif">Bold Sans</option>
-            <option value="Verdana, sans-serif">Rounded</option>
-          </select>
+          <select id="header-font"></select>
         </div>
         <div class="settings-field-bold">
           <label>Bold</label>
@@ -340,17 +459,11 @@
         </div>
         <div class="settings-field">
           <label>Color</label>
-          <input type="color" id="name-color">
+          <button type="button" class="color-swatch" id="name-color-swatch" onclick="openColorPicker('name')"></button>
         </div>
         <div class="settings-field">
           <label>Style</label>
-          <select id="name-font">
-            <option value="inherit">Default</option>
-            <option value="Georgia, serif">Serif</option>
-            <option value="'Courier New', monospace">Monospace</option>
-            <option value="'Arial Black', sans-serif">Bold Sans</option>
-            <option value="Verdana, sans-serif">Rounded</option>
-          </select>
+          <select id="name-font"></select>
         </div>
         <div class="settings-field-bold">
           <label>Bold</label>
@@ -368,17 +481,11 @@
         </div>
         <div class="settings-field">
           <label>Color</label>
-          <input type="color" id="countdown-color">
+          <button type="button" class="color-swatch" id="countdown-color-swatch" onclick="openColorPicker('countdown')"></button>
         </div>
         <div class="settings-field">
           <label>Style</label>
-          <select id="countdown-font">
-            <option value="inherit">Default</option>
-            <option value="Georgia, serif">Serif</option>
-            <option value="'Courier New', monospace">Monospace</option>
-            <option value="'Arial Black', sans-serif">Bold Sans</option>
-            <option value="Verdana, sans-serif">Rounded</option>
-          </select>
+          <select id="countdown-font"></select>
         </div>
         <div class="settings-field-bold">
           <label>Bold</label>
@@ -396,17 +503,11 @@
         </div>
         <div class="settings-field">
           <label>Color</label>
-          <input type="color" id="date-color">
+          <button type="button" class="color-swatch" id="date-color-swatch" onclick="openColorPicker('date')"></button>
         </div>
         <div class="settings-field">
           <label>Style</label>
-          <select id="date-font">
-            <option value="inherit">Default</option>
-            <option value="Georgia, serif">Serif</option>
-            <option value="'Courier New', monospace">Monospace</option>
-            <option value="'Arial Black', sans-serif">Bold Sans</option>
-            <option value="Verdana, sans-serif">Rounded</option>
-          </select>
+          <select id="date-font"></select>
         </div>
         <div class="settings-field-bold">
           <label>Bold</label>
@@ -418,6 +519,40 @@
     <div class="settings-actions">
       <button class="settings-reset" onclick="resetSettings()">Reset (this page)</button>
       <button class="settings-apply" onclick="applySettings()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom color picker popup -->
+<div id="cpOverlay" class="cp-overlay">
+  <div class="cp-panel">
+    <div class="cp-title">Select color</div>
+
+    <div class="cp-grid" id="cpGrid">
+      <button type="button" class="cp-tile" style="background:#ff0000" onclick="cpPickPreset('#ff0000')"></button>
+      <button type="button" class="cp-tile" style="background:#00ffff" onclick="cpPickPreset('#00ffff')"></button>
+      <button type="button" class="cp-tile" style="background:#0000ff" onclick="cpPickPreset('#0000ff')"></button>
+      <button type="button" class="cp-tile" style="background:#00ff00" onclick="cpPickPreset('#00ff00')"></button>
+      <button type="button" class="cp-tile" style="background:#ff00ff" onclick="cpPickPreset('#ff00ff')"></button>
+      <button type="button" class="cp-tile" style="background:#ffff00" onclick="cpPickPreset('#ffff00')"></button>
+      <button type="button" class="cp-tile" style="background:#000000" onclick="cpPickPreset('#000000')"></button>
+      <button type="button" class="cp-tile" style="background:#ffffff" onclick="cpPickPreset('#ffffff')"></button>
+      <button type="button" class="cp-tile cp-tile-rainbow" onclick="cpOpenSpectrum()"></button>
+    </div>
+
+    <div class="cp-spectrum" id="cpSpectrum">
+      <canvas class="cp-canvas" id="cpCanvas"></canvas>
+      <input type="range" class="cp-hue" id="cpHue" min="0" max="360" value="0">
+    </div>
+
+    <div class="cp-preview-row">
+      <span>Chosen color</span>
+      <div class="cp-preview" id="cpPreview"></div>
+    </div>
+
+    <div class="cp-actions">
+      <button class="cp-cancel" onclick="closeColorPicker()">Cancel</button>
+      <button class="cp-set" onclick="cpConfirm()">Set</button>
     </div>
   </div>
 </div>
@@ -578,127 +713,44 @@ loadAll();
 setInterval(loadAll, 3000);
 
 // ============================================================
-// Per-page font Settings (size, color, style, bold)
-// Alerts page and List page now have SEPARATE saved settings.
+// Font style options (20 total, simple styles only)
 // ============================================================
-const FONT_TARGETS = ["header", "name", "countdown", "date"];
+const FONT_OPTIONS = [
+  { label: "Default", value: "inherit" },
+  { label: "Arial", value: "Arial, sans-serif" },
+  { label: "Helvetica", value: "Helvetica, Arial, sans-serif" },
+  { label: "Verdana", value: "Verdana, sans-serif" },
+  { label: "Tahoma", value: "Tahoma, sans-serif" },
+  { label: "Trebuchet MS", value: "'Trebuchet MS', sans-serif" },
+  { label: "Segoe UI", value: "'Segoe UI', sans-serif" },
+  { label: "Calibri", value: "Calibri, sans-serif" },
+  { label: "Century Gothic", value: "'Century Gothic', sans-serif" },
+  { label: "Franklin Gothic", value: "'Franklin Gothic Medium', sans-serif" },
+  { label: "Arial Black", value: "'Arial Black', sans-serif" },
+  { label: "Georgia", value: "Georgia, serif" },
+  { label: "Times New Roman", value: "'Times New Roman', serif" },
+  { label: "Garamond", value: "Garamond, serif" },
+  { label: "Palatino", value: "'Palatino Linotype', serif" },
+  { label: "Book Antiqua", value: "'Book Antiqua', serif" },
+  { label: "Cambria", value: "Cambria, serif" },
+  { label: "Courier New", value: "'Courier New', monospace" },
+  { label: "Lucida Console", value: "'Lucida Console', monospace" },
+  { label: "Consolas", value: "Consolas, monospace" }
+];
 
-const DEFAULT_FONT_SETTINGS = {
-  header:    { size: 19, color: "#000000", font: "inherit", bold: false },
-  name:      { size: 20, color: "#000000", font: "inherit", bold: false },
-  countdown: { size: 26, color: "#ff0000", font: "inherit", bold: true  },
-  date:      { size: 15, color: "#000000", font: "inherit", bold: false }
-};
-
-function cloneDefaults() {
-  return JSON.parse(JSON.stringify(DEFAULT_FONT_SETTINGS));
-}
-
-function getSavedFontSettings(page) {
-  try {
-    const raw = localStorage.getItem(`fontSettings_${page}`);
-    if (!raw) return null;
-    return JSON.parse(raw);
-  } catch (e) {
-    return null;
-  }
-}
-
-function applyFontSettingsToContainer(containerId, settings) {
-  const container = document.getElementById(containerId);
-  FONT_TARGETS.forEach((target) => {
-    const s = settings[target] || DEFAULT_FONT_SETTINGS[target];
-    container.style.setProperty(`--${target}-size`, s.size + "px");
-    container.style.setProperty(`--${target}-color`, s.color);
-    container.style.setProperty(`--${target}-font`, s.font);
-    container.style.setProperty(`--${target}-weight`, s.bold ? "700" : "400");
+function populateFontSelects() {
+  ["header-font", "name-font", "countdown-font", "date-font"].forEach((id) => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = "";
+    FONT_OPTIONS.forEach((opt) => {
+      const o = document.createElement("option");
+      o.value = opt.value;
+      o.textContent = opt.label;
+      sel.appendChild(o);
+    });
   });
 }
+populateFontSelects();
 
-function fillSettingsForm(settings) {
-  FONT_TARGETS.forEach((target) => {
-    const s = settings[target] || DEFAULT_FONT_SETTINGS[target];
-    document.getElementById(`${target}-size`).value = s.size;
-    document.getElementById(`${target}-color`).value = s.color;
-    document.getElementById(`${target}-font`).value = s.font;
-    document.getElementById(`${target}-bold`).checked = !!s.bold;
-  });
-}
-
-function readSettingsForm() {
-  const settings = {};
-  FONT_TARGETS.forEach((target) => {
-    settings[target] = {
-      size: parseInt(document.getElementById(`${target}-size`).value, 10) || DEFAULT_FONT_SETTINGS[target].size,
-      color: document.getElementById(`${target}-color`).value,
-      font: document.getElementById(`${target}-font`).value,
-      bold: document.getElementById(`${target}-bold`).checked
-    };
-  });
-  return settings;
-}
-
-let configDrafts = null;
-let currentConfigTab = "alerts";
-
-function updateTabUI() {
-  document.getElementById("cfgtab-alerts").classList.toggle("active", currentConfigTab === "alerts");
-  document.getElementById("cfgtab-data").classList.toggle("active", currentConfigTab === "data");
-}
-
-function switchConfigTab(tab) {
-  configDrafts[currentConfigTab] = readSettingsForm();
-  currentConfigTab = tab;
-  updateTabUI();
-  fillSettingsForm(configDrafts[currentConfigTab]);
-}
-
-function openSettings() {
-  configDrafts = {
-    alerts: getSavedFontSettings("alerts") || cloneDefaults(),
-    data: getSavedFontSettings("data") || cloneDefaults()
-  };
-  currentConfigTab = "alerts";
-  updateTabUI();
-  fillSettingsForm(configDrafts.alerts);
-  document.getElementById("settingsOverlay").classList.add("open");
-}
-
-function closeSettings() {
-  document.getElementById("settingsOverlay").classList.remove("open");
-}
-
-function applySettings() {
-  configDrafts[currentConfigTab] = readSettingsForm();
-
-  localStorage.setItem("fontSettings_alerts", JSON.stringify(configDrafts.alerts));
-  localStorage.setItem("fontSettings_data", JSON.stringify(configDrafts.data));
-
-  applyFontSettingsToContainer("page-alerts", configDrafts.alerts);
-  applyFontSettingsToContainer("page-data", configDrafts.data);
-
-  closeSettings();
-}
-
-function resetSettings() {
-  const defaults = cloneDefaults();
-  configDrafts[currentConfigTab] = defaults;
-
-  localStorage.setItem(`fontSettings_${currentConfigTab}`, JSON.stringify(defaults));
-  applyFontSettingsToContainer(
-    currentConfigTab === "alerts" ? "page-alerts" : "page-data",
-    defaults
-  );
-  fillSettingsForm(defaults);
-}
-
-// On load: apply any saved font settings immediately for BOTH pages.
-(function initFontSettings() {
-  const alertsSettings = getSavedFontSettings("alerts") || cloneDefaults();
-  const dataSettings = getSavedFontSettings("data") || cloneDefaults();
-  applyFontSettingsToContainer("page-alerts", alertsSettings);
-  applyFontSettingsToContainer("page-data", dataSettings);
-})();
-</script>
-</body>
-                                                 </html>
+// ============================================================
+// Per-page font Settings (size, co
