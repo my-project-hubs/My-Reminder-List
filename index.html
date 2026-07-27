@@ -722,4 +722,11 @@ function applySettings() {
 }
 
 function resetSettings() {
-  const def
+    const defaults = cloneDefaults();
+  configDrafts[currentConfigTab] = defaults;
+  fillSettingsForm(defaults);
+}
+</script>
+</body>
+</html>
+
