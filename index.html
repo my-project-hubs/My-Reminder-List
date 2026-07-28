@@ -174,7 +174,7 @@
     border: 1px solid #ddd;
     background: #f5f5f5;
     color: #000;
-    font-size: 14px;
+    font-size: 28px;
     font-weight: 600;
     cursor: pointer;
   }
@@ -276,6 +276,7 @@
     padding: 12px;
     border-radius: 8px;
     border: none;
+    font-size: 34px;
     font-weight: 700;
     cursor: pointer;
   }
@@ -309,6 +310,29 @@
   .settings-controls:has(#countdown-size),
   .settings-controls:has(#date-size) {
     justify-content: space-between;
+  }
+
+  .settings-controls:has(#page-bg-color) {
+    justify-content: flex-start;
+  }
+
+  .settings-controls:has(#page-bg-color) .settings-field {
+    align-items: flex-start;
+  }
+
+  .settings-controls:has(#page-bg-color) label {
+    text-align: left;
+  }
+
+  .settings-row:has(#header-size),
+  .settings-row:has(#name-size),
+  .settings-row:has(#countdown-size),
+  .settings-row:has(#date-size) {
+    border: 1px solid #555555;
+    border-top: 1px solid #555555;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
   }
 </style>
 </head>
@@ -469,8 +493,8 @@
 <div id="page-data" class="page">
   <div id="header-data" class="header-date"></div>
   <div id="list-data"><div class="loading">Loading...</div></div>
-                                      </div>
-   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+ </div>
+ <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhnQJrsY7BIuA3h5iMxaU3-yr3J9skyPtSSL_YoQfmYYQYXfPFnGWDH1loxyXC3mtl9-PS-oLa5_0n/pub?output=csv";
@@ -859,4 +883,4 @@ if (settingsRef) {
 }
 </script>
 </body>
- </html>                                   
+ </html>
