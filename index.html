@@ -598,14 +598,8 @@ function parseSheetCSV(csvText) {
   return { header, events };
 }
 
-// ⬇️ सिर्फ यह function बदला है - बाकी सब वैसा ही
 async function fetchSheetData() {
-  const response = await fetch(SHEET_CSV_URL, { 
-    cache: "no-store",
-    headers: {
-      'Cache-Control': 'no-cache, no-store, must-revalidate'
-    }
-  });
+  const response = await fetch(SHEET_CSV_URL, { cache: "no-store" });
   if (!response.ok) throw new Error("Network response was not ok");
   const text = await response.text();
   return parseSheetCSV(text);
@@ -631,6 +625,10 @@ function getCylinderThresholdParts() {
   return { months, days };
 }
 
+// ⬇️ नया variable - डेटा चेक करने के लिए
+let currentDataHash = "";
+
+// ⬇️ loadAll function में 4 लाइनें जोड़ी गई हैं
 async function loadAll() {
   const headerAlerts = document.getElementById("header-alerts");
   const listAlerts = document.getElementById("list-alerts");
@@ -639,6 +637,14 @@ async function loadAll() {
 
   try {
     const { header, events } = await fetchSheetData();
+    
+    // ⬇️ ये 4 लाइनें नई हैं - डेटा चेक करने के लिए
+    const dataHash = JSON.stringify(events);
+    if (dataHash === currentDataHash) {
+      return; // डेटा नहीं बदला, कुछ मत करो
+    }
+    currentDataHash = dataHash;
+    // ⬆️ यहाँ तक नई लाइनें
 
     headerAlerts.textContent = header;
     headerData.textContent = header;
@@ -898,4 +904,4 @@ if (settingsRef) {
 }
 </script>
 </body>
- </html>
+</html>
