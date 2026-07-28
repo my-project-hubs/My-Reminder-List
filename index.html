@@ -17,7 +17,7 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     font-size: 17px;
     line-height: 1.5;
-    padding: 70px 20px 210px;
+    padding: 70px 20px 80px;
     max-width: 640px;
     margin: 0 auto;
   }
@@ -28,10 +28,19 @@
     font-family: var(--header-font, inherit);
     font-weight: var(--header-weight, 400);
     margin-bottom: 28px;
+    text-align: center;
   }
 
   .event {
     margin-bottom: 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* यह कार्ड को स्क्रीन के बीच में रखता है */
+  }
+
+  .event-inner {
+    display: inline-block;
+    text-align: left; /* कार्ड के अंदर का टेक्स्ट बाईं तरफ से अलाइन रहेगा */
   }
 
   .event-name {
@@ -40,6 +49,7 @@
     font-family: var(--name-font, inherit);
     font-weight: var(--name-weight, 400);
     margin-bottom: 4px;
+    text-align: center; /* नाम स्क्रीन के बीच में रहेगा */
   }
 
   .event-countdown {
@@ -48,6 +58,7 @@
     font-family: var(--countdown-font, inherit);
     font-weight: var(--countdown-weight, 700);
     margin-bottom: 2px;
+    text-align: left; /* Day Left नाम की शुरुआत से शुरू होगा */
   }
 
   .event-date {
@@ -55,30 +66,30 @@
     font-size: var(--date-size, 15px);
     font-family: var(--date-font, inherit);
     font-weight: var(--date-weight, 400);
-  }
-
-  #page-alerts .header-date {
-    text-align: center;
+    text-align: left; /* तारीख भी नाम की शुरुआत से शुरू होगी */
   }
 
   #list-alerts {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%;
   }
 
   #list-alerts .event {
-    text-align: left;
+    width: 100%;
   }
 
   .empty-state {
     color: #555;
     font-size: 16px;
     margin-top: 12px;
+    text-align: center;
   }
 
   .loading {
     color: #555;
+    text-align: center;
   }
 
   .page {
@@ -361,9 +372,8 @@
           <input type="number" id="threshold-cylinder" step="0.01" min="0" max="24">
         </div>
       </div>
-    </div>
-
-    <div class="settings-page-tabs">
+ </div>
+       <div class="settings-page-tabs">
       <button id="cfgtab-alerts" class="cfgtab active" onclick="switchConfigTab('alerts')">Alerts Page</button>
       <button id="cfgtab-data" class="cfgtab" onclick="switchConfigTab('data')">List Page</button>
     </div>
@@ -493,8 +503,9 @@
 <div id="page-data" class="page">
   <div id="header-data" class="header-date"></div>
   <div id="list-data"><div class="loading">Loading...</div></div>
-         </div>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhnQJrsY7BIuA3h5iMxaU3-yr3J9skyPtSSL_YoQfmYYQYXfPFnGWDH1loxyXC3mtl9-PS-oLa5_0n/pub?output=csv";
@@ -608,9 +619,11 @@ function renderEvents(container, events) {
     const item = document.createElement("div");
     item.className = "event";
     item.innerHTML = `
-      <div class="event-name">${e.name}</div>
-      <div class="event-countdown">${e.countdown}</div>
-      <div class="event-date">${e.date}</div>
+      <div class="event-inner">
+        <div class="event-name">${e.name}</div>
+        <div class="event-countdown">${e.countdown}</div>
+        <div class="event-date">${e.date}</div>
+      </div>
     `;
     container.appendChild(item);
   });
@@ -889,5 +902,6 @@ if (settingsRef) {
 }
 </script>
 </body>
- </html>
+           </html>
+             
  
