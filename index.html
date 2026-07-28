@@ -302,6 +302,18 @@
 
   .settings-row:has(#threshold-days) .settings-controls {
     gap: 60px;
+    justify-content: flex-start;
+  }
+
+  .settings-controls:has(#header-size),
+  .settings-controls:has(#name-size),
+  .settings-controls:has(#countdown-size),
+  .settings-controls:has(#date-size) {
+    justify-content: space-between;
+  }
+
+  .settings-controls:has(#page-bg-color) {
+    justify-content: flex-start;
   }
 </style>
 </head>
@@ -328,6 +340,10 @@
         <div class="settings-field">
           <label class="lbl-sm">Gas Cylinder</label>
           <input type="number" id="threshold-months" min="1" max="24">
+        </div>
+        <div class="settings-field">
+          <label class="lbl-sm">Days</label>
+          <input type="number" id="threshold-cyl-days" min="0" max="31">
         </div>
       </div>
     </div>
@@ -470,6 +486,7 @@
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhnQJrsY7BIuA3h5iMxaU3-yr3J9skyPtSSL_YoQfmYYQYXfPFnGWDH1loxyXC3mtl9-PS-oLa5_0n/pub?output=csv";
 let ALERT_THRESHOLD_DAYS = 15;
 let CYLINDER_THRESHOLD_MONTHS = 3;
+let CYLINDER_THRESHOLD_DAYS = 0;
 
 const firebaseConfig = {
   apiKey: "AIzaSyAynuPWAbwu6etjBTqBejpppw4S4umoKPM",
@@ -605,7 +622,11 @@ async function loadAll() {
         return e.days <= ALERT_THRESHOLD_DAYS;
       }
       if (e.isMonthFormat && e.monthsElapsed !== null) {
-        return e.monthsElapsed >= CYLINDER_THRESHOLD_MONTHS;
+        if (e.monthsElapsed > CYLINDER_THRESHOLD_MONTHS) return true;
+        if (e.monthsElapsed === CYLINDER_THRESHOLD_MONTHS) {
+          return (e.daysElapsed || 0) >= CYLINDER_THRESHOLD_DAYS;
+        }
+        return false;
       }
       return false;
     });
@@ -769,6 +790,7 @@ function openSettings() {
   fillSettingsForm(configDrafts[currentConfigTab]);
   document.getElementById("threshold-days").value = ALERT_THRESHOLD_DAYS;
   document.getElementById("threshold-months").value = CYLINDER_THRESHOLD_MONTHS;
+  document.getElementById("threshold-cyl-days").value = CYLINDER_THRESHOLD_DAYS;
   document.getElementById("settingsOverlay").classList.add("open");
 }
 
@@ -784,12 +806,15 @@ async function applySettings() {
 
   const daysVal = parseInt(document.getElementById("threshold-days").value, 10);
   const monthsVal = parseInt(document.getElementById("threshold-months").value, 10);
+  const cylDaysVal = parseInt(document.getElementById("threshold-cyl-days").value, 10);
   cloudSettings.thresholds = {
     days: isNaN(daysVal) ? ALERT_THRESHOLD_DAYS : daysVal,
-    months: isNaN(monthsVal) ? CYLINDER_THRESHOLD_MONTHS : monthsVal
+    months: isNaN(monthsVal) ? CYLINDER_THRESHOLD_MONTHS : monthsVal,
+    cylDays: isNaN(cylDaysVal) ? CYLINDER_THRESHOLD_DAYS : cylDaysVal
   };
   ALERT_THRESHOLD_DAYS = cloudSettings.thresholds.days;
   CYLINDER_THRESHOLD_MONTHS = cloudSettings.thresholds.months;
+  CYLINDER_THRESHOLD_DAYS = cloudSettings.thresholds.cylDays;
 
   applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
   applyFontSettingsToContainer("page-data", cloudSettings.data);
@@ -823,6 +848,7 @@ if (settingsRef) {
         cloudSettings.thresholds = val.thresholds;
         ALERT_THRESHOLD_DAYS = val.thresholds.days || ALERT_THRESHOLD_DAYS;
         CYLINDER_THRESHOLD_MONTHS = val.thresholds.months || CYLINDER_THRESHOLD_MONTHS;
+        CYLINDER_THRESHOLD_DAYS = val.thresholds.cylDays || 0;
       }
 
       applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
