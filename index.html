@@ -243,7 +243,6 @@
     gap: 6px;
     align-items: center;
     justify-content: center;
-    margin-left: 14px;
   }
 
   .color-combo input[type="color"] {
@@ -311,10 +310,6 @@
   .settings-controls:has(#date-size) {
     justify-content: space-between;
   }
-
-  .settings-controls:has(#page-bg-color) {
-    justify-content: flex-start;
-  }
 </style>
 </head>
 <body>
@@ -339,11 +334,7 @@
         </div>
         <div class="settings-field">
           <label class="lbl-sm">Gas Cylinder</label>
-          <input type="number" id="threshold-months" min="1" max="24">
-        </div>
-        <div class="settings-field">
-          <label class="lbl-sm">Days</label>
-          <input type="number" id="threshold-cyl-days" min="0" max="31">
+          <input type="number" id="threshold-cylinder" step="0.01" min="0" max="24">
         </div>
       </div>
     </div>
@@ -366,7 +357,7 @@
     </div>
 
     <div class="settings-row">
-      <div class="settings-row-label">Date Header (Today - ...)</div>
+      <div class="settings-row-label">Top Date</div>
       <div class="settings-controls">
         <div class="settings-field">
           <label>Size</label>
@@ -390,7 +381,7 @@
     </div>
 
     <div class="settings-row">
-      <div class="settings-row-label">Name (e.g. V! Recharge)</div>
+      <div class="settings-row-label">Name</div>
       <div class="settings-controls">
         <div class="settings-field">
           <label>Size</label>
@@ -414,7 +405,7 @@
     </div>
 
     <div class="settings-row">
-      <div class="settings-row-label">Day Left (red line)</div>
+      <div class="settings-row-label">Day Left</div>
       <div class="settings-controls">
         <div class="settings-field">
           <label>Size</label>
@@ -440,7 +431,7 @@
     <div class="settings-row">
       <div class="settings-row-label">Date</div>
       <div class="settings-controls">
-       <div class="settings-field">
+        <div class="settings-field">
           <label>Size</label>
           <input type="number" id="date-size" min="8" max="60">
         </div>
@@ -478,15 +469,13 @@
 <div id="page-data" class="page">
   <div id="header-data" class="header-date"></div>
   <div id="list-data"><div class="loading">Loading...</div></div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+                                      </div>
+   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhnQJrsY7BIuA3h5iMxaU3-yr3J9skyPtSSL_YoQfmYYQYXfPFnGWDH1loxyXC3mtl9-PS-oLa5_0n/pub?output=csv";
 let ALERT_THRESHOLD_DAYS = 15;
-let CYLINDER_THRESHOLD_MONTHS = 3;
-let CYLINDER_THRESHOLD_DAYS = 0;
+let CYLINDER_THRESHOLD_VALUE = 3.00; // format: Month.DD e.g. 3.05 = 3 months 05 days
 
 const firebaseConfig = {
   apiKey: "AIzaSyAynuPWAbwu6etjBTqBejpppw4S4umoKPM",
@@ -603,6 +592,12 @@ function renderEvents(container, events) {
   });
 }
 
+function getCylinderThresholdParts() {
+  const months = Math.floor(CYLINDER_THRESHOLD_VALUE);
+  const days = Math.round((CYLINDER_THRESHOLD_VALUE - months) * 100);
+  return { months, days };
+}
+
 async function loadAll() {
   const headerAlerts = document.getElementById("header-alerts");
   const listAlerts = document.getElementById("list-alerts");
@@ -617,14 +612,16 @@ async function loadAll() {
 
     renderEvents(listData, events);
 
+    const { months: thMonths, days: thDays } = getCylinderThresholdParts();
+
     const alerts = events.filter((e) => {
       if (e.isDayFormat && e.days !== null) {
         return e.days <= ALERT_THRESHOLD_DAYS;
       }
       if (e.isMonthFormat && e.monthsElapsed !== null) {
-        if (e.monthsElapsed > CYLINDER_THRESHOLD_MONTHS) return true;
-        if (e.monthsElapsed === CYLINDER_THRESHOLD_MONTHS) {
-          return (e.daysElapsed || 0) >= CYLINDER_THRESHOLD_DAYS;
+        if (e.monthsElapsed > thMonths) return true;
+        if (e.monthsElapsed === thMonths) {
+          return (e.daysElapsed || 0) >= thDays;
         }
         return false;
       }
@@ -789,8 +786,7 @@ function openSettings() {
   updateTabUI();
   fillSettingsForm(configDrafts[currentConfigTab]);
   document.getElementById("threshold-days").value = ALERT_THRESHOLD_DAYS;
-  document.getElementById("threshold-months").value = CYLINDER_THRESHOLD_MONTHS;
-  document.getElementById("threshold-cyl-days").value = CYLINDER_THRESHOLD_DAYS;
+  document.getElementById("threshold-cylinder").value = CYLINDER_THRESHOLD_VALUE.toFixed(2);
   document.getElementById("settingsOverlay").classList.add("open");
 }
 
@@ -805,16 +801,13 @@ async function applySettings() {
   cloudSettings.data = configDrafts.data;
 
   const daysVal = parseInt(document.getElementById("threshold-days").value, 10);
-  const monthsVal = parseInt(document.getElementById("threshold-months").value, 10);
-  const cylDaysVal = parseInt(document.getElementById("threshold-cyl-days").value, 10);
+  const cylVal = parseFloat(document.getElementById("threshold-cylinder").value);
   cloudSettings.thresholds = {
     days: isNaN(daysVal) ? ALERT_THRESHOLD_DAYS : daysVal,
-    months: isNaN(monthsVal) ? CYLINDER_THRESHOLD_MONTHS : monthsVal,
-    cylDays: isNaN(cylDaysVal) ? CYLINDER_THRESHOLD_DAYS : cylDaysVal
+    cylinder: isNaN(cylVal) ? CYLINDER_THRESHOLD_VALUE : cylVal
   };
   ALERT_THRESHOLD_DAYS = cloudSettings.thresholds.days;
-  CYLINDER_THRESHOLD_MONTHS = cloudSettings.thresholds.months;
-  CYLINDER_THRESHOLD_DAYS = cloudSettings.thresholds.cylDays;
+  CYLINDER_THRESHOLD_VALUE = cloudSettings.thresholds.cylinder;
 
   applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
   applyFontSettingsToContainer("page-data", cloudSettings.data);
@@ -847,8 +840,7 @@ if (settingsRef) {
       if (val.thresholds) {
         cloudSettings.thresholds = val.thresholds;
         ALERT_THRESHOLD_DAYS = val.thresholds.days || ALERT_THRESHOLD_DAYS;
-        CYLINDER_THRESHOLD_MONTHS = val.thresholds.months || CYLINDER_THRESHOLD_MONTHS;
-        CYLINDER_THRESHOLD_DAYS = val.thresholds.cylDays || 0;
+        CYLINDER_THRESHOLD_VALUE = (val.thresholds.cylinder !== undefined) ? val.thresholds.cylinder : CYLINDER_THRESHOLD_VALUE;
       }
 
       applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
@@ -867,4 +859,4 @@ if (settingsRef) {
 }
 </script>
 </body>
- </html>
+ </html>                                   
