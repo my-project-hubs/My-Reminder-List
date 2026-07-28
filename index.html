@@ -285,7 +285,7 @@
     top: 18px;
     left: 16px;
     font-size: 11px;
-    color: #bbb;
+    color: #ffffff;
     z-index: 15;
   }
 </style>
@@ -301,6 +301,20 @@
     <div class="settings-title">
       <span>Settings</span>
       <button onclick="closeSettings()">✕</button>
+    </div>
+
+    <div class="settings-row">
+      <div class="settings-row-label">Alert Threshold</div>
+      <div class="settings-controls">
+        <div class="settings-field">
+          <label>Din baaki (Day Left)</label>
+          <input type="number" id="threshold-days" min="1" max="365">
+        </div>
+        <div class="settings-field">
+          <label>Mahine (Gas Cylinder)</label>
+          <input type="number" id="threshold-months" min="1" max="24">
+        </div>
+      </div>
     </div>
 
     <div class="settings-page-tabs">
@@ -388,10 +402,10 @@
         <div class="settings-field-bold">
           <label>Bold</label>
           <input type="checkbox" id="countdown-bold">
-                 </div>
+        </div>
       </div>
-    </div>
-
+           </div>
+   
     <div class="settings-row">
       <div class="settings-row-label">Date</div>
       <div class="settings-controls">
@@ -439,8 +453,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhnQJrsY7BIuA3h5iMxaU3-yr3J9skyPtSSL_YoQfmYYQYXfPFnGWDH1loxyXC3mtl9-PS-oLa5_0n/pub?output=csv";
-const ALERT_THRESHOLD_DAYS = 15;
-const CYLINDER_THRESHOLD_MONTHS = 3;
+let ALERT_THRESHOLD_DAYS = 15;
+let CYLINDER_THRESHOLD_MONTHS = 3;
 
 const firebaseConfig = {
   apiKey: "AIzaSyAynuPWAbwu6etjBTqBejpppw4S4umoKPM",
@@ -479,6 +493,7 @@ function showPage(name) {
   document.getElementById("page-alerts").classList.toggle("active", name === "alerts");
   document.getElementById("page-data").classList.toggle("active", name === "data");
   document.getElementById("pageToggleBtn").textContent = name === "alerts" ? "List" : "Alerts";
+  localStorage.setItem("activePage", name);
   applyPageBackground(name);
 }
 
@@ -655,7 +670,8 @@ function getSavedFontSettings(page) {
   return cloudSettings[page] || cloneDefaults();
 }
 
-showPage("alerts");
+const savedPage = localStorage.getItem("activePage");
+showPage(savedPage === "data" ? "data" : "alerts");
 
 function applyFontSettingsToContainer(containerId, settings) {
   const container = document.getElementById(containerId);
@@ -721,6 +737,8 @@ function openSettings() {
   currentConfigTab = getActivePageName();
   updateTabUI();
   fillSettingsForm(configDrafts[currentConfigTab]);
+  document.getElementById("threshold-days").value = ALERT_THRESHOLD_DAYS;
+  document.getElementById("threshold-months").value = CYLINDER_THRESHOLD_MONTHS;
   document.getElementById("settingsOverlay").classList.add("open");
 }
 
@@ -734,9 +752,19 @@ async function applySettings() {
   cloudSettings.alerts = configDrafts.alerts;
   cloudSettings.data = configDrafts.data;
 
+  const daysVal = parseInt(document.getElementById("threshold-days").value, 10);
+  const monthsVal = parseInt(document.getElementById("threshold-months").value, 10);
+  cloudSettings.thresholds = {
+    days: isNaN(daysVal) ? ALERT_THRESHOLD_DAYS : daysVal,
+    months: isNaN(monthsVal) ? CYLINDER_THRESHOLD_MONTHS : monthsVal
+  };
+  ALERT_THRESHOLD_DAYS = cloudSettings.thresholds.days;
+  CYLINDER_THRESHOLD_MONTHS = cloudSettings.thresholds.months;
+
   applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
   applyFontSettingsToContainer("page-data", cloudSettings.data);
   applyPageBackground(getActivePageName());
+  loadAll();
 
   setSyncStatus("Saving...");
   try {
@@ -761,10 +789,16 @@ if (settingsRef) {
     if (val) {
       if (val.alerts) cloudSettings.alerts = val.alerts;
       if (val.data) cloudSettings.data = val.data;
+      if (val.thresholds) {
+        cloudSettings.thresholds = val.thresholds;
+        ALERT_THRESHOLD_DAYS = val.thresholds.days || ALERT_THRESHOLD_DAYS;
+        CYLINDER_THRESHOLD_MONTHS = val.thresholds.months || CYLINDER_THRESHOLD_MONTHS;
+      }
 
       applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
       applyFontSettingsToContainer("page-data", cloudSettings.data);
       applyPageBackground(getActivePageName());
+      loadAll();
       setSyncStatus("Synced");
     } else {
       setSyncStatus("");
@@ -777,6 +811,6 @@ if (settingsRef) {
 }
 </script>
 </body>
- </html>
- 
- 
+     </html>
+         
+                       
