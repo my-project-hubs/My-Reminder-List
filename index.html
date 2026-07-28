@@ -493,7 +493,7 @@
 <div id="page-data" class="page">
   <div id="header-data" class="header-date"></div>
   <div id="list-data"><div class="loading">Loading...</div></div>
- </div>
+                                           </div>
  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
@@ -538,6 +538,7 @@ function showPage(name) {
   document.getElementById("page-alerts").classList.toggle("active", name === "alerts");
   document.getElementById("page-data").classList.toggle("active", name === "data");
   document.getElementById("pageToggleBtn").textContent = name === "alerts" ? "List" : "Alerts";
+  sessionStorage.setItem("activePage", name);
   applyPageBackground(name);
 }
 
@@ -747,7 +748,8 @@ function getSavedFontSettings(page) {
   return cloudSettings[page] || cloneDefaults();
 }
 
-showPage("alerts");
+const savedPage = sessionStorage.getItem("activePage");
+showPage(savedPage === "data" ? "data" : "alerts");
 
 function applyFontSettingsToContainer(containerId, settings) {
   const container = document.getElementById(containerId);
@@ -888,3 +890,4 @@ if (settingsRef) {
 </script>
 </body>
 </html>
+                                           
