@@ -598,9 +598,14 @@ function parseSheetCSV(csvText) {
   return { header, events };
 }
 
-// ⬇️ यहाँ सिर्फ एक लाइन बदली है - "?t=" + Date.now() add किया है
+// ⬇️ सिर्फ यह function बदला है - बाकी सब वैसा ही
 async function fetchSheetData() {
-  const response = await fetch(SHEET_CSV_URL + "?t=" + Date.now(), { cache: "no-store" });
+  const response = await fetch(SHEET_CSV_URL, { 
+    cache: "no-store",
+    headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate'
+    }
+  });
   if (!response.ok) throw new Error("Network response was not ok");
   const text = await response.text();
   return parseSheetCSV(text);
@@ -893,4 +898,4 @@ if (settingsRef) {
 }
 </script>
 </body>
-</html>
+ </html>
