@@ -388,7 +388,7 @@
         <div class="settings-field-bold">
           <label>Bold</label>
           <input type="checkbox" id="countdown-bold">
-        </div>
+                 </div>
       </div>
     </div>
 
@@ -433,8 +433,9 @@
 <div id="page-data" class="page">
   <div id="header-data" class="header-date"></div>
   <div id="list-data"><div class="loading">Loading...</div></div>
- </div>
- <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhnQJrsY7BIuA3h5iMxaU3-yr3J9skyPtSSL_YoQfmYYQYXfPFnGWDH1loxyXC3mtl9-PS-oLa5_0n/pub?output=csv";
@@ -478,7 +479,6 @@ function showPage(name) {
   document.getElementById("page-alerts").classList.toggle("active", name === "alerts");
   document.getElementById("page-data").classList.toggle("active", name === "data");
   document.getElementById("pageToggleBtn").textContent = name === "alerts" ? "List" : "Alerts";
-  localStorage.setItem("activePage", name);
   applyPageBackground(name);
 }
 
@@ -655,8 +655,7 @@ function getSavedFontSettings(page) {
   return cloudSettings[page] || cloneDefaults();
 }
 
-const savedPage = localStorage.getItem("activePage");
-showPage(savedPage === "data" ? "data" : "alerts");
+showPage("alerts");
 
 function applyFontSettingsToContainer(containerId, settings) {
   const container = document.getElementById(containerId);
@@ -779,3 +778,5 @@ if (settingsRef) {
 </script>
 </body>
  </html>
+ 
+ 
