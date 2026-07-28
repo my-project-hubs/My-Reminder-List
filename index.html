@@ -28,19 +28,10 @@
     font-family: var(--header-font, inherit);
     font-weight: var(--header-weight, 400);
     margin-bottom: 28px;
-    text-align: center;
   }
 
   .event {
     margin-bottom: 22px;
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* यह कार्ड को स्क्रीन के बीच में रखता है */
-  }
-
-  .event-inner {
-    display: inline-block;
-    text-align: left; /* कार्ड के अंदर का टेक्स्ट बाईं तरफ से अलाइन रहेगा */
   }
 
   .event-name {
@@ -49,7 +40,6 @@
     font-family: var(--name-font, inherit);
     font-weight: var(--name-weight, 400);
     margin-bottom: 4px;
-    text-align: center; /* नाम स्क्रीन के बीच में रहेगा */
   }
 
   .event-countdown {
@@ -58,7 +48,6 @@
     font-family: var(--countdown-font, inherit);
     font-weight: var(--countdown-weight, 700);
     margin-bottom: 2px;
-    text-align: left; /* Day Left नाम की शुरुआत से शुरू होगा */
   }
 
   .event-date {
@@ -66,30 +55,30 @@
     font-size: var(--date-size, 15px);
     font-family: var(--date-font, inherit);
     font-weight: var(--date-weight, 400);
-    text-align: left; /* तारीख भी नाम की शुरुआत से शुरू होगी */
+  }
+
+  #page-alerts .header-date {
+    text-align: center;
   }
 
   #list-alerts {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    width: 100%;
+    align-items: flex-start;
   }
 
   #list-alerts .event {
-    width: 100%;
+    text-align: left;
   }
 
   .empty-state {
     color: #555;
     font-size: 16px;
     margin-top: 12px;
-    text-align: center;
   }
 
   .loading {
     color: #555;
-    text-align: center;
   }
 
   .page {
@@ -372,8 +361,9 @@
           <input type="number" id="threshold-cylinder" step="0.01" min="0" max="24">
         </div>
       </div>
- </div>
-       <div class="settings-page-tabs">
+    </div>
+
+    <div class="settings-page-tabs">
       <button id="cfgtab-alerts" class="cfgtab active" onclick="switchConfigTab('alerts')">Alerts Page</button>
       <button id="cfgtab-data" class="cfgtab" onclick="switchConfigTab('data')">List Page</button>
     </div>
@@ -503,14 +493,13 @@
 <div id="page-data" class="page">
   <div id="header-data" class="header-date"></div>
   <div id="list-data"><div class="loading">Loading...</div></div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+ </div>
+ <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhnQJrsY7BIuA3h5iMxaU3-yr3J9skyPtSSL_YoQfmYYQYXfPFnGWDH1loxyXC3mtl9-PS-oLa5_0n/pub?output=csv";
 let ALERT_THRESHOLD_DAYS = 15;
-let CYLINDER_THRESHOLD_VALUE = 3.00; // format: Month.DD e.g. 3.05 = 3 months 05 days
+let CYLINDER_THRESHOLD_VALUE = 3.00;
 
 const firebaseConfig = {
   apiKey: "AIzaSyAynuPWAbwu6etjBTqBejpppw4S4umoKPM",
@@ -619,11 +608,9 @@ function renderEvents(container, events) {
     const item = document.createElement("div");
     item.className = "event";
     item.innerHTML = `
-      <div class="event-inner">
-        <div class="event-name">${e.name}</div>
-        <div class="event-countdown">${e.countdown}</div>
-        <div class="event-date">${e.date}</div>
-      </div>
+      <div class="event-name">${e.name}</div>
+      <div class="event-countdown">${e.countdown}</div>
+      <div class="event-date">${e.date}</div>
     `;
     container.appendChild(item);
   });
@@ -902,6 +889,4 @@ if (settingsRef) {
 }
 </script>
 </body>
-           </html>
-             
- 
+ </html>
