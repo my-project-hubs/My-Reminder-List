@@ -201,6 +201,7 @@
     gap: 10px;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: center;
   }
 
   .settings-controls label {
@@ -208,6 +209,7 @@
     color: #555;
     display: block;
     margin-bottom: 2px;
+    text-align: center;
   }
 
   .settings-controls label.lbl-sm {
@@ -217,6 +219,7 @@
   .settings-field {
     display: flex;
     flex-direction: column;
+    align-items: center;
   }
 
   .settings-field input[type="number"] {
@@ -239,6 +242,8 @@
     display: flex;
     gap: 6px;
     align-items: center;
+    justify-content: center;
+    margin-left: 14px;
   }
 
   .color-combo input[type="color"] {
@@ -293,6 +298,10 @@
     font-size: 11px;
     color: #ffffff;
     z-index: 15;
+  }
+
+  .settings-row:has(#threshold-days) .settings-controls {
+    gap: 60px;
   }
 </style>
 </head>
@@ -415,8 +424,7 @@
     <div class="settings-row">
       <div class="settings-row-label">Date</div>
       <div class="settings-controls">
- 
-        <div class="settings-field">
+       <div class="settings-field">
           <label>Size</label>
           <input type="number" id="date-size" min="8" max="60">
         </div>
@@ -833,5 +841,4 @@ if (settingsRef) {
 }
 </script>
 </body>
-         </html>
-       
+ </html>
