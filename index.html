@@ -496,8 +496,8 @@
 <div id="page-data" class="page">
   <div id="header-data" class="header-date"></div>
   <div id="list-data"><div class="loading">Loading...</div></div>
-           </div>
-           <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+ </div>
+ <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhnQJrsY7BIuA3h5iMxaU3-yr3J9skyPtSSL_YoQfmYYQYXfPFnGWDH1loxyXC3mtl9-PS-oLa5_0n/pub?output=csv";
@@ -598,8 +598,9 @@ function parseSheetCSV(csvText) {
   return { header, events };
 }
 
+// ⬇️ यहाँ सिर्फ एक लाइन बदली है - "?t=" + Date.now() add किया है
 async function fetchSheetData() {
-  const response = await fetch(SHEET_CSV_URL, { cache: "no-store" });
+  const response = await fetch(SHEET_CSV_URL + "?t=" + Date.now(), { cache: "no-store" });
   if (!response.ok) throw new Error("Network response was not ok");
   const text = await response.text();
   return parseSheetCSV(text);
@@ -892,4 +893,4 @@ if (settingsRef) {
 }
 </script>
 </body>
- </html>
+</html>
