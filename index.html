@@ -204,7 +204,7 @@
   }
 
   .settings-controls label {
-    font-size: 12px;
+    font-size: 24px;
     color: #555;
     display: block;
     margin-bottom: 2px;
@@ -220,6 +220,7 @@
     padding: 6px;
     border: 1px solid #ccc;
     border-radius: 6px;
+    font-size: 22px;
   }
 
   .settings-field select {
@@ -227,6 +228,7 @@
     border: 1px solid #ccc;
     border-radius: 6px;
     max-width: 140px;
+    font-size: 18px;
   }
 
   .color-combo {
@@ -307,11 +309,11 @@
       <div class="settings-row-label">Alert Threshold</div>
       <div class="settings-controls">
         <div class="settings-field">
-          <label>Din baaki (Day Left)</label>
+          <label>Day Left</label>
           <input type="number" id="threshold-days" min="1" max="365">
         </div>
         <div class="settings-field">
-          <label>Mahine (Gas Cylinder)</label>
+          <label>Gas Cylinder</label>
           <input type="number" id="threshold-months" min="1" max="24">
         </div>
       </div>
@@ -403,9 +405,9 @@
           <label>Bold</label>
           <input type="checkbox" id="countdown-bold">
         </div>
-      </div>
-           </div>
-   
+ </div>
+     </div>
+
     <div class="settings-row">
       <div class="settings-row-label">Date</div>
       <div class="settings-controls">
@@ -811,6 +813,5 @@ if (settingsRef) {
 }
 </script>
 </body>
-     </html>
-         
-                       
+         </html>
+ 
