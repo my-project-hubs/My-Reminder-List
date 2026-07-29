@@ -5,555 +5,497 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Reminders</title>
 <style>
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
-
-
-  body {
-    background: #ffffff;
-    color: #000000;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    font-size: 17px;
-    line-height: 1.5;
-    padding: 70px 20px 80px;
-    max-width: 640px;
-    margin: 0 auto;
-  }
-
-
-  .header-date {
-    font-size: var(--header-size, 19px);
-    color: var(--header-color, #000000);
-    font-family: var(--header-font, inherit);
-    font-weight: var(--header-weight, 400);
-    margin-bottom: 28px;
-  }
-
-
-  .event {
-    margin-bottom: 22px;
-  }
-
-
-  .event-name {
-    color: var(--name-color, #000000);
-    font-size: var(--name-size, 20px);
-    font-family: var(--name-font, inherit);
-    font-weight: var(--name-weight, 400);
-    margin-bottom: 4px;
-  }
-
-
-  .event-countdown {
-    color: var(--countdown-color, #ff0000);
-    font-size: var(--countdown-size, 26px);
-    font-family: var(--countdown-font, inherit);
-    font-weight: var(--countdown-weight, 700);
-    margin-bottom: 2px;
-  }
-
-
-  .event-date {
-    color: var(--date-color, #000000);
-    font-size: var(--date-size, 15px);
-    font-family: var(--date-font, inherit);
-    font-weight: var(--date-weight, 400);
-  }
-
-
-  #page-alerts .header-date {
-    text-align: center;
-  }
-
-
-  #list-alerts {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    max-width: fit-content;
-    margin: 0 auto;
-    width: 100%;
-  }
-
-
-  #list-alerts .event {
-    text-align: left;
-  }
-
-
-  .empty-state {
-    color: #555;
-    font-size: 16px;
-    margin-top: 12px;
-  }
-
-
-  .loading {
-    color: #555;
-  }
-
-
-  .page {
-    display: none;
-  }
-
-
-  .page.active {
-    display: block;
-  }
-
-
-  .page-toggle-btn {
-    position: fixed;
-    bottom: 150px;
-    right: 16px;
-    background: transparent;
-    color: #e0dfdd;
-    border: none;
-    padding: 6px 10px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    z-index: 15;
-  }
-
-
-  .settings-icon {
-    position: fixed;
-    bottom: 16px;
-    right: 16px;
-    width: 38px;
-    height: 38px;
-    background: transparent;
-    color: #d8d6d4;
-    border: none;
-    font-size: 22px;
-    cursor: pointer;
-    z-index: 20;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-
-  .settings-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 30;
-    align-items: flex-end;
-    justify-content: center;
-  }
-
-
-  .settings-overlay.open {
-    display: flex;
-  }
-
-
-  .settings-panel {
-    background: #ffffff;
-    width: 100%;
-    max-width: 640px;
-    max-height: 85vh;
-    overflow-y: auto;
-    border-radius: 16px 16px 0 0;
-    padding: 20px;
-  }
-
-
-  .settings-title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 16px;
-  }
-
-
-  .settings-title button {
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    color: #000000;
-  }
-
-
-  .settings-page-tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
-  }
-
-
-  .cfgtab {
-    flex: 1;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    background: #f5f5f5;
-    color: #000;
-    font-size: 20px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-
-  .cfgtab.active {
-    background: #d40000;
-    color: #ffffff;
-    border-color: #d40000;
-  }
-
-
-  .settings-row {
-    border-top: 1px solid #eee;
-    padding: 14px 0;
-  }
-
-
-  .settings-row-label {
-    font-weight: 600;
-    font-size: 15px;
-    margin-bottom: 10px;
-  }
-
-
-  .settings-controls {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-  }
-
-
-  .settings-controls label {
-    font-size: 24px;
-    color: #555;
-    display: block;
-    margin-bottom: 2px;
-    text-align: center;
-  }
-
-
-  .settings-controls label.lbl-sm {
-    font-size: 22px;
-  }
-
-
-  .settings-field {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-
-  .settings-field input[type="number"] {
-    width: 64px;
-    padding: 6px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 22px;
-  }
-
-
-  .settings-field select {
-    padding: 6px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    max-width: 140px;
-    font-size: 18px;
-  }
-
-
-  .color-combo {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-    justify-content: center;
-  }
-
-
-  .color-combo input[type="color"] {
-    width: 34px;
-    height: 34px;
-    padding: 0;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-  }
-
-
-  .settings-field-bold {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-
-  .settings-field-bold input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    margin-top: 4px;
-  }
-
-
-  .settings-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 18px;
-  }
-
-
-  .settings-actions button {
-    flex: 1;
-    padding: 12px;
-    border-radius: 8px;
-    border: none;
-    font-size: 20px;
-    font-weight: 700;
-    cursor: pointer;
-  }
-
-
-  .settings-apply {
-    background: #d40000;
-    color: #ffffff;
-  }
-
-
-  .settings-reset {
-    background: #eee;
-    color: #000000;
-  }
-
-
-  .sync-status {
-    position: fixed;
-    top: 18px;
-    left: 16px;
-    font-size: 11px;
-    color: #ffffff;
-    z-index: 15;
-  }
-
-
-  .settings-row:has(#threshold-days) .settings-controls {
-    gap: 60px;
-    justify-content: flex-start;
-  }
-
-
-  .settings-controls:has(#header-size),
-  .settings-controls:has(#name-size),
-  .settings-controls:has(#countdown-size),
-  .settings-controls:has(#date-size) {
-    justify-content: space-between;
-  }
-
-
-  .settings-controls:has(#page-bg-color) {
-    justify-content: flex-start;
-  }
-
-
-  .settings-controls:has(#page-bg-color) .settings-field {
-    align-items: flex-start;
-  }
-
-
-  .settings-controls:has(#page-bg-color) label {
-    text-align: left;
-  }
-
-
-  .settings-row:has(#header-size),
-  .settings-row:has(#name-size),
-  .settings-row:has(#countdown-size),
-  .settings-row:has(#date-size) {
-    border: 1px solid #555555;
-    border-top: 1px solid #555555;
-    border-radius: 6px;
-    padding: 8px 10px;
-    margin-bottom: 10px;
-  }
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background: #ffffff;
+    color: #000000;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.5;
+    padding: 70px 20px 80px;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .header-date {
+    font-size: var(--header-size, 19px);
+    color: var(--header-color, #000000);
+    font-family: var(--header-font, inherit);
+    font-weight: var(--header-weight, 400);
+    margin-bottom: 28px;
+  }
+
+  .event {
+    margin-bottom: 22px;
+  }
+
+  .event-name {
+    color: var(--name-color, #000000);
+    font-size: var(--name-size, 20px);
+    font-family: var(--name-font, inherit);
+    font-weight: var(--name-weight, 400);
+    margin-bottom: 4px;
+  }
+
+  .event-countdown {
+    color: var(--countdown-color, #ff0000);
+    font-size: var(--countdown-size, 26px);
+    font-family: var(--countdown-font, inherit);
+    font-weight: var(--countdown-weight, 700);
+    margin-bottom: 2px;
+  }
+
+  .event-date {
+    color: var(--date-color, #000000);
+    font-size: var(--date-size, 15px);
+    font-family: var(--date-font, inherit);
+    font-weight: var(--date-weight, 400);
+  }
+
+  #page-alerts .header-date {
+    text-align: center;
+  }
+
+  #list-alerts {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    max-width: fit-content;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  #list-alerts .event {
+    text-align: left;
+  }
+
+  .empty-state {
+    color: #555;
+    font-size: 16px;
+    margin-top: 12px;
+  }
+
+  .loading {
+    color: #555;
+  }
+
+  .page {
+    display: none;
+  }
+
+  .page.active {
+    display: block;
+  }
+
+  .page-toggle-btn {
+    position: fixed;
+    bottom: 150px;
+    right: 16px;
+    background: transparent;
+    color: #e0dfdd;
+    border: none;
+    padding: 6px 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 15;
+  }
+
+  .settings-icon {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    background: transparent;
+    color: #d8d6d4;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .settings-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 30;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .settings-overlay.open {
+    display: flex;
+  }
+
+  .settings-panel {
+    background: #ffffff;
+    width: 100%;
+    max-width: 640px;
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: 16px 16px 0 0;
+    padding: 20px;
+  }
+
+  .settings-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  .settings-title button {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #000000;
+  }
+
+  .settings-page-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .cfgtab {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: #f5f5f5;
+    color: #000;
+    font-size: 20px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .cfgtab.active {
+    background: #d40000;
+    color: #ffffff;
+    border-color: #d40000;
+  }
+
+  .settings-row {
+    border-top: 1px solid #eee;
+    padding: 14px 0;
+  }
+
+  .settings-row-label {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
+
+  .settings-controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .settings-controls label {
+    font-size: 24px;
+    color: #555;
+    display: block;
+    margin-bottom: 2px;
+    text-align: center;
+  }
+
+  .settings-controls label.lbl-sm {
+    font-size: 22px;
+  }
+
+  .settings-field {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .settings-field input[type="number"] {
+    width: 64px;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 22px;
+  }
+
+  .settings-field select {
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    max-width: 140px;
+    font-size: 18px;
+  }
+
+  .color-combo {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .color-combo input[type="color"] {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+
+  .settings-field-bold {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .settings-field-bold input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-top: 4px;
+  }
+
+  .settings-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  .settings-actions button {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .settings-apply {
+    background: #d40000;
+    color: #ffffff;
+  }
+
+  .settings-reset {
+    background: #eee;
+    color: #000000;
+  }
+
+  .sync-status {
+    position: fixed;
+    top: 18px;
+    left: 16px;
+    font-size: 11px;
+    color: #ffffff;
+    z-index: 15;
+  }
+
+  .settings-row:has(#threshold-days) .settings-controls {
+    gap: 60px;
+    justify-content: flex-start;
+  }
+
+  .settings-controls:has(#header-size),
+  .settings-controls:has(#name-size),
+  .settings-controls:has(#countdown-size),
+  .settings-controls:has(#date-size) {
+    justify-content: space-between;
+  }
+
+  .settings-controls:has(#page-bg-color) {
+    justify-content: flex-start;
+  }
+
+  .settings-controls:has(#page-bg-color) .settings-field {
+    align-items: flex-start;
+  }
+
+  .settings-controls:has(#page-bg-color) label {
+    text-align: left;
+  }
+
+  .settings-row:has(#header-size),
+  .settings-row:has(#name-size),
+  .settings-row:has(#countdown-size),
+  .settings-row:has(#date-size) {
+    border: 1px solid #555555;
+    border-top: 1px solid #555555;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+  }
 </style>
 </head>
 <body>
-
 
 <div id="syncStatus" class="sync-status"></div>
 <button id="pageToggleBtn" class="page-toggle-btn" onclick="togglePage()">List</button>
 <button class="settings-icon" onclick="openSettings()" title="Settings">⚙</button>
 
-
 <div id="settingsOverlay" class="settings-overlay">
-  <div class="settings-panel">
-    <div class="settings-title">
-      <span>Settings</span>
-      <button onclick="closeSettings()">✕</button>
-    </div>
+  <div class="settings-panel">
+    <div class="settings-title">
+      <span>Settings</span>
+      <button onclick="closeSettings()">✕</button>
+    </div>
 
+    <div class="settings-row">
+      <div class="settings-row-label">Alert Threshold</div>
+      <div class="settings-controls">
+        <div class="settings-field">
+          <label class="lbl-sm">Day Left</label>
+          <input type="number" id="threshold-days" min="1" max="365">
+        </div>
+        <div class="settings-field">
+          <label class="lbl-sm">Gas Cylinder</label>
+          <input type="number" id="threshold-cylinder" step="0.01" min="0" max="24">
+        </div>
+      </div>
+    </div>
 
-    <div class="settings-row">
-      <div class="settings-row-label">Alert Threshold</div>
-      <div class="settings-controls">
-        <div class="settings-field">
-          <label class="lbl-sm">Day Left</label>
-          <input type="number" id="threshold-days" min="1" max="365">
-        </div>
-        <div class="settings-field">
-          <label class="lbl-sm">Gas Cylinder</label>
-          <input type="number" id="threshold-cylinder" step="0.01" min="0" max="24">
-        </div>
-      </div>
-    </div>
+    <div class="settings-page-tabs">
+      <button id="cfgtab-alerts" class="cfgtab active" onclick="switchConfigTab('alerts')">Alerts Page</button>
+      <button id="cfgtab-data" class="cfgtab" onclick="switchConfigTab('data')">List Page</button>
+    </div>
 
+    <div class="settings-row">
+      <div class="settings-row-label">Page Background</div>
+      <div class="settings-controls">
+        <div class="settings-field">
+          <label>Color</label>
+          <div class="color-combo">
+            <input type="color" id="page-bg-color">
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <div class="settings-page-tabs">
-      <button id="cfgtab-alerts" class="cfgtab active" onclick="switchConfigTab('alerts')">Alerts Page</button>
-      <button id="cfgtab-data" class="cfgtab" onclick="switchConfigTab('data')">List Page</button>
-    </div>
+    <div class="settings-row">
+      <div class="settings-row-label">Today Date</div>
+      <div class="settings-controls">
+        <div class="settings-field">
+          <label>Size</label>
+          <input type="number" id="header-size" min="8" max="60">
+        </div>
+        <div class="settings-field">
+          <label class="lbl-sm">Color</label>
+          <div class="color-combo">
+            <input type="color" id="header-color">
+          </div>
+        </div>
+        <div class="settings-field">
+          <label class="lbl-sm">Font Style</label>
+          <select id="header-font"></select>
+        </div>
+        <div class="settings-field-bold">
+          <label>Bold</label>
+          <input type="checkbox" id="header-bold">
+        </div>
+      </div>
+    </div>
 
+    <div class="settings-row">
+      <div class="settings-row-label">List Name</div>
+      <div class="settings-controls">
+        <div class="settings-field">
+          <label>Size</label>
+          <input type="number" id="name-size" min="8" max="60">
+        </div>
+        <div class="settings-field">
+          <label class="lbl-sm">Color</label>
+          <div class="color-combo">
+            <input type="color" id="name-color">
+          </div>
+        </div>
+        <div class="settings-field">
+          <label class="lbl-sm">Font Style</label>
+          <select id="name-font"></select>
+        </div>
+        <div class="settings-field-bold">
+          <label>Bold</label>
+          <input type="checkbox" id="name-bold">
+        </div>
+      </div>
+    </div>
 
-    <div class="settings-row">
-      <div class="settings-row-label">Page Background</div>
-      <div class="settings-controls">
-        <div class="settings-field">
-          <label>Color</label>
-          <div class="color-combo">
-            <input type="color" id="page-bg-color">
-          </div>
-        </div>
-      </div>
-    </div>
+    <div class="settings-row">
+      <div class="settings-row-label">Day Left</div>
+      <div class="settings-controls">
+        <div class="settings-field">
+          <label>Size</label>
+          <input type="number" id="countdown-size" min="8" max="60">
+        </div>
+        <div class="settings-field">
+          <label class="lbl-sm">Color</label>
+          <div class="color-combo">
+            <input type="color" id="countdown-color">
+          </div>
+        </div>
+        <div class="settings-field">
+          <label class="lbl-sm">Font Style</label>
+          <select id="countdown-font"></select>
+        </div>
+        <div class="settings-field-bold">
+          <label>Bold</label>
+          <input type="checkbox" id="countdown-bold">
+        </div>
+      </div>
+    </div>
 
+    <div class="settings-row">
+      <div class="settings-row-label">Target Date</div>
+      <div class="settings-controls">
+        <div class="settings-field">
+          <label>Size</label>
+          <input type="number" id="date-size" min="8" max="60">
+        </div>
+        <div class="settings-field">
+          <label class="lbl-sm">Color</label>
+          <div class="color-combo">
+            <input type="color" id="date-color">
+          </div>
+        </div>
+        <div class="settings-field">
+          <label class="lbl-sm">Font Style</label>
+          <select id="date-font"></select>
+        </div>
+        <div class="settings-field-bold">
+          <label>Bold</label>
+          <input type="checkbox" id="date-bold">
+        </div>
+      </div>
+    </div>
 
-    <div class="settings-row">
-      <div class="settings-row-label">Today Date</div>
-      <div class="settings-controls">
-        <div class="settings-field">
-          <label>Size</label>
-          <input type="number" id="header-size" min="8" max="60">
-        </div>
-        <div class="settings-field">
-          <label class="lbl-sm">Color</label>
-          <div class="color-combo">
-            <input type="color" id="header-color">
-          </div>
-        </div>
-        <div class="settings-field">
-          <label class="lbl-sm">Font Style</label>
-          <select id="header-font"></select>
-        </div>
-        <div class="settings-field-bold">
-          <label>Bold</label>
-          <input type="checkbox" id="header-bold">
-        </div>
-      </div>
-    </div>
-
-
-    <div class="settings-row">
-      <div class="settings-row-label">List Name</div>
-      <div class="settings-controls">
-        <div class="settings-field">
-          <label>Size</label>
-          <input type="number" id="name-size" min="8" max="60">
-        </div>
-        <div class="settings-field">
-          <label class="lbl-sm">Color</label>
-          <div class="color-combo">
-            <input type="color" id="name-color">
-          </div>
-        </div>
-        <div class="settings-field">
-          <label class="lbl-sm">Font Style</label>
-          <select id="name-font"></select>
-        </div>
-        <div class="settings-field-bold">
-          <label>Bold</label>
-          <input type="checkbox" id="name-bold">
-        </div>
-      </div>
-    </div>
-
-
-    <div class="settings-row">
-      <div class="settings-row-label">Day Left</div>
-      <div class="settings-controls">
-        <div class="settings-field">
-          <label>Size</label>
-          <input type="number" id="countdown-size" min="8" max="60">
-        </div>
-        <div class="settings-field">
-          <label class="lbl-sm">Color</label>
-          <div class="color-combo">
-            <input type="color" id="countdown-color">
-          </div>
-        </div>
-        <div class="settings-field">
-          <label class="lbl-sm">Font Style</label>
-          <select id="countdown-font"></select>
-        </div>
-        <div class="settings-field-bold">
-          <label>Bold</label>
-          <input type="checkbox" id="countdown-bold">
-        </div>
-      </div>
-    </div>
-
-
-    <div class="settings-row">
-      <div class="settings-row-label">Target Date</div>
-      <div class="settings-controls">
-        <div class="settings-field">
-          <label>Size</label>
-          <input type="number" id="date-size" min="8" max="60">
-        </div>
-        <div class="settings-field">
-          <label class="lbl-sm">Color</label>
-          <div class="color-combo">
-            <input type="color" id="date-color">
-          </div>
-        </div>
-        <div class="settings-field">
-          <label class="lbl-sm">Font Style</label>
-          <select id="date-font"></select>
-        </div>
-        <div class="settings-field-bold">
-          <label>Bold</label>
-          <input type="checkbox" id="date-bold">
-        </div>
-      </div>
-    </div>
-
-
-    <div class="settings-actions">
-      <button class="settings-reset" onclick="resetSettings()">Reset (this page)</button>
-      <button class="settings-apply" onclick="applySettings()">Apply</button>
-    </div>
-  </div>
+    <div class="settings-actions">
+      <button class="settings-reset" onclick="resetSettings()">Reset (this page)</button>
+      <button class="settings-apply" onclick="applySettings()">Apply</button>
+    </div>
+  </div>
 </div>
-
 
 <!-- PAGE 1: Alerts -->
 <div id="page-alerts" class="page active">
-  <div id="header-alerts" class="header-date"></div>
-  <div id="list-alerts"><div class="loading">Loading...</div></div>
+  <div id="header-alerts" class="header-date"></div>
+  <div id="list-alerts"><div class="loading">Loading...</div></div>
 </div>
-
 
 <!-- PAGE 2: All Data -->
 <div id="page-data" class="page">
-  <div id="header-data" class="header-date"></div>
-  <div id="list-data"><div class="loading">Loading...</div></div>
+  <div id="header-data" class="header-date"></div>
+  <div id="list-data"><div class="loading">Loading...</div></div>
 </div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -562,446 +504,391 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhnQJrsY
 let ALERT_THRESHOLD_DAYS = 15;
 let CYLINDER_THRESHOLD_VALUE = 3.00;
 
-
 const firebaseConfig = {
-  apiKey: "AIzaSyAynuPWAbwu6etjBTqBejpppw4S4umoKPM",
-  authDomain: "my-tracker-d4776.firebaseapp.com",
-  databaseURL: "https://my-tracker-d4776-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "my-tracker-d4776",
-  storageBucket: "my-tracker-d4776.firebasestorage.app",
-  messagingSenderId: "207196018290",
-  appId: "1:207196018290:web:e544ccd2eac3e84150d4eb",
-  measurementId: "G-HPDX62VBWK"
+  apiKey: "AIzaSyAynuPWAbwu6etjBTqBejpppw4S4umoKPM",
+  authDomain: "my-tracker-d4776.firebaseapp.com",
+  databaseURL: "https://my-tracker-d4776-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "my-tracker-d4776",
+  storageBucket: "my-tracker-d4776.firebasestorage.app",
+  messagingSenderId: "207196018290",
+  appId: "1:207196018290:web:e544ccd2eac3e84150d4eb",
+  measurementId: "G-HPDX62VBWK"
 };
-
 
 let settingsRef = null;
 try {
-  firebase.initializeApp(firebaseConfig);
-  settingsRef = firebase.database().ref("settings");
+  firebase.initializeApp(firebaseConfig);
+  settingsRef = firebase.database().ref("settings");
 } catch (e) {
-  console.error("Firebase init failed:", e);
+  console.error("Firebase init failed:", e);
 }
-
 
 function saveCloudSettings(data) {
-  if (!settingsRef) return Promise.reject(new Error("Firebase not available"));
-  return settingsRef.set(data);
+  if (!settingsRef) return Promise.reject(new Error("Firebase not available"));
+  return settingsRef.set(data);
 }
-
 
 function setSyncStatus(text) {
-  const el = document.getElementById("syncStatus");
-  if (el) el.textContent = text;
+  const el = document.getElementById("syncStatus");
+  if (el) el.textContent = text;
 }
-
 
 function getActivePageName() {
-  return document.getElementById("page-alerts").classList.contains("active") ? "alerts" : "data";
+  return document.getElementById("page-alerts").classList.contains("active") ? "alerts" : "data";
 }
-
 
 function showPage(name) {
-  document.getElementById("page-alerts").classList.toggle("active", name === "alerts");
-  document.getElementById("page-data").classList.toggle("active", name === "data");
-  document.getElementById("pageToggleBtn").textContent = name === "alerts" ? "List" : "Alerts";
-  sessionStorage.setItem("activePage", name);
-  applyPageBackground(name);
+  document.getElementById("page-alerts").classList.toggle("active", name === "alerts");
+  document.getElementById("page-data").classList.toggle("active", name === "data");
+  document.getElementById("pageToggleBtn").textContent = name === "alerts" ? "List" : "Alerts";
+  sessionStorage.setItem("activePage", name);
+  applyPageBackground(name);
 }
-
 
 function togglePage() {
-  const next = getActivePageName() === "alerts" ? "data" : "alerts";
-  showPage(next);
+  const next = getActivePageName() === "alerts" ? "data" : "alerts";
+  showPage(next);
 }
-
 
 function parseSheetCSV(csvText) {
-  const rawLines = csvText.split("\n");
+  const rawLines = csvText.split("\n");
 
+  const values = rawLines.map((line) => {
+    const idx = line.indexOf(",");
+    const col = idx === -1 ? "" : line.slice(idx + 1);
+    return col.replace(/\r/g, "").trim();
+  });
 
-  const values = rawLines.map((line) => {
-    const idx = line.indexOf(",");
-    const col = idx === -1 ? "" : line.slice(idx + 1);
-    return col.replace(/\r/g, "").trim();
-  });
+  const nonEmpty = values.filter((v) => v.length > 0);
+  if (nonEmpty.length === 0) {
+    return { header: "", events: [] };
+  }
 
+  const header = nonEmpty[0];
+  const rest = nonEmpty.slice(1);
 
-  const nonEmpty = values.filter((v) => v.length > 0);
-  if (nonEmpty.length === 0) {
-    return { header: "", events: [] };
-  }
+  const events = [];
+  for (let i = 0; i < rest.length; i += 3) {
+    const name = rest[i];
+    const countdown = rest[i + 1];
+    const date = rest[i + 2];
+    if (!name || !countdown) continue;
 
+    const dayMatch = countdown.match(/^(\d+)\s*\.\s*Day Left/i);
+    const monthMatch = countdown.match(/^(\d+)\s*\.\s*Months\s*-\s*(\d+)\s*\.\s*Days/i);
 
-  const header = nonEmpty[0];
-  const rest = nonEmpty.slice(1);
+    let days = null;
+    let isDayFormat = false;
+    let isMonthFormat = false;
+    let monthsElapsed = null;
+    let daysElapsed = null;
 
+    if (dayMatch) {
+      days = parseInt(dayMatch[1], 10);
+      isDayFormat = true;
+    } else if (monthMatch) {
+      monthsElapsed = parseInt(monthMatch[1], 10);
+      daysElapsed = parseInt(monthMatch[2], 10);
+      isMonthFormat = true;
+    }
 
-  const events = [];
-  for (let i = 0; i < rest.length; i += 3) {
-    const name = rest[i];
-    const countdown = rest[i + 1];
-    const date = rest[i + 2];
-    if (!name || !countdown) continue;
+    events.push({ name, countdown, date, days, isDayFormat, isMonthFormat, monthsElapsed, daysElapsed });
+  }
 
-
-    const dayMatch = countdown.match(/^(\d+)\s*\.\s*Day Left/i);
-    const monthMatch = countdown.match(/^(\d+)\s*\.\s*Months\s*-\s*(\d+)\s*\.\s*Days/i);
-
-
-    let days = null;
-    let isDayFormat = false;
-    let isMonthFormat = false;
-    let monthsElapsed = null;
-    let daysElapsed = null;
-
-
-    if (dayMatch) {
-      days = parseInt(dayMatch[1], 10);
-      isDayFormat = true;
-    } else if (monthMatch) {
-      monthsElapsed = parseInt(monthMatch[1], 10);
-      daysElapsed = parseInt(monthMatch[2], 10);
-      isMonthFormat = true;
-    }
-
-
-    events.push({ name, countdown, date, days, isDayFormat, isMonthFormat, monthsElapsed, daysElapsed });
-  }
-
-
-  return { header, events };
+  return { header, events };
 }
-
 
 async function fetchSheetData() {
-  const response = await fetch(SHEET_CSV_URL, { cache: "no-store" });
-  if (!response.ok) throw new Error("Network response was not ok");
-  const text = await response.text();
-  return parseSheetCSV(text);
+  const response = await fetch(SHEET_CSV_URL, { cache: "no-store" });
+  if (!response.ok) throw new Error("Network response was not ok");
+  const text = await response.text();
+  return parseSheetCSV(text);
 }
-
 
 function renderEvents(container, events) {
-  container.innerHTML = "";
-  events.forEach((e) => {
-    const item = document.createElement("div");
-    item.className = "event";
-    item.innerHTML = `
-      <div class="event-name">${e.name}</div>
-      <div class="event-countdown">${e.countdown}</div>
-      <div class="event-date">${e.date}</div>
-    `;
-    container.appendChild(item);
-  });
+  container.innerHTML = "";
+  events.forEach((e) => {
+    const item = document.createElement("div");
+    item.className = "event";
+    item.innerHTML = `
+      <div class="event-name">${e.name}</div>
+      <div class="event-countdown">${e.countdown}</div>
+      <div class="event-date">${e.date}</div>
+    `;
+    container.appendChild(item);
+  });
 }
-
 
 function getCylinderThresholdParts() {
-  const months = Math.floor(CYLINDER_THRESHOLD_VALUE);
-  const days = Math.round((CYLINDER_THRESHOLD_VALUE - months) * 100);
-  return { months, days };
+  const months = Math.floor(CYLINDER_THRESHOLD_VALUE);
+  const days = Math.round((CYLINDER_THRESHOLD_VALUE - months) * 100);
+  return { months, days };
 }
-
 
 async function loadAll() {
-  const headerAlerts = document.getElementById("header-alerts");
-  const listAlerts = document.getElementById("list-alerts");
-  const headerData = document.getElementById("header-data");
-  const listData = document.getElementById("list-data");
+  const headerAlerts = document.getElementById("header-alerts");
+  const listAlerts = document.getElementById("list-alerts");
+  const headerData = document.getElementById("header-data");
+  const listData = document.getElementById("list-data");
 
+  try {
+    const { header, events } = await fetchSheetData();
 
-  try {
-    const { header, events } = await fetchSheetData();
+    headerAlerts.textContent = header;
+    headerData.textContent = header;
 
+    renderEvents(listData, events);
 
-    headerAlerts.textContent = header;
-    headerData.textContent = header;
+    const { months: thMonths, days: thDays } = getCylinderThresholdParts();
 
+    const alerts = events.filter((e) => {
+      if (e.isDayFormat && e.days !== null) {
+        return e.days <= ALERT_THRESHOLD_DAYS;
+      }
+      if (e.isMonthFormat && e.monthsElapsed !== null) {
+        if (e.monthsElapsed > thMonths) return true;
+        if (e.monthsElapsed === thMonths) {
+          return (e.daysElapsed || 0) >= thDays;
+        }
+        return false;
+      }
+      return false;
+    });
 
-    renderEvents(listData, events);
-
-
-    const { months: thMonths, days: thDays } = getCylinderThresholdParts();
-
-
-    const alerts = events.filter((e) => {
-      if (e.isDayFormat && e.days !== null) {
-        return e.days <= ALERT_THRESHOLD_DAYS;
-      }
-      if (e.isMonthFormat && e.monthsElapsed !== null) {
-        if (e.monthsElapsed > thMonths) return true;
-        if (e.monthsElapsed === thMonths) {
-          return (e.daysElapsed || 0) >= thDays;
-        }
-        return false;
-      }
-      return false;
-    });
-
-
-    if (alerts.length === 0) {
-      listAlerts.innerHTML = '<div class="empty-state">No alerts right now.</div>';
-    } else {
-      renderEvents(listAlerts, alerts);
-    }
-  } catch (err) {
-    const msg = '<div class="empty-state">Could not load data. Please try again later.</div>';
-    listAlerts.innerHTML = msg;
-    listData.innerHTML = msg;
-  }
+    if (alerts.length === 0) {
+      listAlerts.innerHTML = '<div class="empty-state">No alerts right now.</div>';
+    } else {
+      renderEvents(listAlerts, alerts);
+    }
+  } catch (err) {
+    const msg = '<div class="empty-state">Could not load data. Please try again later.</div>';
+    listAlerts.innerHTML = msg;
+    listData.innerHTML = msg;
+  }
 }
-
 
 loadAll();
 setInterval(loadAll, 3000);
 
-
 function pinSettingsIcon() {
-  const settingsBtn = document.querySelector(".settings-icon");
-  const toggleBtn = document.getElementById("pageToggleBtn");
-  if (!settingsBtn || !window.visualViewport) return;
-  const vv = window.visualViewport;
-  const bottomGap = window.innerHeight - (vv.height + vv.offsetTop);
-  const settingsBottom = 16 + Math.max(0, bottomGap);
-  settingsBtn.style.bottom = settingsBottom + "px";
-  if (toggleBtn) {
-    toggleBtn.style.bottom = (settingsBottom + 38 + 96) + "px";
-  }
+  const settingsBtn = document.querySelector(".settings-icon");
+  const toggleBtn = document.getElementById("pageToggleBtn");
+  if (!settingsBtn || !window.visualViewport) return;
+  const vv = window.visualViewport;
+  const bottomGap = window.innerHeight - (vv.height + vv.offsetTop);
+  const settingsBottom = 16 + Math.max(0, bottomGap);
+  settingsBtn.style.bottom = settingsBottom + "px";
+  if (toggleBtn) {
+    toggleBtn.style.bottom = (settingsBottom + 38 + 96) + "px";
+  }
 }
 if (window.visualViewport) {
-  window.visualViewport.addEventListener("resize", pinSettingsIcon);
-  window.visualViewport.addEventListener("scroll", pinSettingsIcon);
+  window.visualViewport.addEventListener("resize", pinSettingsIcon);
+  window.visualViewport.addEventListener("scroll", pinSettingsIcon);
 }
 window.addEventListener("scroll", pinSettingsIcon);
 window.addEventListener("load", pinSettingsIcon);
 pinSettingsIcon();
 
-
 const FONT_OPTIONS = [
-  { label: "Default", value: "inherit" },
-  { label: "Arial", value: "Arial, sans-serif" },
-  { label: "Helvetica", value: "Helvetica, Arial, sans-serif" },
-  { label: "Verdana", value: "Verdana, sans-serif" },
-  { label: "Tahoma", value: "Tahoma, sans-serif" },
-  { label: "Trebuchet MS", value: "'Trebuchet MS', sans-serif" },
-  { label: "Segoe UI", value: "'Segoe UI', sans-serif" },
-  { label: "Calibri", value: "Calibri, sans-serif" },
-  { label: "Century Gothic", value: "'Century Gothic', sans-serif" },
-  { label: "Franklin Gothic", value: "'Franklin Gothic Medium', sans-serif" },
-  { label: "Arial Black", value: "'Arial Black', sans-serif" },
-  { label: "Georgia", value: "Georgia, serif" },
-  { label: "Times New Roman", value: "'Times New Roman', serif" },
-  { label: "Garamond", value: "Garamond, serif" },
-  { label: "Palatino", value: "'Palatino Linotype', serif" },
-  { label: "Book Antiqua", value: "'Book Antiqua', serif" },
-  { label: "Cambria", value: "Cambria, serif" },
-  { label: "Courier New", value: "'Courier New', monospace" },
-  { label: "Lucida Console", value: "'Lucida Console', monospace" },
-  { label: "Consolas", value: "Consolas, monospace" }
+  { label: "Default", value: "inherit" },
+  { label: "Arial", value: "Arial, sans-serif" },
+  { label: "Helvetica", value: "Helvetica, Arial, sans-serif" },
+  { label: "Verdana", value: "Verdana, sans-serif" },
+  { label: "Tahoma", value: "Tahoma, sans-serif" },
+  { label: "Trebuchet MS", value: "'Trebuchet MS', sans-serif" },
+  { label: "Segoe UI", value: "'Segoe UI', sans-serif" },
+  { label: "Calibri", value: "Calibri, sans-serif" },
+  { label: "Century Gothic", value: "'Century Gothic', sans-serif" },
+  { label: "Franklin Gothic", value: "'Franklin Gothic Medium', sans-serif" },
+  { label: "Arial Black", value: "'Arial Black', sans-serif" },
+  { label: "Georgia", value: "Georgia, serif" },
+  { label: "Times New Roman", value: "'Times New Roman', serif" },
+  { label: "Garamond", value: "Garamond, serif" },
+  { label: "Palatino", value: "'Palatino Linotype', serif" },
+  { label: "Book Antiqua", value: "'Book Antiqua', serif" },
+  { label: "Cambria", value: "Cambria, serif" },
+  { label: "Courier New", value: "'Courier New', monospace" },
+  { label: "Lucida Console", value: "'Lucida Console', monospace" },
+  { label: "Consolas", value: "Consolas, monospace" }
 ];
 
-
 function populateFontSelects() {
-  ["header-font", "name-font", "countdown-font", "date-font"].forEach((id) => {
-    const sel = document.getElementById(id);
-    sel.innerHTML = "";
-    FONT_OPTIONS.forEach((opt) => {
-      const o = document.createElement("option");
-      o.value = opt.value;
-      o.textContent = opt.label;
-      o.style.fontFamily = opt.value;
-      sel.appendChild(o);
-    });
-  });
+  ["header-font", "name-font", "countdown-font", "date-font"].forEach((id) => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = "";
+    FONT_OPTIONS.forEach((opt) => {
+      const o = document.createElement("option");
+      o.value = opt.value;
+      o.textContent = opt.label;
+      o.style.fontFamily = opt.value;
+      sel.appendChild(o);
+    });
+  });
 }
 populateFontSelects();
 
-
 const FONT_TARGETS = ["header", "name", "countdown", "date"];
 
-
 const DEFAULT_PAGE_SETTINGS = {
-  header: { size: 19, color: "#000000", font: "inherit", bold: false },
-  name: { size: 20, color: "#000000", font: "inherit", bold: false },
-  countdown: { size: 26, color: "#ff0000", font: "inherit", bold: true },
-  date: { size: 15, color: "#000000", font: "inherit", bold: false },
-  background: "#ffffff"
+  header:     { size: 19, color: "#000000", font: "inherit", bold: false },
+  name:       { size: 20, color: "#000000", font: "inherit", bold: false },
+  countdown:  { size: 26, color: "#ff0000", font: "inherit", bold: true  },
+  date:       { size: 15, color: "#000000", font: "inherit", bold: false },
+  background: "#ffffff"
 };
-
 
 function cloneDefaults() {
-  return JSON.parse(JSON.stringify(DEFAULT_PAGE_SETTINGS));
+  return JSON.parse(JSON.stringify(DEFAULT_PAGE_SETTINGS));
 }
-
 
 let cloudSettings = {
-  alerts: cloneDefaults(),
-  data: cloneDefaults()
+  alerts: cloneDefaults(),
+  data: cloneDefaults()
 };
 
-
 function getSavedFontSettings(page) {
-  return cloudSettings[page] || cloneDefaults();
+  return cloudSettings[page] || cloneDefaults();
 }
-
 
 const savedPage = sessionStorage.getItem("activePage");
 showPage(savedPage === "data" ? "data" : "alerts");
 
-
 function applyFontSettingsToContainer(containerId, settings) {
-  const container = document.getElementById(containerId);
-  FONT_TARGETS.forEach((target) => {
-    const s = settings[target] || DEFAULT_PAGE_SETTINGS[target];
-    container.style.setProperty(`--${target}-size`, s.size + "px");
-    container.style.setProperty(`--${target}-color`, s.color);
-    container.style.setProperty(`--${target}-font`, s.font);
-    container.style.setProperty(`--${target}-weight`, s.bold ? "700" : "400");
-  });
+  const container = document.getElementById(containerId);
+  FONT_TARGETS.forEach((target) => {
+    const s = settings[target] || DEFAULT_PAGE_SETTINGS[target];
+    container.style.setProperty(`--${target}-size`, s.size + "px");
+    container.style.setProperty(`--${target}-color`, s.color);
+    container.style.setProperty(`--${target}-font`, s.font);
+    container.style.setProperty(`--${target}-weight`, s.bold ? "700" : "400");
+  });
 }
-
 
 function applyPageBackground(page) {
-  const settings = getSavedFontSettings(page);
-  document.body.style.backgroundColor = settings.background || "#ffffff";
+  const settings = getSavedFontSettings(page);
+  document.body.style.backgroundColor = settings.background || "#ffffff";
 }
-
 
 function fillSettingsForm(settings) {
-  FONT_TARGETS.forEach((target) => {
-    const s = settings[target] || DEFAULT_PAGE_SETTINGS[target];
-    document.getElementById(`${target}-size`).value = s.size;
-    document.getElementById(`${target}-color`).value = s.color;
-    document.getElementById(`${target}-font`).value = s.font;
-    document.getElementById(`${target}-bold`).checked = !!s.bold;
-  });
-  document.getElementById("page-bg-color").value = settings.background || "#ffffff";
+  FONT_TARGETS.forEach((target) => {
+    const s = settings[target] || DEFAULT_PAGE_SETTINGS[target];
+    document.getElementById(`${target}-size`).value = s.size;
+    document.getElementById(`${target}-color`).value = s.color;
+    document.getElementById(`${target}-font`).value = s.font;
+    document.getElementById(`${target}-bold`).checked = !!s.bold;
+  });
+  document.getElementById("page-bg-color").value = settings.background || "#ffffff";
 }
-
 
 function readSettingsForm() {
-  const settings = {};
-  FONT_TARGETS.forEach((target) => {
-    settings[target] = {
-      size: parseInt(document.getElementById(`${target}-size`).value, 10) || DEFAULT_PAGE_SETTINGS[target].size,
-      color: document.getElementById(`${target}-color`).value,
-      font: document.getElementById(`${target}-font`).value,
-      bold: document.getElementById(`${target}-bold`).checked
-    };
-  });
-  settings.background = document.getElementById("page-bg-color").value;
-  return settings;
+  const settings = {};
+  FONT_TARGETS.forEach((target) => {
+    settings[target] = {
+      size: parseInt(document.getElementById(`${target}-size`).value, 10) || DEFAULT_PAGE_SETTINGS[target].size,
+      color: document.getElementById(`${target}-color`).value,
+      font: document.getElementById(`${target}-font`).value,
+      bold: document.getElementById(`${target}-bold`).checked
+    };
+  });
+  settings.background = document.getElementById("page-bg-color").value;
+  return settings;
 }
-
 
 let configDrafts = null;
 let currentConfigTab = "alerts";
 
-
 function updateTabUI() {
-  document.getElementById("cfgtab-alerts").classList.toggle("active", currentConfigTab === "alerts");
-  document.getElementById("cfgtab-data").classList.toggle("active", currentConfigTab === "data");
+  document.getElementById("cfgtab-alerts").classList.toggle("active", currentConfigTab === "alerts");
+  document.getElementById("cfgtab-data").classList.toggle("active", currentConfigTab === "data");
 }
-
 
 function switchConfigTab(tab) {
-  configDrafts[currentConfigTab] = readSettingsForm();
-  currentConfigTab = tab;
-  updateTabUI();
-  fillSettingsForm(configDrafts[currentConfigTab]);
+  configDrafts[currentConfigTab] = readSettingsForm();
+  currentConfigTab = tab;
+  updateTabUI();
+  fillSettingsForm(configDrafts[currentConfigTab]);
 }
-
 
 function openSettings() {
-  configDrafts = {
-    alerts: JSON.parse(JSON.stringify(getSavedFontSettings("alerts"))),
-    data: JSON.parse(JSON.stringify(getSavedFontSettings("data")))
-  };
-  currentConfigTab = getActivePageName();
-  updateTabUI();
-  fillSettingsForm(configDrafts[currentConfigTab]);
-  document.getElementById("threshold-days").value = ALERT_THRESHOLD_DAYS;
-  document.getElementById("threshold-cylinder").value = CYLINDER_THRESHOLD_VALUE.toFixed(2);
-  document.getElementById("settingsOverlay").classList.add("open");
+  configDrafts = {
+    alerts: JSON.parse(JSON.stringify(getSavedFontSettings("alerts"))),
+    data: JSON.parse(JSON.stringify(getSavedFontSettings("data")))
+  };
+  currentConfigTab = getActivePageName();
+  updateTabUI();
+  fillSettingsForm(configDrafts[currentConfigTab]);
+  document.getElementById("threshold-days").value = ALERT_THRESHOLD_DAYS;
+  document.getElementById("threshold-cylinder").value = CYLINDER_THRESHOLD_VALUE.toFixed(2);
+  document.getElementById("settingsOverlay").classList.add("open");
 }
-
 
 function closeSettings() {
-  document.getElementById("settingsOverlay").classList.remove("open");
+  document.getElementById("settingsOverlay").classList.remove("open");
 }
-
 
 async function applySettings() {
-  configDrafts[currentConfigTab] = readSettingsForm();
+  configDrafts[currentConfigTab] = readSettingsForm();
 
+  cloudSettings.alerts = configDrafts.alerts;
+  cloudSettings.data = configDrafts.data;
 
-  cloudSettings.alerts = configDrafts.alerts;
-  cloudSettings.data = configDrafts.data;
+  const daysVal = parseInt(document.getElementById("threshold-days").value, 10);
+  const cylVal = parseFloat(document.getElementById("threshold-cylinder").value);
+  cloudSettings.thresholds = {
+    days: isNaN(daysVal) ? ALERT_THRESHOLD_DAYS : daysVal,
+    cylinder: isNaN(cylVal) ? CYLINDER_THRESHOLD_VALUE : cylVal
+  };
+  ALERT_THRESHOLD_DAYS = cloudSettings.thresholds.days;
+  CYLINDER_THRESHOLD_VALUE = cloudSettings.thresholds.cylinder;
 
+  applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
+  applyFontSettingsToContainer("page-data", cloudSettings.data);
+  applyPageBackground(getActivePageName());
+  loadAll();
 
-  const daysVal = parseInt(document.getElementById("threshold-days").value, 10);
-  const cylVal = parseFloat(document.getElementById("threshold-cylinder").value);
-  cloudSettings.thresholds = {
-    days: isNaN(daysVal) ? ALERT_THRESHOLD_DAYS : daysVal,
-    cylinder: isNaN(cylVal) ? CYLINDER_THRESHOLD_VALUE : cylVal
-  };
-  ALERT_THRESHOLD_DAYS = cloudSettings.thresholds.days;
-  CYLINDER_THRESHOLD_VALUE = cloudSettings.thresholds.cylinder;
+  setSyncStatus("Saving...");
+  try {
+    await saveCloudSettings(cloudSettings);
+    setSyncStatus("Synced");
+  } catch (err) {
+    setSyncStatus("Sync failed");
+  }
 
-
-  applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
-  applyFontSettingsToContainer("page-data", cloudSettings.data);
-  applyPageBackground(getActivePageName());
-  loadAll();
-
-
-  setSyncStatus("Saving...");
-  try {
-    await saveCloudSettings(cloudSettings);
-    setSyncStatus("Synced");
-  } catch (err) {
-    setSyncStatus("Sync failed");
-  }
-
-
-  closeSettings();
+  closeSettings();
 }
-
 
 function resetSettings() {
-  const defaults = cloneDefaults();
-  configDrafts[currentConfigTab] = defaults;
-  fillSettingsForm(defaults);
+  const defaults = cloneDefaults();
+  configDrafts[currentConfigTab] = defaults;
+  fillSettingsForm(defaults);
 }
 
-
 if (settingsRef) {
-  settingsRef.on("value", (snapshot) => {
-    const val = snapshot.val();
-    if (val) {
-      if (val.alerts) cloudSettings.alerts = val.alerts;
-      if (val.data) cloudSettings.data = val.data;
-      if (val.thresholds) {
-        cloudSettings.thresholds = val.thresholds;
-        ALERT_THRESHOLD_DAYS = val.thresholds.days || ALERT_THRESHOLD_DAYS;
-        CYLINDER_THRESHOLD_VALUE = (val.thresholds.cylinder !== undefined) ? val.thresholds.cylinder : CYLINDER_THRESHOLD_VALUE;
-      }
+  settingsRef.on("value", (snapshot) => {
+    const val = snapshot.val();
+    if (val) {
+      if (val.alerts) cloudSettings.alerts = val.alerts;
+      if (val.data) cloudSettings.data = val.data;
+      if (val.thresholds) {
+        cloudSettings.thresholds = val.thresholds;
+        ALERT_THRESHOLD_DAYS = val.thresholds.days || ALERT_THRESHOLD_DAYS;
+        CYLINDER_THRESHOLD_VALUE = (val.thresholds.cylinder !== undefined) ? val.thresholds.cylinder : CYLINDER_THRESHOLD_VALUE;
+      }
 
-
-      applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
-      applyFontSettingsToContainer("page-data", cloudSettings.data);
-      applyPageBackground(getActivePageName());
-      loadAll();
-      setSyncStatus("Synced");
-    } else {
-      setSyncStatus("");
-    }
-  }, (error) => {
-    setSyncStatus("Sync error");
-  });
+      applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
+      applyFontSettingsToContainer("page-data", cloudSettings.data);
+      applyPageBackground(getActivePageName());
+      loadAll();
+      setSyncStatus("Synced");
+    } else {
+      setSyncStatus("");
+    }
+  }, (error) => {
+    setSyncStatus("Sync error");
+  });
 } else {
-  setSyncStatus("Offline");
+  setSyncStatus("Offline");
 }
 </script>
 </body>
