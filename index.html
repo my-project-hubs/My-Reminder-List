@@ -29,6 +29,32 @@
   .page { display: none; }
   .page.active { display: block; }
 
+  /* List page ke liye top sticky header */
+  #page-data {
+    padding-top: 70px;
+  }
+  #page-data .header-date {
+    position: sticky;
+    top: 0;
+    background: #ffffff;
+    z-index: 10;
+    padding: 10px 0;
+    margin-bottom: 5px;
+    border-bottom: 1px solid #eee;
+  }
+  .total-reminders {
+    position: sticky;
+    top: 50px;
+    background: #ffffff;
+    z-index: 9;
+    padding: 8px 0 12px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 2px solid #d40000;
+    margin-bottom: 15px;
+  }
+
   .page-toggle-btn {
     position: fixed;
     top: 50%;
@@ -175,9 +201,10 @@
   <div id="list-alerts"><div class="loading">Loading...</div></div>
 </div>
 
-<!-- PAGE 2: All Data -->
+<!-- PAGE 2: All Data (List) -->
 <div id="page-data" class="page">
   <div id="header-data" class="header-date"></div>
+  <div id="total-reminders" class="total-reminders">Total Reminders: 0</div>
   <div id="list-data"><div class="loading">Loading...</div></div>
 </div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -288,11 +315,21 @@ async function loadAll() {
   const listAlerts = document.getElementById("list-alerts");
   const headerData = document.getElementById("header-data");
   const listData = document.getElementById("list-data");
+  const totalRemindersEl = document.getElementById("total-reminders");
+  
   try {
     const { header, events } = await fetchSheetData();
+    
     headerAlerts.textContent = header;
     headerData.textContent = header;
+    
+    // Total Reminders update (sirf list page ke liye)
+    if (totalRemindersEl) {
+      totalRemindersEl.textContent = `Total Reminders: ${events.length}`;
+    }
+    
     renderEvents(listData, events);
+    
     const { months: thMonths, days: thDays } = getCylinderThresholdParts();
     const alerts = events.filter((e) => {
       if (e.isDayFormat && e.days !== null) return e.days <= ALERT_THRESHOLD_DAYS;
@@ -309,6 +346,7 @@ async function loadAll() {
     const msg = '<div class="empty-state">Could not load data. Please try again later.</div>';
     listAlerts.innerHTML = msg;
     listData.innerHTML = msg;
+    if (totalRemindersEl) totalRemindersEl.textContent = 'Total Reminders: 0';
   }
 }
 
