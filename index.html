@@ -29,7 +29,6 @@
   .page { display: none; }
   .page.active { display: block; }
 
-  /* ===== LIST PAGE — BILKUL TOP PAR ===== */
   #page-data {
     padding-top: 50px;
   }
@@ -310,9 +309,9 @@ async function loadAll() {
   try {
     const { header, events } = await fetchSheetData();
     
-    // Today + Reminders List ek hi line mein
+    // ✅ बस यही एक लाइन बदली — 4 स्पेस छोड़े
     headerAlerts.textContent = header;
-    headerData.textContent = header + "  Reminders List: " + events.length;
+    headerData.textContent = header + "    Reminders List: " + events.length;
     
     renderEvents(listData, events);
     
