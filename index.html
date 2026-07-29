@@ -211,7 +211,7 @@
 <!-- PAGE 2: All Data (List) -->
 <div id="page-data" class="page">
   <div id="header-data" class="header-date"></div>
-  <div id="total-reminders" class="total-reminders">Total Reminders List: 0</div>
+  <div id="total-reminders" class="total-reminders">Reminders List: 0</div>
   <div id="list-data"><div class="loading">Loading...</div></div>
 </div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -327,19 +327,16 @@ async function loadAll() {
   try {
     const { header, events } = await fetchSheetData();
     
-    // Today date update
     headerAlerts.textContent = header;
     headerData.textContent = header;
     
-    // Total Reminders List update (yeh bhi ab reload hoga)
+    // Reminders List update (Total हटा दिया)
     if (totalRemindersEl) {
-      totalRemindersEl.textContent = `Total Reminders List: ${events.length}`;
+      totalRemindersEl.textContent = `Reminders List: ${events.length}`;
     }
     
-    // List render
     renderEvents(listData, events);
     
-    // Alerts filter
     const { months: thMonths, days: thDays } = getCylinderThresholdParts();
     const alerts = events.filter((e) => {
       if (e.isDayFormat && e.days !== null) return e.days <= ALERT_THRESHOLD_DAYS;
@@ -356,7 +353,7 @@ async function loadAll() {
     const msg = '<div class="empty-state">Could not load data. Please try again later.</div>';
     listAlerts.innerHTML = msg;
     listData.innerHTML = msg;
-    if (totalRemindersEl) totalRemindersEl.textContent = 'Total Reminders List: 0';
+    if (totalRemindersEl) totalRemindersEl.textContent = 'Reminders List: 0';
   }
 }
 
