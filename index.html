@@ -91,6 +91,10 @@
     align-items: center;
     justify-content: center;
   }
+  .settings-icon-span {
+    display: inline-block;
+    transition: transform 0.5s ease;
+  }
 
   .settings-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 30; align-items: flex-end; justify-content: center; }
   .settings-overlay.open { display: flex; }
@@ -132,7 +136,7 @@
 
 <div id="syncStatus" class="sync-status"></div>
 <button id="pageToggleBtn" class="page-toggle-btn" onclick="togglePage()" title="Switch page"><span id="toggleIcon" class="toggle-icon">⇄</span></button>
-<button class="settings-icon" onclick="openSettings()" title="Settings">⚙</button>
+<button class="settings-icon" onclick="openSettings()" title="Settings"><span id="settingsIcon" class="settings-icon-span">⚙</span></button>
 
 <div id="settingsOverlay" class="settings-overlay">
   <div class="settings-panel">
@@ -464,6 +468,7 @@ function switchConfigTab(tab) {
   fillSettingsForm(configDrafts[currentConfigTab]);
 }
 
+let settingsIconRotation = 0;
 function openSettings() {
   configDrafts = {
     alerts: JSON.parse(JSON.stringify(getSavedFontSettings("alerts"))),
@@ -475,6 +480,8 @@ function openSettings() {
   document.getElementById("threshold-days").value = ALERT_THRESHOLD_DAYS;
   document.getElementById("threshold-cylinder").value = CYLINDER_THRESHOLD_VALUE.toFixed(2);
   document.getElementById("settingsOverlay").classList.add("open");
+  settingsIconRotation += 360;
+  document.getElementById("settingsIcon").style.transform = "rotate(" + settingsIconRotation + "deg)";
 }
 
 function closeSettings() {
