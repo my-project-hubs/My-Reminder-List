@@ -21,7 +21,6 @@
   .event-name { color: var(--name-color, #000000); font-size: var(--name-size, 20px); font-family: var(--name-font, inherit); font-weight: var(--name-weight, 400); margin-bottom: 4px; }
   .event-countdown { color: var(--countdown-color, #ff0000); font-size: var(--countdown-size, 26px); font-family: var(--countdown-font, inherit); font-weight: var(--countdown-weight, 700); margin-bottom: 2px; }
   .event-date { color: var(--date-color, #000000); font-size: var(--date-size, 15px); font-family: var(--date-font, inherit); font-weight: var(--date-weight, 400); }
-  #page-alerts .header-date { text-align: center; }
   #list-alerts { display: flex; flex-direction: column; align-items: flex-start; max-width: fit-content; margin: 0 auto; width: 100%; }
   #list-alerts .event { text-align: left; }
   .empty-state { color: #555; font-size: 16px; margin-top: 12px; text-align: center; width: 100%; }
@@ -29,10 +28,10 @@
   .page { display: none; }
   .page.active { display: block; }
 
-  #page-data {
+  #page-alerts, #page-data {
     padding-top: 50px;
   }
-  #page-data .header-date {
+  #page-alerts .header-date, #page-data .header-date {
     position: fixed;
     top: 0;
     left: 0;
@@ -40,17 +39,19 @@
     background: #ffffff;
     z-index: 20;
     padding: 8px 20px 8px 20px;
-    margin: 0;
+    margin: 0 auto;
     border-bottom: 2px solid #d40000;
     max-width: 640px;
-    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
   }
 
   .page-toggle-btn {
     position: fixed;
     top: 50%;
     right: 0;
-    transform: translateY(-50%);
+    transform: translateY(calc(-50% - 48px));
     background: transparent;
     color: #e0dfdd;
     border: none;
@@ -188,13 +189,13 @@
 
 <!-- PAGE 1: Alerts -->
 <div id="page-alerts" class="page active">
-  <div id="header-alerts" class="header-date"></div>
+  <div id="header-alerts" class="header-date"><span id="header-alerts-left"></span><span id="header-alerts-right">Alert Page</span></div>
   <div id="list-alerts"><div class="loading">Loading...</div></div>
 </div>
 
 <!-- PAGE 2: All Data (List) -->
 <div id="page-data" class="page">
-  <div id="header-data" class="header-date"></div>
+  <div id="header-data" class="header-date"><span id="header-data-left"></span><span id="header-data-right"></span></div>
   <div id="list-data"><div class="loading">Loading...</div></div>
 </div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -309,9 +310,9 @@ async function loadAll() {
   try {
     const { header, events } = await fetchSheetData();
     
-    headerAlerts.textContent = header;
-    // ✅ यहाँ बिल्कुल 4 नॉन-ब्रेकिंग स्पेस हैं (ताकि ब्राउज़र इन्हें एक स्पेस में सिमेट न करे)
-    headerData.textContent = header + "\u00A0\u00A0\u00A0\u00A0Reminders List: " + events.length;
+    document.getElementById("header-alerts-left").textContent = header;
+    document.getElementById("header-data-left").textContent = header;
+    document.getElementById("header-data-right").textContent = "Reminders List: " + events.length;
     
     renderEvents(listData, events);
     
