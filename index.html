@@ -19,6 +19,7 @@
   .header-date { font-size: var(--header-size, 19px); color: var(--header-color, #000000); font-family: var(--header-font, inherit); font-weight: var(--header-weight, 400); margin-bottom: 28px; }
   .event { margin-bottom: 22px; }
   .event-name { color: var(--name-color, #000000); font-size: var(--name-size, 20px); font-family: var(--name-font, inherit); font-weight: var(--name-weight, 400); margin-bottom: 4px; }
+  .alert-label { color: #d40000; font-size: 14px; font-weight: 700; margin-bottom: 4px; }
   .event-countdown { color: var(--countdown-color, #ff0000); font-size: var(--countdown-size, 26px); font-family: var(--countdown-font, inherit); font-weight: var(--countdown-weight, 700); margin-bottom: 2px; }
   .event-date { color: var(--date-color, #000000); font-size: var(--date-size, 15px); font-family: var(--date-font, inherit); font-weight: var(--date-weight, 400); }
   #list-alerts { display: flex; flex-direction: column; align-items: flex-start; max-width: fit-content; margin: 0 auto; width: 100%; }
@@ -51,7 +52,7 @@
     position: fixed;
     top: 50%;
     right: 0;
-    transform: translateY(calc(-50% - 48px));
+    transform: translateY(calc(-50% - 144px));
     background: transparent;
     color: #e0dfdd;
     border: none;
@@ -71,7 +72,7 @@
     position: fixed;
     top: 50%;
     right: 0;
-    transform: translateY(30px);
+    transform: translateY(calc(-50% - 48px));
     width: 38px;
     height: 38px;
     background: transparent;
@@ -285,12 +286,13 @@ async function fetchSheetData() {
   return parseSheetCSV(text);
 }
 
-function renderEvents(container, events) {
+function renderEvents(container, events, showAlertLabel) {
   container.innerHTML = "";
   events.forEach((e) => {
     const item = document.createElement("div");
     item.className = "event";
-    item.innerHTML = `<div class="event-name">${e.name}</div><div class="event-countdown">${e.countdown}</div><div class="event-date">${e.date}</div>`;
+    const labelHtml = showAlertLabel ? `<div class="alert-label">Alert</div>` : "";
+    item.innerHTML = `${labelHtml}<div class="event-name">${e.name}</div><div class="event-countdown">${e.countdown}</div><div class="event-date">${e.date}</div>`;
     container.appendChild(item);
   });
 }
@@ -327,7 +329,7 @@ async function loadAll() {
       return false;
     });
     if (alerts.length === 0) listAlerts.innerHTML = '<div class="empty-state">No alerts right now.</div>';
-    else renderEvents(listAlerts, alerts);
+    else renderEvents(listAlerts, alerts, true);
   } catch (err) {
     const msg = '<div class="empty-state">Could not load data. Please try again later.</div>';
     listAlerts.innerHTML = msg;
