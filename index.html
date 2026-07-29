@@ -337,6 +337,98 @@
     padding: 8px 10px;
     margin-bottom: 10px;
   }
+
+  /* ===== NEW: Custom Box Styles ===== */
+  .custom-box {
+    background: var(--box-bg, #ffffff);
+    border: var(--box-border, 2px) solid #dee2e6;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+    position: relative;
+    width: var(--box-width, 100%);
+  }
+  .custom-box .box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .custom-box .box-header .drag-handle {
+    color: #bdc3c7;
+    font-size: 20px;
+    cursor: grab;
+  }
+  .custom-box .box-header .box-actions {
+    display: flex;
+    gap: 6px;
+  }
+  .custom-box .box-header .box-actions button {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #ecf0f1;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .custom-box .box-header .box-actions .edit-box-btn:active {
+    background: #3498db;
+    color: white;
+  }
+  .custom-box .box-header .box-actions .delete-box-btn:active {
+    background: #e74c3c;
+    color: white;
+  }
+  .custom-box .box-text {
+    font-size: var(--box-text-size, 18px);
+    padding: 10px;
+    min-height: 40px;
+    word-wrap: break-word;
+    outline: none;
+    border: 1px dashed transparent;
+    border-radius: 8px;
+    transition: all 0.3s;
+    color: var(--box-text-color, #333333);
+  }
+  .custom-box .box-text:focus {
+    border-color: #3498db;
+    background: rgba(52,152,219,0.05);
+  }
+  .add-box-btn {
+    padding: 10px 20px;
+    background: #9b59b6;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(155,89,182,0.3);
+    transition: all 0.3s;
+    margin-bottom: 10px;
+  }
+  .add-box-btn:active {
+    transform: scale(0.95);
+  }
+  #boxContainer {
+    margin-top: 15px;
+  }
+  .box-empty {
+    text-align: center;
+    color: #bdc3c7;
+    padding: 20px;
+    font-size: 1.1em;
+  }
+  /* ===== END Custom Box Styles ===== */
 </style>
 </head>
 <body>
@@ -479,6 +571,38 @@
       </div>
     </div>
 
+    <!-- ===== NEW: Box Settings ===== -->
+    <div class="settings-row">
+      <div class="settings-row-label">📦 Box Settings</div>
+      <div class="settings-controls">
+        <div class="settings-field">
+          <label class="lbl-sm">Bg Color</label>
+          <div class="color-combo">
+            <input type="color" id="box-bg-color">
+          </div>
+        </div>
+        <div class="settings-field">
+          <label class="lbl-sm">Text Size</label>
+          <input type="number" id="box-text-size" min="8" max="60">
+        </div>
+        <div class="settings-field">
+          <label class="lbl-sm">Border</label>
+          <input type="number" id="box-border" min="0" max="10">
+        </div>
+        <div class="settings-field">
+          <label class="lbl-sm">Width %</label>
+          <input type="number" id="box-width" min="50" max="100">
+        </div>
+        <div class="settings-field">
+          <label class="lbl-sm">Text Color</label>
+          <div class="color-combo">
+            <input type="color" id="box-text-color">
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ===== END Box Settings ===== -->
+
     <div class="settings-actions">
       <button class="settings-reset" onclick="resetSettings()">Reset (this page)</button>
       <button class="settings-apply" onclick="applySettings()">Apply</button>
@@ -489,7 +613,13 @@
 <!-- PAGE 1: Alerts -->
 <div id="page-alerts" class="page active">
   <div id="header-alerts" class="header-date"></div>
+  <!-- ===== NEW: Add Box Button ===== -->
+  <button class="add-box-btn" onclick="addBox()">📦 Add Box</button>
+  <!-- ===== END ===== -->
   <div id="list-alerts"><div class="loading">Loading...</div></div>
+  <!-- ===== NEW: Box Container ===== -->
+  <div id="boxContainer"></div>
+  <!-- ===== END ===== -->
 </div>
 
 <!-- PAGE 2: All Data -->
@@ -497,7 +627,11 @@
   <div id="header-data" class="header-date"></div>
   <div id="list-data"><div class="loading">Loading...</div></div>
  </div>
- <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+ <!-- ===== NEW: SortableJS for Drag & Drop ===== -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<!-- ===== END ===== -->
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhnQJrsY7BIuA3h5iMxaU3-yr3J9skyPtSSL_YoQfmYYQYXfPFnGWDH1loxyXC3mtl9-PS-oLa5_0n/pub?output=csv";
@@ -516,12 +650,129 @@ const firebaseConfig = {
 };
 
 let settingsRef = null;
+let boxesRef = null;
 try {
   firebase.initializeApp(firebaseConfig);
   settingsRef = firebase.database().ref("settings");
+  boxesRef = firebase.database().ref("boxes");
 } catch (e) {
   console.error("Firebase init failed:", e);
 }
+
+// ===== NEW: Box Functions =====
+let allBoxes = [];
+
+function loadBoxes() {
+  if (!boxesRef) return;
+  boxesRef.on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      allBoxes = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+      allBoxes.sort((a, b) => (a.order || 0) - (b.order || 0));
+    } else {
+      allBoxes = [];
+    }
+    renderBoxes();
+  });
+}
+
+function renderBoxes() {
+  const container = document.getElementById('boxContainer');
+  if (!container) return;
+  
+  if (allBoxes.length === 0) {
+    container.innerHTML = '<div class="box-empty">📦 कोई बॉक्स नहीं। "Add Box" दबाएँ।</div>';
+    return;
+  }
+  
+  container.innerHTML = allBoxes.map((box, index) => `
+    <div class="custom-box" data-id="${box.id}" data-index="${index}">
+      <div class="box-header">
+        <span class="drag-handle">☰</span>
+        <div class="box-actions">
+          <button class="edit-box-btn" onclick="editBox('${box.id}')">✏️</button>
+          <button class="delete-box-btn" onclick="deleteBox('${box.id}')">🗑️</button>
+        </div>
+      </div>
+      <div class="box-text" contenteditable="false">${box.text || 'यहाँ कुछ लिखें...'}</div>
+    </div>
+  `).join('');
+  
+  // Enable drag & drop
+  setTimeout(() => {
+    const el = document.getElementById('boxContainer');
+    if (el) {
+      new Sortable(el, {
+        handle: '.drag-handle',
+        animation: 150,
+        onEnd: function(evt) {
+          const items = el.querySelectorAll('.custom-box');
+          const newOrder = [];
+          items.forEach(item => {
+            const id = item.dataset.id;
+            const found = allBoxes.find(b => b.id === id);
+            if (found) newOrder.push(found);
+          });
+          allBoxes = newOrder;
+          saveBoxOrder();
+        }
+      });
+    }
+  }, 100);
+}
+
+function saveBoxOrder() {
+  if (!boxesRef) return;
+  allBoxes.forEach((box, index) => {
+    boxesRef.child(box.id + '/order').set(index);
+  });
+}
+
+function addBox() {
+  if (!boxesRef) {
+    alert('Firebase not available');
+    return;
+  }
+  const newRef = boxesRef.push();
+  newRef.set({
+    text: 'नया बॉक्स... ✏️ दबाकर एडिट करें',
+    order: allBoxes.length
+  });
+}
+
+function editBox(id) {
+  const box = allBoxes.find(b => b.id === id);
+  if (!box) return;
+  const textEl = document.querySelector(`.custom-box[data-id="${id}"] .box-text`);
+  if (!textEl) return;
+  
+  if (textEl.getAttribute('contenteditable') === 'true') {
+    // Save
+    textEl.setAttribute('contenteditable', 'false');
+    const newText = textEl.innerText.trim() || 'यहाँ कुछ लिखें...';
+    if (box.text !== newText) {
+      boxesRef.child(id + '/text').set(newText);
+      box.text = newText;
+    }
+  } else {
+    // Edit mode
+    textEl.setAttribute('contenteditable', 'true');
+    textEl.focus();
+    // Select all text
+    const range = document.createRange();
+    range.selectNodeContents(textEl);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+}
+
+function deleteBox(id) {
+  if (confirm('क्या आपको यह बॉक्स डिलीट करना है?')) {
+    boxesRef.child(id).remove();
+  }
+}
+// ===== END Box Functions =====
 
 function saveCloudSettings(data) {
   if (!settingsRef) return Promise.reject(new Error("Firebase not available"));
@@ -670,6 +921,10 @@ async function loadAll() {
 loadAll();
 setInterval(loadAll, 3000);
 
+// ===== NEW: Load Boxes on init =====
+loadBoxes();
+// ===== END =====
+
 function pinSettingsIcon() {
   const settingsBtn = document.querySelector(".settings-icon");
   const toggleBtn = document.getElementById("pageToggleBtn");
@@ -738,13 +993,22 @@ const DEFAULT_PAGE_SETTINGS = {
   background: "#ffffff"
 };
 
+const DEFAULT_BOX_SETTINGS = {
+  bg: "#ffffff",
+  textSize: 18,
+  border: 2,
+  width: 100,
+  textColor: "#333333"
+};
+
 function cloneDefaults() {
   return JSON.parse(JSON.stringify(DEFAULT_PAGE_SETTINGS));
 }
 
 let cloudSettings = {
   alerts: cloneDefaults(),
-  data: cloneDefaults()
+  data: cloneDefaults(),
+  box: JSON.parse(JSON.stringify(DEFAULT_BOX_SETTINGS))
 };
 
 function getSavedFontSettings(page) {
@@ -765,9 +1029,21 @@ function applyFontSettingsToContainer(containerId, settings) {
   });
 }
 
+// ===== NEW: Apply Box Settings =====
+function applyBoxSettingsToPage() {
+  const boxSettings = cloudSettings.box || DEFAULT_BOX_SETTINGS;
+  document.body.style.setProperty('--box-bg', boxSettings.bg || '#ffffff');
+  document.body.style.setProperty('--box-text-size', (boxSettings.textSize || 18) + 'px');
+  document.body.style.setProperty('--box-border', (boxSettings.border || 2) + 'px');
+  document.body.style.setProperty('--box-width', (boxSettings.width || 100) + '%');
+  document.body.style.setProperty('--box-text-color', boxSettings.textColor || '#333333');
+}
+// ===== END =====
+
 function applyPageBackground(page) {
   const settings = getSavedFontSettings(page);
   document.body.style.backgroundColor = settings.background || "#ffffff";
+  applyBoxSettingsToPage();
 }
 
 function fillSettingsForm(settings) {
@@ -779,6 +1055,15 @@ function fillSettingsForm(settings) {
     document.getElementById(`${target}-bold`).checked = !!s.bold;
   });
   document.getElementById("page-bg-color").value = settings.background || "#ffffff";
+  
+  // ===== NEW: Fill Box Settings =====
+  const boxSettings = cloudSettings.box || DEFAULT_BOX_SETTINGS;
+  document.getElementById("box-bg-color").value = boxSettings.bg || "#ffffff";
+  document.getElementById("box-text-size").value = boxSettings.textSize || 18;
+  document.getElementById("box-border").value = boxSettings.border || 2;
+  document.getElementById("box-width").value = boxSettings.width || 100;
+  document.getElementById("box-text-color").value = boxSettings.textColor || "#333333";
+  // ===== END =====
 }
 
 function readSettingsForm() {
@@ -794,6 +1079,18 @@ function readSettingsForm() {
   settings.background = document.getElementById("page-bg-color").value;
   return settings;
 }
+
+// ===== NEW: Read Box Settings =====
+function readBoxSettingsForm() {
+  return {
+    bg: document.getElementById("box-bg-color").value || "#ffffff",
+    textSize: parseInt(document.getElementById("box-text-size").value, 10) || 18,
+    border: parseInt(document.getElementById("box-border").value, 10) || 2,
+    width: parseInt(document.getElementById("box-width").value, 10) || 100,
+    textColor: document.getElementById("box-text-color").value || "#333333"
+  };
+}
+// ===== END =====
 
 let configDrafts = null;
 let currentConfigTab = "alerts";
@@ -832,6 +1129,10 @@ async function applySettings() {
 
   cloudSettings.alerts = configDrafts.alerts;
   cloudSettings.data = configDrafts.data;
+  
+  // ===== NEW: Save Box Settings =====
+  cloudSettings.box = readBoxSettingsForm();
+  // ===== END =====
 
   const daysVal = parseInt(document.getElementById("threshold-days").value, 10);
   const cylVal = parseFloat(document.getElementById("threshold-cylinder").value);
@@ -844,6 +1145,7 @@ async function applySettings() {
 
   applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
   applyFontSettingsToContainer("page-data", cloudSettings.data);
+  applyBoxSettingsToPage();
   applyPageBackground(getActivePageName());
   loadAll();
 
@@ -870,6 +1172,7 @@ if (settingsRef) {
     if (val) {
       if (val.alerts) cloudSettings.alerts = val.alerts;
       if (val.data) cloudSettings.data = val.data;
+      if (val.box) cloudSettings.box = val.box;
       if (val.thresholds) {
         cloudSettings.thresholds = val.thresholds;
         ALERT_THRESHOLD_DAYS = val.thresholds.days || ALERT_THRESHOLD_DAYS;
@@ -878,6 +1181,7 @@ if (settingsRef) {
 
       applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
       applyFontSettingsToContainer("page-data", cloudSettings.data);
+      applyBoxSettingsToPage();
       applyPageBackground(getActivePageName());
       loadAll();
       setSyncStatus("Synced");
