@@ -29,30 +29,37 @@
   .page { display: none; }
   .page.active { display: block; }
 
-  /* List page — बिल्कुल टॉप पर चिपका */
+  /* ===== LIST PAGE — BILKUL TOP PAR ===== */
   #page-data {
-    padding-top: 0;
+    padding-top: 90px;
   }
   #page-data .header-date {
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
     background: #ffffff;
-    z-index: 10;
-    padding: 10px 0 5px 0;
-    margin-bottom: 2px;
+    z-index: 20;
+    padding: 8px 20px;
+    margin: 0;
     border-bottom: 1px solid #eee;
+    max-width: 640px;
+    margin: 0 auto;
   }
   .total-reminders {
-    position: sticky;
+    position: fixed;
     top: 45px;
+    left: 0;
+    right: 0;
     background: #ffffff;
-    z-index: 9;
-    padding: 6px 0 10px 0;
+    z-index: 19;
+    padding: 6px 20px 10px 20px;
     font-size: 16px;
     font-weight: 600;
     color: #333;
     border-bottom: 2px solid #d40000;
-    margin-bottom: 15px;
+    max-width: 640px;
+    margin: 0 auto;
   }
 
   .page-toggle-btn {
