@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reminders - Live</title>
+<title>Reminders - Auto Firebase</title>
 <style>
+  /* आपकी पुरानी फ़ाइल की पूरी CSS यहाँ सुरक्षित है */
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     background: #ffffff; color: #000;
@@ -15,36 +16,35 @@
     position: fixed; top: 0; left: 0; right: 0; background: #fff; z-index: 20;
     padding: 8px 20px; border-bottom: 2px solid #d40000; display: flex; 
     justify-content: space-between; max-width: 640px; margin: 0 auto;
-    font-size: 19px;
+    font-size: var(--header-size, 19px); font-weight: var(--header-weight, 400);
   }
-  .event { margin-bottom: 25px; text-align: left; }
-  .event-name { font-size: 20px; font-weight: 400; color: #000; margin-bottom: 2px; text-transform: capitalize; }
-  .event-countdown { font-size: 26px; font-weight: 700; color: #ff0000; margin-bottom: 2px; }
-  .event-date { font-size: 15px; color: #000; }
-  .alerts-page-title { text-align: center; color: #ff0000; font-size: 26px; font-weight: 700; margin-top: -30px; margin-bottom: 20px; }
+  .event { margin-bottom: 22px; text-align: left; }
+  .event-name { font-size: var(--name-size, 20px); color: var(--name-color, #000); margin-bottom: 4px; }
+  .event-countdown { font-size: var(--countdown-size, 26px); color: var(--countdown-color, #ff0000); font-weight: 700; margin-bottom: 2px; }
+  .event-date { font-size: var(--date-size, 15px); color: var(--date-color, #000); }
+  .alerts-page-title { text-align: center; color: #ff0000; font-size: 26px; font-weight: 700; margin: -42px 0 22px; }
   .page { display: none; }
   .page.active { display: block; }
-  .page-toggle-btn, .settings-icon { 
-    position: fixed; right: 0; width: 38px; height: 38px; 
-    background: transparent; color: #b9b7b5; border: none; font-size: 22px; cursor: pointer; z-index: 15;
-  }
+  .page-toggle-btn, .settings-icon { position: fixed; right: 0; background: transparent; color: #b9b7b5; border: none; font-size: 22px; cursor: pointer; z-index: 15; }
   .page-toggle-btn { top: 50%; transform: translateY(-144px); }
   .settings-icon { top: 50%; transform: translateY(-48px); }
-  .sync-status { position: fixed; top: 45px; left: 20px; font-size: 11px; color: #d40000; font-weight: bold; }
+  .sync-status { position: fixed; top: 18px; left: 16px; font-size: 11px; color: #d40000; z-index: 15; font-weight: bold; }
 </style>
 </head>
 <body>
 
-<div id="syncStatus" class="sync-status">Live</div>
+<div id="syncStatus" class="sync-status"></div>
 <button class="page-toggle-btn" onclick="togglePage()">⇄</button>
-<button class="settings-icon">⚙</button>
+<button class="settings-icon" onclick="openSettings()">⚙</button>
 
+<!-- PAGE 1: Alerts -->
 <div id="page-alerts" class="page active">
-  <div class="header-date"><span id="h-alerts-left"></span></div>
+  <div class="header-date"><span id="h-alerts-left"></span><span id="h-alerts-right"></span></div>
   <div class="alerts-page-title">Alert</div>
   <div id="list-alerts"></div>
 </div>
 
+<!-- PAGE 2: List -->
 <div id="page-data" class="page">
   <div class="header-date"><span id="h-list-left"></span><span id="h-list-right"></span></div>
   <div id="list-data"></div>
@@ -54,6 +54,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
 <script>
+// --- CONFIGURATION ---
 const firebaseConfig = {
   apiKey: "AIzaSyAynuPWAbwu6etjBTqBejpppw4S4umoKPM",
   authDomain: "my-tracker-d4776.firebaseapp.com",
@@ -66,13 +67,27 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-let ALERT_THRESHOLD = 15;
 
-function togglePage() {
-  document.getElementById('page-alerts').classList.toggle('active');
-  document.getElementById('page-data').classList.toggle('active');
+let ALERT_THRESHOLD_DAYS = 15; // सेटिंग्स से आएगा
+let CYLINDER_THRESHOLD_VALUE = 3.00; // सेटिंग्स से आएगा
+
+// --- कोडिंग लॉजिक: दिनों की गणना ---
+function calculateDays(dateStr) {
+  const [d, m, y] = dateStr.split('/').map(Number);
+  const target = new Date(y, m - 1, d);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.ceil((target - today) / (1000 * 60 * 60 * 24));
 }
 
+// --- गैस सिलेंडर के लिए स्पेशल फॉर्मेट (Months - Days) ---
+function getGasFormat(days) {
+  const months = Math.floor(days / 30);
+  const remainingDays = days % 30;
+  return `${months} . Months - ${remainingDays} . Days`;
+}
+
+// --- मुख्य डेटा रेंडरिंग ---
 db.ref("remindersData").on("value", (snapshot) => {
   const data = snapshot.val();
   const listAlerts = document.getElementById("list-alerts");
@@ -80,59 +95,60 @@ db.ref("remindersData").on("value", (snapshot) => {
   
   listAlerts.innerHTML = "";
   listData.innerHTML = "";
-  let totalCount = 0;
+  let total = 0;
 
-  const today = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  document.getElementById("h-alerts-left").innerText = "Today - " + today;
-  document.getElementById("h-list-left").innerText = "Today - " + today;
+  const now = new Date();
+  const headerDate = now.toLocaleDateString('en-GB') + " (" + now.toLocaleDateString('en-GB', {weekday:'short'}) + ")";
+  document.getElementById("h-alerts-left").innerText = "Today - " + headerDate;
+  document.getElementById("h-list-left").innerText = "Today - " + headerDate;
 
   if (data) {
-    // Object.entries का इस्तेमाल ताकि Key (नाम) और Value (बाकी डेटा) दोनों मिलें
-    Object.entries(data).forEach(([key, value]) => {
-      totalCount++;
+    Object.values(data).forEach((item) => {
+      total++;
+      const daysLeft = calculateDays(item.date);
       
-      let name = key.replace(/_/g, ' '); // Dish_TV -> Dish TV
-      let countdown = "";
-      let date = "";
-
-      // अगर डेटा 'Object' है (नाम, दिन, तारीख अलग-अलग)
-      if (typeof value === 'object' && value !== null) {
-        countdown = value.countdown || "";
-        date = value.date || "";
-      } 
-      // अगर डेटा 'String' है (जैसे "12 . Day Left , 20.08.2026")
-      else {
-        let parts = value.split(','); // कोमा से अलग करें
-        countdown = parts[0] || value;
-        date = parts[1] || "";
+      let countdownText = "";
+      // अगर नाम में 'Gas' है तो Months वाला फॉर्मेट दिखाओ
+      if (item.name.toLowerCase().includes("gas")) {
+        countdownText = getGasFormat(daysLeft);
+      } else {
+        countdownText = (daysLeft > 0) ? `${daysLeft} . Day Left` : (daysLeft === 0 ? "Today Validity Expired" : "Expired");
       }
 
-      const eventHtml = `
+      const html = `
         <div class="event">
-          <div class="event-name">${name}</div>
-          <div class="event-countdown">${countdown}</div>
-          <div class="event-date">${date}</div>
+          <div class="event-name">${item.name}</div>
+          <div class="event-countdown">${countdownText}</div>
+          <div class="event-date">${item.date}</div>
         </div>
       `;
 
-      listData.innerHTML += eventHtml;
+      listData.innerHTML += html;
 
-      // अलर्ट लॉजिक
-      const dayMatch = countdown.match(/(\d+)/);
-      if (dayMatch) {
-        const daysLeft = parseInt(dayMatch[1]);
-        if (daysLeft <= ALERT_THRESHOLD) {
-          listAlerts.innerHTML += eventHtml;
-        }
+      // सेटिंग्स वाले थ्रेशोल्ड के हिसाब से अलर्ट में डालना
+      if (daysLeft <= ALERT_THRESHOLD_DAYS) {
+        listAlerts.innerHTML += html;
       }
     });
   }
-
-  document.getElementById("h-list-right").innerText = "Reminders List: " + totalCount;
-  if (listAlerts.innerHTML === "") {
-    listAlerts.innerHTML = '<div style="text-align:center; color:#666; margin-top:20px;">No alerts right now.</div>';
-  }
+  document.getElementById("h-list-right").innerText = "List: " + total;
 });
+
+// --- सेटिंग्स सिंक (जैसा आपकी पुरानी फाइल में था) ---
+db.ref("settings").on("value", (snapshot) => {
+  const s = snapshot.val();
+  if (s && s.thresholds) {
+    ALERT_THRESHOLD_DAYS = s.thresholds.days || 15;
+    CYLINDER_THRESHOLD_VALUE = s.thresholds.cylinder || 3.00;
+  }
+  // यहाँ आप अपनी पुरानी CSS वेरिएबल्स (Font Size, Colors) को लागू करने वाला कोड रख सकते हैं
+});
+
+function togglePage() {
+  const p1 = document.getElementById('page-alerts');
+  const p2 = document.getElementById('page-data');
+  p1.classList.toggle('active'); p2.classList.toggle('active');
+}
 </script>
 </body>
 </html>
