@@ -234,7 +234,7 @@ let eventsRef = null;
 try {
   firebase.initializeApp(firebaseConfig);
   settingsRef = firebase.database().ref("settings");
-  eventsRef = firebase.database().ref("events");
+  eventsRef = firebase.database().ref("remindersData/events");
 } catch (e) {
   console.error("Firebase init failed:", e);
 }
@@ -306,15 +306,26 @@ function computeEvent(raw) {
   };
 }
 
-let latestEventsData = { header: "", list: {} };
+let latestEventsRaw = "";
+
+// Parses: "Dish TV Recharge - 10.08.2026 , Mobile Recharge - 20.08.2026 ,"
+function parseEventsString(str) {
+  if (!str) return [];
+  return str.split(",").map((s) => s.trim()).filter(Boolean).map((entry) => {
+    const parts = entry.split(" - ");
+    if (parts.length < 2) return null;
+    const name = parts[0].trim();
+    const dateStr = parts[1].trim(); // DD.MM.YYYY
+    const m = dateStr.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+    if (!m) return null;
+    const [, dd, mm, yyyy] = m;
+    return { name, type: "countdown", targetDate: `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}` };
+  }).filter(Boolean);
+}
 
 function fetchSheetData() {
-  const rawList = latestEventsData.list || {};
-  const events = Object.keys(rawList)
-    .map((key) => ({ key, ...rawList[key] }))
-    .filter((raw) => raw.name)
-    .map(computeEvent);
-  return { header: latestEventsData.header || "", events };
+  const events = parseEventsString(latestEventsRaw).map(computeEvent);
+  return { header: "", events };
 }
 
 function renderEvents(container, events) {
@@ -369,8 +380,7 @@ async function loadAll() {
 
 if (eventsRef) {
   eventsRef.on("value", (snapshot) => {
-    const val = snapshot.val() || {};
-    latestEventsData = { header: val.header || "", list: val.list || {} };
+    latestEventsRaw = snapshot.val() || "";
     loadAll();
   }, (error) => {
     console.error("Events sync error:", error);
