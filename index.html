@@ -215,7 +215,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
-const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhnQJrsY7BIuA3h5iMxaU3-yr3J9skyPtSSL_YoQfmYYQYXfPFnGWDH1loxyXC3mtl9-PS-oLa5_0n/pub?output=csv";
 let ALERT_THRESHOLD_DAYS = 15;
 let CYLINDER_THRESHOLD_VALUE = 3.00;
 
@@ -231,9 +230,12 @@ const firebaseConfig = {
 };
 
 let settingsRef = null;
+let remDataRef = null;
+
 try {
   firebase.initializeApp(firebaseConfig);
   settingsRef = firebase.database().ref("settings");
+  remDataRef = firebase.database().ref("remindersData");
 } catch (e) {
   console.error("Firebase init failed:", e);
 }
@@ -267,38 +269,29 @@ function togglePage() {
   document.getElementById("toggleIcon").style.transform = "rotate(" + toggleIconRotation + "deg)";
 }
 
-function parseSheetCSV(csvText) {
-  const rawLines = csvText.split("\n");
-  const values = rawLines.map((line) => {
-    const idx = line.indexOf(",");
-    const col = idx === -1 ? "" : line.slice(idx + 1);
-    return col.replace(/\r/g, "").trim();
-  });
-  const nonEmpty = values.filter((v) => v.length > 0);
-  if (nonEmpty.length === 0) return { header: "", events: [] };
-  const header = nonEmpty[0];
-  const rest = nonEmpty.slice(1);
+function processRemindersData(rawData) {
+  if (!rawData) return { header: "", events: [] };
+  const header = rawData.header || "";
+  const rawEvents = rawData.events || [];
+  
   const events = [];
-  for (let i = 0; i < rest.length; i += 3) {
-    const name = rest[i];
-    const countdown = rest[i + 1];
-    const date = rest[i + 2];
-    if (!name || !countdown) continue;
+  rawEvents.forEach(e => {
+    if (!e || !e.name || !e.countdown) return;
+    const name = e.name;
+    const countdown = e.countdown;
+    const date = e.date || "";
+    
     const dayMatch = countdown.match(/^(\d+)\s*\.\s*Day Left/i);
     const monthMatch = countdown.match(/^(\d+)\s*\.\s*Months\s*-\s*(\d+)\s*\.\s*Days/i);
     let days = null, isDayFormat = false, isMonthFormat = false, monthsElapsed = null, daysElapsed = null;
+    
     if (dayMatch) { days = parseInt(dayMatch[1], 10); isDayFormat = true; }
     else if (monthMatch) { monthsElapsed = parseInt(monthMatch[1], 10); daysElapsed = parseInt(monthMatch[2], 10); isMonthFormat = true; }
+    
     events.push({ name, countdown, date, days, isDayFormat, isMonthFormat, monthsElapsed, daysElapsed });
-  }
+  });
+  
   return { header, events };
-}
-
-async function fetchSheetData() {
-  const response = await fetch(SHEET_CSV_URL, { cache: "no-store" });
-  if (!response.ok) throw new Error("Network response was not ok");
-  const text = await response.text();
-  return parseSheetCSV(text);
 }
 
 function renderEvents(container, events) {
@@ -317,42 +310,50 @@ function getCylinderThresholdParts() {
   return { months, days };
 }
 
-async function loadAll() {
+function updateUI(parsedData) {
   const headerAlerts = document.getElementById("header-alerts");
   const listAlerts = document.getElementById("list-alerts");
   const headerData = document.getElementById("header-data");
   const listData = document.getElementById("list-data");
   
-  try {
-    const { header, events } = await fetchSheetData();
-    
-    document.getElementById("header-alerts-left").textContent = header;
-    document.getElementById("header-data-left").textContent = header;
-    document.getElementById("header-data-right").textContent = "Reminders List: " + events.length;
-    
-    renderEvents(listData, events);
-    
-    const { months: thMonths, days: thDays } = getCylinderThresholdParts();
-    const alerts = events.filter((e) => {
-      if (e.isDayFormat && e.days !== null) return e.days <= ALERT_THRESHOLD_DAYS;
-      if (e.isMonthFormat && e.monthsElapsed !== null) {
-        if (e.monthsElapsed > thMonths) return true;
-        if (e.monthsElapsed === thMonths) return (e.daysElapsed || 0) >= thDays;
-        return false;
-      }
+  const header = parsedData.header;
+  const events = parsedData.events;
+  
+  document.getElementById("header-alerts-left").textContent = header;
+  document.getElementById("header-data-left").textContent = header;
+  document.getElementById("header-data-right").textContent = "Reminders List: " + events.length;
+  
+  renderEvents(listData, events);
+  
+  const { months: thMonths, days: thDays } = getCylinderThresholdParts();
+  const alerts = events.filter((e) => {
+    if (e.isDayFormat && e.days !== null) return e.days <= ALERT_THRESHOLD_DAYS;
+    if (e.isMonthFormat && e.monthsElapsed !== null) {
+      if (e.monthsElapsed > thMonths) return true;
+      if (e.monthsElapsed === thMonths) return (e.daysElapsed || 0) >= thDays;
       return false;
-    });
-    if (alerts.length === 0) listAlerts.innerHTML = '<div class="empty-state">No alerts right now.</div>';
-    else renderEvents(listAlerts, alerts);
-  } catch (err) {
-    const msg = '<div class="empty-state">Could not load data. Please try again later.</div>';
-    listAlerts.innerHTML = msg;
-    listData.innerHTML = msg;
-  }
+    }
+    return false;
+  });
+  
+  if (alerts.length === 0) listAlerts.innerHTML = '<div class="empty-state">No alerts right now.</div>';
+  else renderEvents(listAlerts, alerts);
 }
 
-loadAll();
-setInterval(loadAll, 3000);
+if (remDataRef) {
+  remDataRef.on("value", (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      const parsed = processRemindersData(data);
+      updateUI(parsed);
+    } else {
+      document.getElementById("list-alerts").innerHTML = '<div class="empty-state">No data in Firebase.</div>';
+      document.getElementById("list-data").innerHTML = '<div class="empty-state">No data in Firebase.</div>';
+    }
+  }, (err) => {
+    console.error("Firebase read error:", err);
+  });
+}
 
 const FONT_OPTIONS = [
   { label: "Default", value: "inherit" },
@@ -496,7 +497,6 @@ async function applySettings() {
   applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
   applyFontSettingsToContainer("page-data", cloudSettings.data);
   applyPageBackground(getActivePageName());
-  loadAll();
   setSyncStatus("Saving...");
   try {
     await saveCloudSettings(cloudSettings);
@@ -527,7 +527,6 @@ if (settingsRef) {
       applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
       applyFontSettingsToContainer("page-data", cloudSettings.data);
       applyPageBackground(getActivePageName());
-      loadAll();
       setSyncStatus("Synced");
     } else {
       setSyncStatus("");
