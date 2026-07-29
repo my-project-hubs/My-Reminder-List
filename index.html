@@ -19,7 +19,7 @@
   .header-date { font-size: var(--header-size, 19px); color: var(--header-color, #000000); font-family: var(--header-font, inherit); font-weight: var(--header-weight, 400); margin-bottom: 28px; }
   .event { margin-bottom: 22px; }
   .event-name { color: var(--name-color, #000000); font-size: var(--name-size, 20px); font-family: var(--name-font, inherit); font-weight: var(--name-weight, 400); margin-bottom: 4px; }
-  .alert-label { color: #d40000; font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .alerts-page-title { text-align: center; color: #d40000; font-size: 26px; font-weight: 700; margin: 6px 0 22px; }
   .event-countdown { color: var(--countdown-color, #ff0000); font-size: var(--countdown-size, 26px); font-family: var(--countdown-font, inherit); font-weight: var(--countdown-weight, 700); margin-bottom: 2px; }
   .event-date { color: var(--date-color, #000000); font-size: var(--date-size, 15px); font-family: var(--date-font, inherit); font-weight: var(--date-weight, 400); }
   #list-alerts { display: flex; flex-direction: column; align-items: flex-start; max-width: fit-content; margin: 0 auto; width: 100%; }
@@ -96,6 +96,9 @@
   .cfgtab.active { background: #d40000; color: #ffffff; border-color: #d40000; }
   .settings-row { border-top: 1px solid #eee; padding: 14px 0; }
   .settings-row-label { font-weight: 600; font-size: 15px; margin-bottom: 10px; }
+  .settings-row-label-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .settings-row-label-flex .settings-row-label { margin-bottom: 0; }
+  .settings-row-close { background: none; border: none; font-size: 20px; font-weight: 700; cursor: pointer; color: #000000; padding: 0; line-height: 1; }
   .settings-controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: center; }
   .settings-controls label { font-size: 24px; color: #555; display: block; margin-bottom: 2px; text-align: center; }
   .settings-controls label.lbl-sm { font-size: 22px; }
@@ -140,7 +143,10 @@
       <button id="cfgtab-data" class="cfgtab" onclick="switchConfigTab('data')">List Page</button>
     </div>
     <div class="settings-row">
-      <div class="settings-row-label">Page Background</div>
+      <div class="settings-row-label-flex">
+        <div class="settings-row-label">Page Background</div>
+        <button class="settings-row-close" onclick="closeSettings()" title="Close">✕</button>
+      </div>
       <div class="settings-controls">
         <div class="settings-field"><label>Color</label><div class="color-combo"><input type="color" id="page-bg-color"></div></div>
       </div>
@@ -191,6 +197,7 @@
 <!-- PAGE 1: Alerts -->
 <div id="page-alerts" class="page active">
   <div id="header-alerts" class="header-date"><span id="header-alerts-left"></span><span id="header-alerts-right">Alert Page</span></div>
+  <div class="alerts-page-title">Alert</div>
   <div id="list-alerts"><div class="loading">Loading...</div></div>
 </div>
 
@@ -286,13 +293,12 @@ async function fetchSheetData() {
   return parseSheetCSV(text);
 }
 
-function renderEvents(container, events, showAlertLabel) {
+function renderEvents(container, events) {
   container.innerHTML = "";
   events.forEach((e) => {
     const item = document.createElement("div");
     item.className = "event";
-    const labelHtml = showAlertLabel ? `<div class="alert-label">Alert</div>` : "";
-    item.innerHTML = `${labelHtml}<div class="event-name">${e.name}</div><div class="event-countdown">${e.countdown}</div><div class="event-date">${e.date}</div>`;
+    item.innerHTML = `<div class="event-name">${e.name}</div><div class="event-countdown">${e.countdown}</div><div class="event-date">${e.date}</div>`;
     container.appendChild(item);
   });
 }
@@ -329,7 +335,7 @@ async function loadAll() {
       return false;
     });
     if (alerts.length === 0) listAlerts.innerHTML = '<div class="empty-state">No alerts right now.</div>';
-    else renderEvents(listAlerts, alerts, true);
+    else renderEvents(listAlerts, alerts);
   } catch (err) {
     const msg = '<div class="empty-state">Could not load data. Please try again later.</div>';
     listAlerts.innerHTML = msg;
