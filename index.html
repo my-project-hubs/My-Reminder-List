@@ -31,7 +31,7 @@
 
   /* ===== LIST PAGE — BILKUL TOP PAR ===== */
   #page-data {
-    padding-top: 90px;
+    padding-top: 80px;
   }
   #page-data .header-date {
     position: fixed;
@@ -40,20 +40,20 @@
     right: 0;
     background: #ffffff;
     z-index: 20;
-    padding: 8px 20px;
+    padding: 8px 20px 4px 20px;
     margin: 0;
-    border-bottom: 1px solid #eee;
+    border-bottom: none;
     max-width: 640px;
     margin: 0 auto;
   }
   .total-reminders {
     position: fixed;
-    top: 45px;
+    top: 38px;
     left: 0;
     right: 0;
     background: #ffffff;
     z-index: 19;
-    padding: 6px 20px 10px 20px;
+    padding: 2px 20px 6px 20px;
     font-size: 16px;
     font-weight: 600;
     color: #333;
@@ -327,16 +327,19 @@ async function loadAll() {
   try {
     const { header, events } = await fetchSheetData();
     
+    // Today date update
     headerAlerts.textContent = header;
     headerData.textContent = header;
     
-    // Total Reminders List update
+    // Total Reminders List update (yeh bhi ab reload hoga)
     if (totalRemindersEl) {
       totalRemindersEl.textContent = `Total Reminders List: ${events.length}`;
     }
     
+    // List render
     renderEvents(listData, events);
     
+    // Alerts filter
     const { months: thMonths, days: thDays } = getCylinderThresholdParts();
     const alerts = events.filter((e) => {
       if (e.isDayFormat && e.days !== null) return e.days <= ALERT_THRESHOLD_DAYS;
