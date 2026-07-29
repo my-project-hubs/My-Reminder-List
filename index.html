@@ -54,18 +54,24 @@
     right: 0;
     transform: translateY(calc(-50% - 144px));
     background: transparent;
-    color: #e0dfdd;
+    color: #b9b7b5;
     border: none;
     padding: 0;
-    font-size: 14px;
+    width: 38px;
+    height: 38px;
+    font-size: 22px;
     font-weight: 700;
     cursor: pointer;
     z-index: 15;
-    display: inline-block;
-    width: auto;
-    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     line-height: 1;
     pointer-events: auto;
+  }
+  .page-toggle-btn .toggle-icon {
+    display: inline-block;
+    transition: transform 0.4s ease;
   }
 
   .settings-icon {
@@ -125,7 +131,7 @@
 <body>
 
 <div id="syncStatus" class="sync-status"></div>
-<button id="pageToggleBtn" class="page-toggle-btn" onclick="togglePage()">List</button>
+<button id="pageToggleBtn" class="page-toggle-btn" onclick="togglePage()" title="Switch page"><span id="toggleIcon" class="toggle-icon">⇄</span></button>
 <button class="settings-icon" onclick="openSettings()" title="Settings">⚙</button>
 
 <div id="settingsOverlay" class="settings-overlay">
@@ -249,14 +255,16 @@ function getActivePageName() {
 function showPage(name) {
   document.getElementById("page-alerts").classList.toggle("active", name === "alerts");
   document.getElementById("page-data").classList.toggle("active", name === "data");
-  document.getElementById("pageToggleBtn").textContent = name === "alerts" ? "List" : "Alerts";
   sessionStorage.setItem("activePage", name);
   applyPageBackground(name);
 }
 
+let toggleIconRotation = 0;
 function togglePage() {
   const next = getActivePageName() === "alerts" ? "data" : "alerts";
   showPage(next);
+  toggleIconRotation += 180;
+  document.getElementById("toggleIcon").style.transform = "rotate(" + toggleIconRotation + "deg)";
 }
 
 function parseSheetCSV(csvText) {
