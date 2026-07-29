@@ -310,8 +310,8 @@ async function loadAll() {
     const { header, events } = await fetchSheetData();
     
     headerAlerts.textContent = header;
-    // ✅ यहाँ बिल्कुल 4 स्पेस हैं — "    "
-    headerData.textContent = header + "    Reminders List: " + events.length;
+    // ✅ यहाँ बिल्कुल 4 नॉन-ब्रेकिंग स्पेस हैं (ताकि ब्राउज़र इन्हें एक स्पेस में सिमेट न करे)
+    headerData.textContent = header + "\u00A0\u00A0\u00A0\u00A0Reminders List: " + events.length;
     
     renderEvents(listData, events);
     
