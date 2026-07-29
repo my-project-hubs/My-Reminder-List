@@ -29,25 +29,25 @@
   .page { display: none; }
   .page.active { display: block; }
 
-  /* List page ke liye top sticky header */
+  /* List page — बिल्कुल टॉप पर चिपका */
   #page-data {
-    padding-top: 70px;
+    padding-top: 0;
   }
   #page-data .header-date {
     position: sticky;
     top: 0;
     background: #ffffff;
     z-index: 10;
-    padding: 10px 0;
-    margin-bottom: 5px;
+    padding: 10px 0 5px 0;
+    margin-bottom: 2px;
     border-bottom: 1px solid #eee;
   }
   .total-reminders {
     position: sticky;
-    top: 50px;
+    top: 45px;
     background: #ffffff;
     z-index: 9;
-    padding: 8px 0 12px 0;
+    padding: 6px 0 10px 0;
     font-size: 16px;
     font-weight: 600;
     color: #333;
@@ -204,7 +204,7 @@
 <!-- PAGE 2: All Data (List) -->
 <div id="page-data" class="page">
   <div id="header-data" class="header-date"></div>
-  <div id="total-reminders" class="total-reminders">Total Reminders: 0</div>
+  <div id="total-reminders" class="total-reminders">Total Reminders List: 0</div>
   <div id="list-data"><div class="loading">Loading...</div></div>
 </div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -323,9 +323,9 @@ async function loadAll() {
     headerAlerts.textContent = header;
     headerData.textContent = header;
     
-    // Total Reminders update (sirf list page ke liye)
+    // Total Reminders List update
     if (totalRemindersEl) {
-      totalRemindersEl.textContent = `Total Reminders: ${events.length}`;
+      totalRemindersEl.textContent = `Total Reminders List: ${events.length}`;
     }
     
     renderEvents(listData, events);
@@ -346,7 +346,7 @@ async function loadAll() {
     const msg = '<div class="empty-state">Could not load data. Please try again later.</div>';
     listAlerts.innerHTML = msg;
     listData.innerHTML = msg;
-    if (totalRemindersEl) totalRemindersEl.textContent = 'Total Reminders: 0';
+    if (totalRemindersEl) totalRemindersEl.textContent = 'Total Reminders List: 0';
   }
 }
 
