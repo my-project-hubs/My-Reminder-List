@@ -3,98 +3,60 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reminders - Firebase Live</title>
+<title>Reminders - Live</title>
 <style>
-  /* आपका पुराना CSS स्टाइल यहाँ सुरक्षित है */
+  /* आपकी पुरानी स्टाइलिंग यहाँ है */
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background: #ffffff;
-    color: #000000;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    font-size: 17px;
-    line-height: 1.5;
-    padding: 70px 20px 80px;
-    max-width: 640px;
-    margin: 0 auto;
+    background: #ffffff; color: #000;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 70px 20px 80px; max-width: 640px; margin: 0 auto;
   }
-  .header-date { font-size: var(--header-size, 19px); color: var(--header-color, #000000); font-family: var(--header-font, inherit); font-weight: var(--header-weight, 400); margin-bottom: 28px; }
-  .event { margin-bottom: 22px; }
-  .event-name { color: var(--name-color, #000000); font-size: var(--name-size, 20px); font-family: var(--name-font, inherit); font-weight: var(--name-weight, 400); margin-bottom: 4px; }
-  .alerts-page-title { text-align: center; color: #ff0000; font-size: 26px; font-weight: 700; margin: -42px 0 22px; }
-  .event-countdown { color: var(--countdown-color, #ff0000); font-size: var(--countdown-size, 26px); font-family: var(--countdown-font, inherit); font-weight: var(--countdown-weight, 700); margin-bottom: 2px; }
-  .event-date { color: var(--date-color, #000000); font-size: var(--date-size, 15px); font-family: var(--date-font, inherit); font-weight: var(--date-weight, 400); }
-  #list-alerts { display: flex; flex-direction: column; align-items: flex-start; max-width: fit-content; margin: 0 auto; width: 100%; }
-  #list-alerts .event { text-align: left; }
-  .empty-state { color: #555; font-size: 16px; margin-top: 12px; text-align: center; width: 100%; }
-  .loading { color: #555; text-align: center; width: 100%; }
+  .header-date { 
+    position: fixed; top: 0; left: 0; right: 0; background: #fff; z-index: 20;
+    padding: 8px 20px; border-bottom: 2px solid #d40000; display: flex; 
+    justify-content: space-between; max-width: 640px; margin: 0 auto;
+    font-size: 19px;
+  }
+  .event { margin-bottom: 25px; text-align: left; }
+  .event-name { font-size: 20px; font-weight: 400; color: #000; margin-bottom: 2px; }
+  .event-countdown { font-size: 26px; font-weight: 700; color: #ff0000; margin-bottom: 2px; }
+  .event-date { font-size: 15px; color: #000; }
+  .alerts-page-title { text-align: center; color: #ff0000; font-size: 26px; font-weight: 700; margin-top: -30px; margin-bottom: 20px; }
   .page { display: none; }
   .page.active { display: block; }
-  #page-alerts, #page-data { padding-top: 50px; }
-  #page-alerts .header-date, #page-data .header-date {
-    position: fixed; top: 0; left: 0; right: 0; background: #ffffff; z-index: 20;
-    padding: 8px 20px; margin: 0 auto; border-bottom: 2px solid #d40000; max-width: 640px;
-    display: flex; justify-content: space-between; align-items: baseline;
+  .page-toggle-btn, .settings-icon { 
+    position: fixed; right: 0; width: 38px; height: 38px; 
+    background: transparent; color: #b9b7b5; border: none; font-size: 22px; cursor: pointer; z-index: 15;
   }
-  .page-toggle-btn { position: fixed; top: 50%; right: 0; transform: translateY(calc(-50% - 144px)); background: transparent; color: #b9b7b5; border: none; width: 38px; height: 38px; font-size: 22px; font-weight: 700; cursor: pointer; z-index: 15; display: flex; align-items: center; justify-content: center; }
-  .settings-icon { position: fixed; top: 50%; right: 0; transform: translateY(calc(-50% - 48px)); width: 38px; height: 38px; background: transparent; color: #b9b7b5; border: none; font-size: 22px; cursor: pointer; z-index: 20; display: flex; align-items: center; justify-content: center; }
-  /* Settings Panel CSS remains the same... (omitted for brevity but kept in your final file) */
-  .settings-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 30; align-items: flex-end; justify-content: center; }
-  .settings-overlay.open { display: flex; }
-  .settings-panel { background: #ffffff; width: 100%; max-width: 640px; max-height: 85vh; overflow-y: auto; border-radius: 16px 16px 0 0; padding: 20px; }
-  .settings-title { display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: 700; margin-bottom: 16px; }
-  .settings-page-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-  .cfgtab { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd; background: #f5f5f5; cursor: pointer; }
-  .cfgtab.active { background: #d40000; color: #fff; }
-  .settings-row { border-top: 1px solid #eee; padding: 14px 0; }
-  .settings-controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-  .sync-status { position: fixed; top: 18px; left: 16px; font-size: 11px; color: #d40000; z-index: 15; font-weight: bold; }
+  .page-toggle-btn { top: 50%; transform: translateY(-144px); }
+  .settings-icon { top: 50%; transform: translateY(-48px); }
+  .sync-status { position: fixed; top: 45px; left: 20px; font-size: 11px; color: #d40000; font-weight: bold; }
 </style>
 </head>
 <body>
 
-<div id="syncStatus" class="sync-status"></div>
-<button id="pageToggleBtn" class="page-toggle-btn" onclick="togglePage()"><span id="toggleIcon">⇄</span></button>
-<button class="settings-icon" onclick="openSettings()">⚙</button>
+<div id="syncStatus" class="sync-status">Live</div>
+<button class="page-toggle-btn" onclick="togglePage()">⇄</button>
+<button class="settings-icon">⚙</button>
 
-<!-- Settings UI (same as your original) -->
-<div id="settingsOverlay" class="settings-overlay">
-  <div class="settings-panel">
-    <div class="settings-title"><span>Settings</span><button onclick="closeSettings()">✕</button></div>
-    <div class="settings-row">
-        <div class="settings-row-label">Alert Threshold</div>
-        <div class="settings-controls">
-          <div class="settings-field"><label>Day Left</label><input type="number" id="threshold-days"></div>
-          <div class="settings-field"><label>Gas Cylinder</label><input type="number" id="threshold-cylinder" step="0.01"></div>
-        </div>
-      </div>
-      <div class="settings-page-tabs">
-        <button id="cfgtab-alerts" class="cfgtab active" onclick="switchConfigTab('alerts')">Alerts Page</button>
-        <button id="cfgtab-data" class="cfgtab" onclick="switchConfigTab('data')">List Page</button>
-      </div>
-      <!-- Font controls... -->
-      <div class="settings-actions">
-        <button class="settings-reset" onclick="resetSettings()">Reset</button>
-        <button class="settings-apply" onclick="applySettings()">Apply</button>
-      </div>
-  </div>
-</div>
-
+<!-- ALERT PAGE -->
 <div id="page-alerts" class="page active">
-  <div class="header-date"><span id="header-alerts-left">Live Tracker</span><span id="header-alerts-right"></span></div>
+  <div class="header-date"><span id="h-alerts-left">Loading...</span></div>
   <div class="alerts-page-title">Alert</div>
-  <div id="list-alerts"><div class="loading">Loading Firebase...</div></div>
+  <div id="list-alerts"></div>
 </div>
 
+<!-- LIST PAGE -->
 <div id="page-data" class="page">
-  <div class="header-date"><span id="header-data-left">Live Tracker</span><span id="header-data-right"></span></div>
-  <div id="list-data"><div class="loading">Loading Firebase...</div></div>
+  <div class="header-date"><span id="h-list-left">Loading...</span><span id="h-list-right"></span></div>
+  <div id="list-data"></div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
 <script>
-// --- CONFIGURATION ---
 const firebaseConfig = {
   apiKey: "AIzaSyAynuPWAbwu6etjBTqBejpppw4S4umoKPM",
   authDomain: "my-tracker-d4776.firebaseapp.com",
@@ -102,122 +64,66 @@ const firebaseConfig = {
   projectId: "my-tracker-d4776",
   storageBucket: "my-tracker-d4776.firebasestorage.app",
   messagingSenderId: "207196018290",
-  appId: "1:207196018290:web:e544ccd2eac3e84150d4eb",
-  measurementId: "G-HPDX62VBWK"
+  appId: "1:207196018290:web:e544ccd2eac3e84150d4eb"
 };
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-const remindersRef = db.ref("remindersData");
-const settingsRef = db.ref("settings");
+let ALERT_THRESHOLD = 15; // 15 दिन से कम होने पर अलर्ट
 
-let ALERT_THRESHOLD_DAYS = 15;
-let CYLINDER_THRESHOLD_VALUE = 3.00;
-
-// --- DATA PROCESSING ---
-
-// यह फंक्शन फायरबेस के डेटा को पुराने फॉर्मेट में बदलता है ताकि आपकी डिजाइन न बिगड़े
-function processFirebaseData(data) {
-  const events = [];
-  if (!data) return events;
-
-  Object.entries(data).forEach(([name, value]) => {
-    // मान लीजिये वैल्यू "10 . Day Left" या "20.08.2026" जैसा है
-    let days = null, isDayFormat = false, isMonthFormat = false, monthsElapsed = null, daysElapsed = null;
-    
-    const dayMatch = value.match(/^(\d+)\s*\.\s*Day Left/i);
-    const monthMatch = value.match(/^(\d+)\s*\.\s*Months\s*-\s*(\d+)\s*\.\s*Days/i);
-
-    if (dayMatch) { 
-        days = parseInt(dayMatch[1], 10); 
-        isDayFormat = true; 
-    } else if (monthMatch) { 
-        monthsElapsed = parseInt(monthMatch[1], 10); 
-        daysElapsed = parseInt(monthMatch[2], 10); 
-        isMonthFormat = true; 
-    }
-
-    events.push({
-      name: name.replace(/_/g, ' '),
-      countdown: value,
-      date: "", // फायरबेस में डेट अलग से नहीं है तो इसे खाली रखा है
-      days, isDayFormat, isMonthFormat, monthsElapsed, daysElapsed
-    });
-  });
-  return events;
-}
-
-function renderEvents(container, events) {
-  container.innerHTML = "";
-  events.forEach((e) => {
-    const item = document.createElement("div");
-    item.className = "event";
-    item.innerHTML = `<div class="event-name">${e.name}</div><div class="event-countdown">${e.countdown}</div>`;
-    container.appendChild(item);
-  });
-}
-
-// --- FIREBASE REAL-TIME LISTENER ---
-remindersRef.on("value", (snapshot) => {
-    const rawData = snapshot.val();
-    const events = processFirebaseData(rawData);
-    
-    const listData = document.getElementById("list-data");
-    const listAlerts = document.getElementById("list-alerts");
-
-    // लिस्ट पेज अपडेट करें
-    document.getElementById("header-data-right").textContent = "Total: " + events.length;
-    renderEvents(listData, events);
-
-    // अलर्ट पेज अपडेट करें
-    const thMonths = Math.floor(CYLINDER_THRESHOLD_VALUE);
-    const thDays = Math.round((CYLINDER_THRESHOLD_VALUE - thMonths) * 100);
-
-    const alerts = events.filter((e) => {
-      if (e.isDayFormat && e.days !== null) return e.days <= ALERT_THRESHOLD_DAYS;
-      if (e.isMonthFormat && e.monthsElapsed !== null) {
-        if (e.monthsElapsed > thMonths) return true;
-        if (e.monthsElapsed === thMonths) return (e.daysElapsed || 0) >= thDays;
-      }
-      return false;
-    });
-
-    if (alerts.length === 0) {
-        listAlerts.innerHTML = '<div class="empty-state">No alerts right now.</div>';
-    } else {
-        renderEvents(listAlerts, alerts);
-    }
-    
-    setSyncStatus("Live");
-});
-
-// --- SETTINGS SYNC (पुराना लॉजिक) ---
-settingsRef.on("value", (snapshot) => {
-    const val = snapshot.val();
-    if (val) {
-        if (val.thresholds) {
-            ALERT_THRESHOLD_DAYS = val.thresholds.days || 15;
-            CYLINDER_THRESHOLD_VALUE = val.thresholds.cylinder || 3.00;
-        }
-        // अन्य फॉन्ट सेटिंग्स यहाँ लागू होंगी...
-    }
-});
-
-function setSyncStatus(text) {
-  document.getElementById("syncStatus").textContent = text;
-}
-
-// बाकी के फंक्शन्स (togglePage, openSettings, applySettings) जो आपके ओरिजिनल कोड में थे, उन्हें वैसे ही रहने दें।
 function togglePage() {
-    const p1 = document.getElementById("page-alerts");
-    const p2 = document.getElementById("page-data");
-    if (p1.classList.contains("active")) {
-        p1.classList.remove("active"); p2.classList.add("active");
-    } else {
-        p2.classList.remove("active"); p1.classList.add("active");
-    }
+  const p1 = document.getElementById('page-alerts');
+  const p2 = document.getElementById('page-data');
+  p1.classList.toggle('active');
+  p2.classList.toggle('active');
 }
-// ... (बाकी सेटिंग्स वाले फंक्शन पुराने वाले ही चलेंगे)
+
+// मुख्य फंक्शन: डेटा लोड करना
+db.ref("remindersData").on("value", (snapshot) => {
+  const data = snapshot.val();
+  const listAlerts = document.getElementById("list-alerts");
+  const listData = document.getElementById("list-data");
+  
+  listAlerts.innerHTML = "";
+  listData.innerHTML = "";
+
+  let totalCount = 0;
+  const today = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  document.getElementById("h-alerts-left").innerText = "Today - " + today;
+  document.getElementById("h-list-left").innerText = "Today - " + today;
+
+  if (data) {
+    Object.values(data).forEach((item) => {
+      totalCount++;
+      
+      // HTML स्ट्रक्चर (3 लाइन वाला)
+      const eventHtml = `
+        <div class="event">
+          <div class="event-name">${item.name}</div>
+          <div class="event-countdown">${item.countdown}</div>
+          <div class="event-date">${item.date}</div>
+        </div>
+      `;
+
+      // 1. लिस्ट पेज में सब कुछ जोड़ें
+      listData.innerHTML += eventHtml;
+
+      // 2. अलर्ट पेज के लिए लॉजिक (सिर्फ "X . Day Left" में से नंबर निकालें)
+      const dayMatch = item.countdown.match(/(\d+)/);
+      if (dayMatch) {
+        const daysLeft = parseInt(dayMatch[1]);
+        if (daysLeft <= ALERT_THRESHOLD) {
+          listAlerts.innerHTML += eventHtml;
+        }
+      }
+    });
+  }
+
+  document.getElementById("h-list-right").innerText = "Reminders List: " + totalCount;
+  if (listAlerts.innerHTML === "") {
+    listAlerts.innerHTML = '<div style="text-align:center; color:#666;">No alerts right now.</div>';
+  }
+});
 </script>
 </body>
 </html>
