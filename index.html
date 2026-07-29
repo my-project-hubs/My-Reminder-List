@@ -229,13 +229,15 @@ const firebaseConfig = {
   measurementId: "G-HPDX62VBWK"
 };
 
+let db = null;
 let settingsRef = null;
-let remDataRef = null;
+let remindersRef = null;
 
 try {
   firebase.initializeApp(firebaseConfig);
-  settingsRef = firebase.database().ref("settings");
-  remDataRef = firebase.database().ref("remindersData");
+  db = firebase.database();
+  settingsRef = db.ref("settings");
+  remindersRef = db.ref("remindersData");
 } catch (e) {
   console.error("Firebase init failed:", e);
 }
@@ -269,29 +271,43 @@ function togglePage() {
   document.getElementById("toggleIcon").style.transform = "rotate(" + toggleIconRotation + "deg)";
 }
 
-function processRemindersData(rawData) {
-  if (!rawData) return { header: "", events: [] };
-  const header = rawData.header || "";
-  const rawEvents = rawData.events || [];
-  
+function calculateDaysLeft(dateStr) {
+  if (!dateStr) return null;
+  const parts = dateStr.split('.');
+  if (parts.length !== 3) return null;
+  const targetDate = new Date(parts[2], parts[1] - 1, parts[0]);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diffTime = targetDate - today;
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+}
+
+function parseFirebaseData(val) {
+  if (!val) return { header: "", events: [] };
   const events = [];
-  rawEvents.forEach(e => {
-    if (!e || !e.name || !e.countdown) return;
-    const name = e.name;
-    const countdown = e.countdown;
-    const date = e.date || "";
-    
-    const dayMatch = countdown.match(/^(\d+)\s*\.\s*Day Left/i);
-    const monthMatch = countdown.match(/^(\d+)\s*\.\s*Months\s*-\s*(\d+)\s*\.\s*Days/i);
-    let days = null, isDayFormat = false, isMonthFormat = false, monthsElapsed = null, daysElapsed = null;
-    
-    if (dayMatch) { days = parseInt(dayMatch[1], 10); isDayFormat = true; }
-    else if (monthMatch) { monthsElapsed = parseInt(monthMatch[1], 10); daysElapsed = parseInt(monthMatch[2], 10); isMonthFormat = true; }
-    
-    events.push({ name, countdown, date, days, isDayFormat, isMonthFormat, monthsElapsed, daysElapsed });
-  });
   
-  return { header, events };
+  const rawEvents = val.events || val;
+  
+  const processItem = (item) => {
+    if (typeof item === 'string') {
+      const parts = item.split('-');
+      const name = parts[0] ? parts[0].trim() : '';
+      const date = parts[1] ? parts[1].trim() : '';
+      const days = calculateDaysLeft(date);
+      const countdown = days !== null ? `${days} . Day Left` : '';
+      if (name) events.push({ name, countdown, date, days, isDayFormat: true });
+    }
+  };
+
+  if (Array.isArray(rawEvents)) {
+    rawEvents.forEach(processItem);
+  } else if (typeof rawEvents === 'object') {
+    Object.values(rawEvents).forEach(processItem);
+  } else if (typeof rawEvents === 'string') {
+    processItem(rawEvents);
+  }
+
+  return { header: "", events };
 }
 
 function renderEvents(container, events) {
@@ -304,56 +320,37 @@ function renderEvents(container, events) {
   });
 }
 
-function getCylinderThresholdParts() {
-  const months = Math.floor(CYLINDER_THRESHOLD_VALUE);
-  const days = Math.round((CYLINDER_THRESHOLD_VALUE - months) * 100);
-  return { months, days };
-}
-
-function updateUI(parsedData) {
-  const headerAlerts = document.getElementById("header-alerts");
+function loadFirebaseEvents() {
   const listAlerts = document.getElementById("list-alerts");
-  const headerData = document.getElementById("header-data");
   const listData = document.getElementById("list-data");
-  
-  const header = parsedData.header;
-  const events = parsedData.events;
-  
-  document.getElementById("header-alerts-left").textContent = header;
-  document.getElementById("header-data-left").textContent = header;
-  document.getElementById("header-data-right").textContent = "Reminders List: " + events.length;
-  
-  renderEvents(listData, events);
-  
-  const { months: thMonths, days: thDays } = getCylinderThresholdParts();
-  const alerts = events.filter((e) => {
-    if (e.isDayFormat && e.days !== null) return e.days <= ALERT_THRESHOLD_DAYS;
-    if (e.isMonthFormat && e.monthsElapsed !== null) {
-      if (e.monthsElapsed > thMonths) return true;
-      if (e.monthsElapsed === thMonths) return (e.daysElapsed || 0) >= thDays;
-      return false;
+
+  if (!remindersRef) return;
+
+  remindersRef.on('value', (snapshot) => {
+    const val = snapshot.val();
+    const { events } = parseFirebaseData(val);
+
+    if (events.length === 0) {
+      const msg = '<div class="empty-state">No data available</div>';
+      listAlerts.innerHTML = msg;
+      listData.innerHTML = msg;
+      return;
     }
-    return false;
+
+    renderEvents(listData, events);
+
+    const alerts = events.filter((e) => e.days !== null && e.days <= ALERT_THRESHOLD_DAYS);
+    
+    if (alerts.length === 0) listAlerts.innerHTML = '<div class="empty-state">No alerts right now.</div>';
+    else renderEvents(listAlerts, alerts);
+  }, (err) => {
+    const msg = '<div class="empty-state">Could not load data.</div>';
+    listAlerts.innerHTML = msg;
+    listData.innerHTML = msg;
   });
-  
-  if (alerts.length === 0) listAlerts.innerHTML = '<div class="empty-state">No alerts right now.</div>';
-  else renderEvents(listAlerts, alerts);
 }
 
-if (remDataRef) {
-  remDataRef.on("value", (snapshot) => {
-    const data = snapshot.val();
-    if (data) {
-      const parsed = processRemindersData(data);
-      updateUI(parsed);
-    } else {
-      document.getElementById("list-alerts").innerHTML = '<div class="empty-state">No data in Firebase.</div>';
-      document.getElementById("list-data").innerHTML = '<div class="empty-state">No data in Firebase.</div>';
-    }
-  }, (err) => {
-    console.error("Firebase read error:", err);
-  });
-}
+loadFirebaseEvents();
 
 const FONT_OPTIONS = [
   { label: "Default", value: "inherit" },
@@ -381,6 +378,7 @@ const FONT_OPTIONS = [
 function populateFontSelects() {
   ["header-font", "name-font", "countdown-font", "date-font"].forEach((id) => {
     const sel = document.getElementById(id);
+    if (!sel) return;
     sel.innerHTML = "";
     FONT_OPTIONS.forEach((opt) => {
       const o = document.createElement("option");
@@ -411,6 +409,7 @@ showPage(savedPage === "data" ? "data" : "alerts");
 
 function applyFontSettingsToContainer(containerId, settings) {
   const container = document.getElementById(containerId);
+  if (!container) return;
   FONT_TARGETS.forEach((target) => {
     const s = settings[target] || DEFAULT_PAGE_SETTINGS[target];
     container.style.setProperty(`--${target}-size`, s.size + "px");
@@ -428,12 +427,12 @@ function applyPageBackground(page) {
 function fillSettingsForm(settings) {
   FONT_TARGETS.forEach((target) => {
     const s = settings[target] || DEFAULT_PAGE_SETTINGS[target];
-    document.getElementById(`${target}-size`).value = s.size;
-    document.getElementById(`${target}-color`).value = s.color;
-    document.getElementById(`${target}-font`).value = s.font;
-    document.getElementById(`${target}-bold`).checked = !!s.bold;
+    if (document.getElementById(`${target}-size`)) document.getElementById(`${target}-size`).value = s.size;
+    if (document.getElementById(`${target}-color`)) document.getElementById(`${target}-color`).value = s.color;
+    if (document.getElementById(`${target}-font`)) document.getElementById(`${target}-font`).value = s.font;
+    if (document.getElementById(`${target}-bold`)) document.getElementById(`${target}-bold`).checked = !!s.bold;
   });
-  document.getElementById("page-bg-color").value = settings.background || "#ffffff";
+  if (document.getElementById("page-bg-color")) document.getElementById("page-bg-color").value = settings.background || "#ffffff";
 }
 
 function readSettingsForm() {
@@ -454,8 +453,8 @@ let configDrafts = null;
 let currentConfigTab = "alerts";
 
 function updateTabUI() {
-  document.getElementById("cfgtab-alerts").classList.toggle("active", currentConfigTab === "alerts");
-  document.getElementById("cfgtab-data").classList.toggle("active", currentConfigTab === "data");
+  if (document.getElementById("cfgtab-alerts")) document.getElementById("cfgtab-alerts").classList.toggle("active", currentConfigTab === "alerts");
+  if (document.getElementById("cfgtab-data")) document.getElementById("cfgtab-data").classList.toggle("active", currentConfigTab === "data");
 }
 
 function switchConfigTab(tab) {
@@ -473,8 +472,8 @@ function openSettings() {
   currentConfigTab = getActivePageName();
   updateTabUI();
   fillSettingsForm(configDrafts[currentConfigTab]);
-  document.getElementById("threshold-days").value = ALERT_THRESHOLD_DAYS;
-  document.getElementById("threshold-cylinder").value = CYLINDER_THRESHOLD_VALUE.toFixed(2);
+  if (document.getElementById("threshold-days")) document.getElementById("threshold-days").value = ALERT_THRESHOLD_DAYS;
+  if (document.getElementById("threshold-cylinder")) document.getElementById("threshold-cylinder").value = CYLINDER_THRESHOLD_VALUE.toFixed(2);
   document.getElementById("settingsOverlay").classList.add("open");
 }
 
@@ -534,8 +533,6 @@ if (settingsRef) {
   }, (error) => {
     setSyncStatus("Sync error");
   });
-} else {
-  setSyncStatus("Offline");
 }
 </script>
 </body>
