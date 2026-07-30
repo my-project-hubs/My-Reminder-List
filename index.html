@@ -215,6 +215,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhnQJrsY7BIuA3h5iMxaU3-yr3J9skyPtSSL_YoQfmYYQYXfPFnGWDH1loxyXC3mtl9-PS-oLa5_0n/pub?output=csv";
 let ALERT_THRESHOLD_DAYS = 15;
 let CYLINDER_THRESHOLD_VALUE = 3.00;
 
@@ -230,11 +231,9 @@ const firebaseConfig = {
 };
 
 let settingsRef = null;
-let eventsRef = null;
 try {
   firebase.initializeApp(firebaseConfig);
   settingsRef = firebase.database().ref("settings");
-  eventsRef = firebase.database().ref("remindersData/events");
 } catch (e) {
   console.error("Firebase init failed:", e);
 }
@@ -268,67 +267,38 @@ function togglePage() {
   document.getElementById("toggleIcon").style.transform = "rotate(" + toggleIconRotation + "deg)";
 }
 
-function parseEventDateString(dateStr) {
-  const parts = String(dateStr).trim().split(/[-.\/]/).map((p) => parseInt(p, 10));
-  if (parts.length !== 3 || parts.some((p) => isNaN(p))) return null;
-  const [d, m, y] = parts;
-  const dt = new Date(y, m - 1, d);
-  dt.setHours(0, 0, 0, 0);
-  return dt;
-}
-
-function formatDisplayDate(dt) {
-  const d = String(dt.getDate()).padStart(2, "0");
-  const m = String(dt.getMonth() + 1).padStart(2, "0");
-  const y = dt.getFullYear();
-  return `${d}/${m}/${y}`;
-}
-
-function getTodayMidnight() {
-  const t = new Date();
-  t.setHours(0, 0, 0, 0);
-  return t;
-}
-
-function getCylinderThresholdParts() {
-  const months = Math.floor(CYLINDER_THRESHOLD_VALUE);
-  const days = Math.round((CYLINDER_THRESHOLD_VALUE - months) * 100);
-  return { months, days };
-}
-
-function getHeaderText() {
-  const today = getTodayMidnight();
-  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  return `Today - ${formatDisplayDate(today)} (${dayNames[today.getDay()]})`;
-}
-
-function buildEventDisplay(rawName, rawDate, rawType) {
-  const eventDate = parseEventDateString(rawDate);
-  if (!eventDate) return null;
-  const today = getTodayMidnight();
-  const name = rawName || "";
-  const displayDate = formatDisplayDate(eventDate);
-  const type = (rawType || "countdown").toLowerCase();
-
-  if (type === "elapsed") {
-    const elapsedDays = Math.max(0, Math.round((today - eventDate) / 86400000));
-    const months = Math.floor(elapsedDays / 30);
-    const days = elapsedDays % 30;
-    const countdown = months === 0 ? `${days} Days` : `${months} Months - ${days} Days`;
-    const { months: thMonths, days: thDays } = getCylinderThresholdParts();
-    let isAlert = false;
-    if (months > thMonths) isAlert = true;
-    else if (months === thMonths) isAlert = days >= thDays;
-    return { name, date: displayDate, countdown, isAlert };
+function parseSheetCSV(csvText) {
+  const rawLines = csvText.split("\n");
+  const values = rawLines.map((line) => {
+    const idx = line.indexOf(",");
+    const col = idx === -1 ? "" : line.slice(idx + 1);
+    return col.replace(/\r/g, "").trim();
+  });
+  const nonEmpty = values.filter((v) => v.length > 0);
+  if (nonEmpty.length === 0) return { header: "", events: [] };
+  const header = nonEmpty[0];
+  const rest = nonEmpty.slice(1);
+  const events = [];
+  for (let i = 0; i < rest.length; i += 3) {
+    const name = rest[i];
+    const countdown = rest[i + 1];
+    const date = rest[i + 2];
+    if (!name || !countdown) continue;
+    const dayMatch = countdown.match(/^(\d+)\s*\.\s*Day Left/i);
+    const monthMatch = countdown.match(/^(\d+)\s*\.\s*Months\s*-\s*(\d+)\s*\.\s*Days/i);
+    let days = null, isDayFormat = false, isMonthFormat = false, monthsElapsed = null, daysElapsed = null;
+    if (dayMatch) { days = parseInt(dayMatch[1], 10); isDayFormat = true; }
+    else if (monthMatch) { monthsElapsed = parseInt(monthMatch[1], 10); daysElapsed = parseInt(monthMatch[2], 10); isMonthFormat = true; }
+    events.push({ name, countdown, date, days, isDayFormat, isMonthFormat, monthsElapsed, daysElapsed });
   }
+  return { header, events };
+}
 
-  const diffDays = Math.round((eventDate - today) / 86400000);
-  if (diffDays < 0) {
-    return { name, date: displayDate, countdown: "Expired", isAlert: true };
-  }
-  const countdown = `${diffDays} Day Left`;
-  const isAlert = diffDays <= ALERT_THRESHOLD_DAYS;
-  return { name, date: displayDate, countdown, isAlert };
+async function fetchSheetData() {
+  const response = await fetch(SHEET_CSV_URL, { cache: "no-store" });
+  if (!response.ok) throw new Error("Network response was not ok");
+  const text = await response.text();
+  return parseSheetCSV(text);
 }
 
 function renderEvents(container, events) {
@@ -341,63 +311,48 @@ function renderEvents(container, events) {
   });
 }
 
-let latestRawEvents = [];
+function getCylinderThresholdParts() {
+  const months = Math.floor(CYLINDER_THRESHOLD_VALUE);
+  const days = Math.round((CYLINDER_THRESHOLD_VALUE - months) * 100);
+  return { months, days };
+}
 
-function renderAll() {
+async function loadAll() {
+  const headerAlerts = document.getElementById("header-alerts");
   const listAlerts = document.getElementById("list-alerts");
+  const headerData = document.getElementById("header-data");
   const listData = document.getElementById("list-data");
-  const headerText = getHeaderText();
-
-  document.getElementById("header-alerts-left").textContent = headerText;
-  document.getElementById("header-data-left").textContent = headerText;
-
-  const events = latestRawEvents
-    .map((ev) => buildEventDisplay(ev.name, ev.date, ev.type))
-    .filter(Boolean);
-
-  document.getElementById("header-data-right").textContent = "Reminders List: " + events.length;
-
-  if (events.length === 0) {
-    listData.innerHTML = '<div class="empty-state">No events yet.</div>';
-  } else {
+  
+  try {
+    const { header, events } = await fetchSheetData();
+    
+    document.getElementById("header-alerts-left").textContent = header;
+    document.getElementById("header-data-left").textContent = header;
+    document.getElementById("header-data-right").textContent = "Reminders List: " + events.length;
+    
     renderEvents(listData, events);
-  }
-
-  const alerts = events.filter((e) => e.isAlert);
-  if (alerts.length === 0) listAlerts.innerHTML = '<div class="empty-state">No alerts right now.</div>';
-  else renderEvents(listAlerts, alerts);
-}
-
-function loadAll() {
-  renderAll();
-}
-
-if (eventsRef) {
-  eventsRef.on("value", (snapshot) => {
-    const val = snapshot.val();
-    const raw = [];
-    if (val) {
-      Object.keys(val).forEach((key) => {
-        const ev = val[key];
-        if (!ev || !ev.name || !ev.date) return;
-        raw.push({ name: ev.name, date: ev.date, type: ev.type });
-      });
-    }
-    latestRawEvents = raw;
-    renderAll();
-  }, (error) => {
+    
+    const { months: thMonths, days: thDays } = getCylinderThresholdParts();
+    const alerts = events.filter((e) => {
+      if (e.isDayFormat && e.days !== null) return e.days <= ALERT_THRESHOLD_DAYS;
+      if (e.isMonthFormat && e.monthsElapsed !== null) {
+        if (e.monthsElapsed > thMonths) return true;
+        if (e.monthsElapsed === thMonths) return (e.daysElapsed || 0) >= thDays;
+        return false;
+      }
+      return false;
+    });
+    if (alerts.length === 0) listAlerts.innerHTML = '<div class="empty-state">No alerts right now.</div>';
+    else renderEvents(listAlerts, alerts);
+  } catch (err) {
     const msg = '<div class="empty-state">Could not load data. Please try again later.</div>';
-    document.getElementById("list-alerts").innerHTML = msg;
-    document.getElementById("list-data").innerHTML = msg;
-  });
-} else {
-  const msg = '<div class="empty-state">Could not load data. Please try again later.</div>';
-  document.getElementById("list-alerts").innerHTML = msg;
-  document.getElementById("list-data").innerHTML = msg;
+    listAlerts.innerHTML = msg;
+    listData.innerHTML = msg;
+  }
 }
 
-renderAll();
-setInterval(renderAll, 60000);
+loadAll();
+setInterval(loadAll, 3000);
 
 const FONT_OPTIONS = [
   { label: "Default", value: "inherit" },
