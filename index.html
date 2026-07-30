@@ -26,7 +26,7 @@
   #list-alerts .event { text-align: left; }
   .empty-state { color: #555; font-size: 16px; margin-top: 12px; text-align: center; width: 100%; }
   .event-gas-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
-  .gas-cylinder-icon { flex-shrink: 0; width: 48px; height: 74px; margin-left: 14px; animation: gasCylinderWiggle 1.8s ease-in-out infinite; transform-origin: 50% 88%; }
+  .gas-cylinder-icon { flex-shrink: 0; width: 46px; height: 83px; margin-left: 14px; animation: gasCylinderWiggle 1.8s ease-in-out infinite; transform-origin: 50% 90%; }
   @keyframes gasCylinderWiggle {
     0%, 100% { transform: rotate(0deg); }
     25% { transform: rotate(-9deg); }
@@ -339,32 +339,66 @@ function buildEventDisplay(rawName, rawDate, rawType) {
 }
 
 const GAS_CYLINDER_SVG = `
-<svg viewBox="0 0 100 160" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+<svg viewBox="0 0 100 180" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
   <defs>
     <linearGradient id="cylBody" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#ff5a4d"/>
-      <stop offset="35%" stop-color="#e60000"/>
-      <stop offset="65%" stop-color="#c40000"/>
-      <stop offset="100%" stop-color="#8f0000"/>
+      <stop offset="0%" stop-color="#8a0000"/>
+      <stop offset="18%" stop-color="#c40000"/>
+      <stop offset="38%" stop-color="#ff4a3a"/>
+      <stop offset="55%" stop-color="#e21f10"/>
+      <stop offset="80%" stop-color="#a40000"/>
+      <stop offset="100%" stop-color="#700000"/>
     </linearGradient>
-    <linearGradient id="cylCollar" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#9a9a9a"/>
-      <stop offset="50%" stop-color="#dcdcdc"/>
-      <stop offset="100%" stop-color="#777777"/>
+    <linearGradient id="cylMetal" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6d6d6d"/>
+      <stop offset="45%" stop-color="#d8d8d8"/>
+      <stop offset="55%" stop-color="#c2c2c2"/>
+      <stop offset="100%" stop-color="#5a5a5a"/>
     </linearGradient>
-    <radialGradient id="cylValve" cx="35%" cy="35%" r="70%">
-      <stop offset="0%" stop-color="#e8e8e8"/>
-      <stop offset="100%" stop-color="#8a8a8a"/>
+    <radialGradient id="cylValve" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#f0f0f0"/>
+      <stop offset="60%" stop-color="#b5b5b5"/>
+      <stop offset="100%" stop-color="#6f6f6f"/>
     </radialGradient>
   </defs>
-  <ellipse cx="50" cy="152" rx="26" ry="6" fill="#5a5a5a"/>
-  <rect x="18" y="52" width="64" height="96" rx="16" fill="url(#cylBody)" stroke="#6e0000" stroke-width="2"/>
-  <rect x="22" y="58" width="10" height="82" rx="5" fill="#ffffff" opacity="0.25"/>
-  <rect x="26" y="30" width="48" height="26" rx="6" fill="url(#cylCollar)" stroke="#555555" stroke-width="1.5"/>
-  <path d="M34 30 C34 16 66 16 66 30" fill="none" stroke="#555555" stroke-width="6" stroke-linecap="round"/>
-  <circle cx="50" cy="17" r="10" fill="url(#cylValve)" stroke="#555555" stroke-width="1.5"/>
-  <rect x="46" y="6" width="8" height="10" rx="2" fill="#777777"/>
-  <rect x="30" y="90" width="40" height="7" rx="2" fill="#ffffff" opacity="0.85"/>
+
+  <!-- feet / support ring -->
+  <ellipse cx="38" cy="172" rx="8" ry="4.5" fill="#4a4a4a"/>
+  <ellipse cx="62" cy="172" rx="8" ry="4.5" fill="#4a4a4a"/>
+
+  <!-- main barrel body -->
+  <path d="M32,58
+           C18,66 13,88 13,108
+           C13,130 17,152 26,163
+           C30,168 70,168 74,163
+           C83,152 87,130 87,108
+           C87,88 82,66 68,58
+           C58,53 42,53 32,58 Z"
+        fill="url(#cylBody)" stroke="#600000" stroke-width="1.5"/>
+
+  <!-- left highlight streak for realistic shine -->
+  <path d="M24,75 C19,92 19,125 25,150" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- weld seam lines -->
+  <path d="M14,100 C40,105 60,105 86,100" fill="none" stroke="#5c0000" stroke-opacity="0.55" stroke-width="1.5"/>
+  <path d="M15,135 C40,140 60,140 85,135" fill="none" stroke="#5c0000" stroke-opacity="0.45" stroke-width="1.5"/>
+
+  <!-- brand band -->
+  <rect x="22" y="112" width="56" height="16" rx="2" fill="#ffffff" opacity="0.9"/>
+
+  <!-- metal collar under the neck -->
+  <rect x="35" y="38" width="30" height="20" rx="4" fill="url(#cylMetal)" stroke="#4a4a4a" stroke-width="1"/>
+
+  <!-- vertical struts holding the guard ring -->
+  <rect x="32" y="18" width="6" height="24" rx="2.5" fill="url(#cylMetal)" stroke="#4a4a4a" stroke-width="1"/>
+  <rect x="62" y="18" width="6" height="24" rx="2.5" fill="url(#cylMetal)" stroke="#4a4a4a" stroke-width="1"/>
+
+  <!-- protective guard ring (viewed from a slight angle) -->
+  <ellipse cx="50" cy="16" rx="24" ry="9" fill="none" stroke="url(#cylMetal)" stroke-width="6"/>
+
+  <!-- valve -->
+  <circle cx="50" cy="22" r="8" fill="url(#cylValve)" stroke="#555555" stroke-width="1.2"/>
+  <rect x="47" y="10" width="6" height="9" rx="1.5" fill="#7a7a7a"/>
 </svg>`;
 
 function renderEvents(container, events, showGasIcon) {
