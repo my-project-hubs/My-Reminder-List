@@ -26,12 +26,8 @@
   #list-alerts .event { text-align: left; }
   .empty-state { color: #555; font-size: 16px; margin-top: 12px; text-align: center; width: 100%; }
   .event-gas-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
-  .gas-cylinder-icon { flex-shrink: 0; width: 46px; height: 83px; margin-left: 14px; animation: gasCylinderWiggle 1.8s ease-in-out infinite; transform-origin: 50% 90%; }
-  @keyframes gasCylinderWiggle {
-    0%, 100% { transform: rotate(0deg); }
-    25% { transform: rotate(-9deg); }
-    75% { transform: rotate(9deg); }
-  }
+  .gas-cylinder-icon { flex-shrink: 0; width: 52px; height: 92px; margin-left: 16px; }
+  
   .loading { color: #555; text-align: center; width: 100%; }
   .page { display: none; }
   .page.active { display: block; }
@@ -342,63 +338,56 @@ const GAS_CYLINDER_SVG = `
 <svg viewBox="0 0 100 180" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
   <defs>
     <linearGradient id="cylBody" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#8a0000"/>
-      <stop offset="18%" stop-color="#c40000"/>
-      <stop offset="38%" stop-color="#ff4a3a"/>
-      <stop offset="55%" stop-color="#e21f10"/>
-      <stop offset="80%" stop-color="#a40000"/>
-      <stop offset="100%" stop-color="#700000"/>
+      <stop offset="0%" stop-color="#700000"/>
+      <stop offset="20%" stop-color="#b50000"/>
+      <stop offset="45%" stop-color="#e62e12"/>
+      <stop offset="70%" stop-color="#b50000"/>
+      <stop offset="100%" stop-color="#600000"/>
     </linearGradient>
     <linearGradient id="cylMetal" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#6d6d6d"/>
-      <stop offset="45%" stop-color="#d8d8d8"/>
-      <stop offset="55%" stop-color="#c2c2c2"/>
-      <stop offset="100%" stop-color="#5a5a5a"/>
+      <stop offset="0%" stop-color="#555555"/>
+      <stop offset="30%" stop-color="#cccccc"/>
+      <stop offset="60%" stop-color="#aaaaaa"/>
+      <stop offset="100%" stop-color="#444444"/>
     </linearGradient>
-    <radialGradient id="cylValve" cx="35%" cy="30%" r="75%">
-      <stop offset="0%" stop-color="#f0f0f0"/>
-      <stop offset="60%" stop-color="#b5b5b5"/>
-      <stop offset="100%" stop-color="#6f6f6f"/>
+    <radialGradient id="cylValve" cx="40%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="50%" stop-color="#aaaaaa"/>
+      <stop offset="100%" stop-color="#555555"/>
     </radialGradient>
   </defs>
 
-  <!-- feet / support ring -->
-  <ellipse cx="38" cy="172" rx="8" ry="4.5" fill="#4a4a4a"/>
-  <ellipse cx="62" cy="172" rx="8" ry="4.5" fill="#4a4a4a"/>
+  <!-- base support ring / feet -->
+  <ellipse cx="38" cy="173" rx="9" ry="4" fill="#333333"/>
+  <ellipse cx="62" cy="173" rx="9" ry="4" fill="#333333"/>
 
-  <!-- main barrel body -->
-  <path d="M32,58
-           C18,66 13,88 13,108
-           C13,130 17,152 26,163
-           C30,168 70,168 74,163
-           C83,152 87,130 87,108
-           C87,88 82,66 68,58
-           C58,53 42,53 32,58 Z"
-        fill="url(#cylBody)" stroke="#600000" stroke-width="1.5"/>
+  <!-- main cylinder body -->
+  <path d="M30,56 C16,65 11,88 11,108 C11,132 16,154 25,164 C30,170 70,170 75,164 C84,154 89,132 89,108 C89,88 84,65 70,56 C58,50 42,50 30,56 Z" fill="url(#cylBody)" stroke="#4a0000" stroke-width="1.5"/>
 
-  <!-- left highlight streak for realistic shine -->
-  <path d="M24,75 C19,92 19,125 25,150" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="6" stroke-linecap="round"/>
+  <!-- realistic glossy reflection highlight -->
+  <path d="M23,72 C18,90 18,125 24,152" fill="none" stroke="#ffffff" stroke-opacity="0.3" stroke-width="5" stroke-linecap="round"/>
 
-  <!-- weld seam lines -->
-  <path d="M14,100 C40,105 60,105 86,100" fill="none" stroke="#5c0000" stroke-opacity="0.55" stroke-width="1.5"/>
-  <path d="M15,135 C40,140 60,140 85,135" fill="none" stroke="#5c0000" stroke-opacity="0.45" stroke-width="1.5"/>
+  <!-- metallic weld / body rings -->
+  <path d="M12,98 C40,103 60,103 88,98" fill="none" stroke="#400000" stroke-opacity="0.6" stroke-width="1.5"/>
+  <path d="M13,138 C40,143 60,143 87,138" fill="none" stroke="#400000" stroke-opacity="0.6" stroke-width="1.5"/>
 
-  <!-- brand band -->
-  <rect x="22" y="112" width="56" height="16" rx="2" fill="#ffffff" opacity="0.9"/>
+  <!-- central brand label badge -->
+  <rect x="24" y="110" width="52" height="20" rx="3" fill="#ffffff" opacity="0.95"/>
+  <text x="50" y="124" font-family="Arial, sans-serif" font-weight="bold" font-size="11" fill="#b50000" text-anchor="middle">GAS</text>
 
-  <!-- metal collar under the neck -->
-  <rect x="35" y="38" width="30" height="20" rx="4" fill="url(#cylMetal)" stroke="#4a4a4a" stroke-width="1"/>
+  <!-- neck collar -->
+  <rect x="36" y="38" width="28" height="19" rx="3" fill="url(#cylMetal)" stroke="#333333" stroke-width="1"/>
 
-  <!-- vertical struts holding the guard ring -->
-  <rect x="32" y="18" width="6" height="24" rx="2.5" fill="url(#cylMetal)" stroke="#4a4a4a" stroke-width="1"/>
-  <rect x="62" y="18" width="6" height="24" rx="2.5" fill="url(#cylMetal)" stroke="#4a4a4a" stroke-width="1"/>
+  <!-- guard ring vertical support bars -->
+  <rect x="33" y="16" width="6" height="24" rx="2" fill="url(#cylMetal)" stroke="#333333" stroke-width="1"/>
+  <rect x="61" y="16" width="6" height="24" rx="2" fill="url(#cylMetal)" stroke="#333333" stroke-width="1"/>
 
-  <!-- protective guard ring (viewed from a slight angle) -->
-  <ellipse cx="50" cy="16" rx="24" ry="9" fill="none" stroke="url(#cylMetal)" stroke-width="6"/>
+  <!-- top safety guard ring -->
+  <ellipse cx="50" cy="15" rx="23" ry="8" fill="none" stroke="url(#cylMetal)" stroke-width="5"/>
 
-  <!-- valve -->
-  <circle cx="50" cy="22" r="8" fill="url(#cylValve)" stroke="#555555" stroke-width="1.2"/>
-  <rect x="47" y="10" width="6" height="9" rx="1.5" fill="#7a7a7a"/>
+  <!-- top valve details -->
+  <circle cx="50" cy="20" r="7" fill="url(#cylValve)" stroke="#444444" stroke-width="1"/>
+  <rect x="47" y="9" width="6" height="9" rx="1" fill="#666666"/>
 </svg>`;
 
 function renderEvents(container, events, showGasIcon) {
