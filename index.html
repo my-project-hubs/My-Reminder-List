@@ -341,7 +341,7 @@ function renderEvents(container, events) {
   });
 }
 
-let latestEvents = [];
+let latestRawEvents = [];
 
 function renderAll() {
   const listAlerts = document.getElementById("list-alerts");
@@ -350,15 +350,20 @@ function renderAll() {
 
   document.getElementById("header-alerts-left").textContent = headerText;
   document.getElementById("header-data-left").textContent = headerText;
-  document.getElementById("header-data-right").textContent = "Reminders List: " + latestEvents.length;
 
-  if (latestEvents.length === 0) {
+  const events = latestRawEvents
+    .map((ev) => buildEventDisplay(ev.name, ev.date, ev.type))
+    .filter(Boolean);
+
+  document.getElementById("header-data-right").textContent = "Reminders List: " + events.length;
+
+  if (events.length === 0) {
     listData.innerHTML = '<div class="empty-state">No events yet.</div>';
   } else {
-    renderEvents(listData, latestEvents);
+    renderEvents(listData, events);
   }
 
-  const alerts = latestEvents.filter((e) => e.isAlert);
+  const alerts = events.filter((e) => e.isAlert);
   if (alerts.length === 0) listAlerts.innerHTML = '<div class="empty-state">No alerts right now.</div>';
   else renderEvents(listAlerts, alerts);
 }
@@ -370,16 +375,15 @@ function loadAll() {
 if (eventsRef) {
   eventsRef.on("value", (snapshot) => {
     const val = snapshot.val();
-    const events = [];
+    const raw = [];
     if (val) {
       Object.keys(val).forEach((key) => {
         const ev = val[key];
         if (!ev || !ev.name || !ev.date) return;
-        const built = buildEventDisplay(ev.name, ev.date, ev.type);
-        if (built) events.push(built);
+        raw.push({ name: ev.name, date: ev.date, type: ev.type });
       });
     }
-    latestEvents = events;
+    latestRawEvents = raw;
     renderAll();
   }, (error) => {
     const msg = '<div class="empty-state">Could not load data. Please try again later.</div>';
