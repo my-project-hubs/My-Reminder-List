@@ -138,23 +138,23 @@
     60%{ transform:rotate(-3deg) translateX(-1px); }
     80%{ transform:rotate(3deg) translateX(1px); }
   }
-  .cylinder{ position:relative; width:58px; height:106px; transform-origin:bottom center; animation:wiggle 1.6s ease-in-out infinite; }
-  .cylinder .cyl-top-collar { position:absolute; top:0; left:50%; transform:translateX(-50%); width:36px; height:11px; border:3px solid #c81e1e; border-radius:50%; box-shadow:inset 0 2px 3px rgba(0,0,0,0.5); }
-  .cylinder .cyl-support-pillars { position:absolute; top:8px; left:50%; transform:translateX(-50%); width:34px; height:16px; }
-  .cylinder .cyl-support-pillars::before, .cylinder .cyl-support-pillars::after, .cylinder .cyl-pillar-center { content:''; position:absolute; top:0; width:3px; height:16px; background:linear-gradient(180deg, #d32020, #961111); border-radius:1px; }
+  .cylinder{ position:relative; width:50px; height:92px; transform-origin:bottom center; animation:wiggle 3.2s ease-in-out infinite; }
+  .cylinder .cyl-top-collar { position:absolute; top:0; left:50%; transform:translateX(-50%); width:31px; height:10px; border:2.5px solid #c81e1e; border-radius:50%; box-shadow:inset 0 2px 3px rgba(0,0,0,0.5); }
+  .cylinder .cyl-support-pillars { position:absolute; top:7px; left:50%; transform:translateX(-50%); width:29px; height:14px; }
+  .cylinder .cyl-support-pillars::before, .cylinder .cyl-support-pillars::after, .cylinder .cyl-pillar-center { content:''; position:absolute; top:0; width:2.5px; height:14px; background:linear-gradient(180deg, #d32020, #961111); border-radius:1px; }
   .cylinder .cyl-support-pillars::before { left:2px; }
   .cylinder .cyl-support-pillars::after { right:2px; }
-  .cylinder .cyl-pillar-center { left:50%; transform:translateX(-50%); width:3px; }
-  .cylinder .cyl-valve-tag { position:absolute; top:10px; left:50%; transform:translateX(-50%); width:9px; height:12px; background:#e0d8b0; border:1px solid #a89f78; border-radius:1px; z-index:2; }
-  .cylinder .cyl-valve-tag::after { content:''; position:absolute; top:4px; left:50%; transform:translateX(-50%); width:5px; height:5px; background:#e63939; border-radius:50%; }
-  .cylinder .cyl-dome{ position:absolute; top:22px; left:50%; transform:translateX(-50%); width:53px; height:23px; background:radial-gradient(ellipse at top, #f03232 0%, #c81e1e 60%, #820e0e 100%); border-radius:50% 50% 0 0 / 100% 100% 0 0; box-shadow:inset 0 3px 5px rgba(255,255,255,0.3); }
-  .cylinder .cyl-dome-text { position:absolute; top:29px; left:50%; transform:translateX(-50%); font-size:6px; font-weight:700; color:rgba(0,0,0,0.6); letter-spacing:0.5px; white-space:nowrap; }
-  .cylinder .cyl-body{ position:absolute; top:44px; left:50%; transform:translateX(-50%); width:55px; height:51px; background:linear-gradient(90deg, #7a0c0c 0%, #e62828 20%, #ff5252 45%, #c81e1e 75%, #520606 100%); border-radius:2px; box-shadow:inset 0 0 8px rgba(0,0,0,0.5), inset 4px 0 5px rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; }
-  .cylinder .cyl-weld-line { position:absolute; top:69px; left:50%; transform:translateX(-50%); width:55px; height:2px; background:rgba(0,0,0,0.35); box-shadow:0 1px 1px rgba(255,255,255,0.15); z-index:3; }
-  .cylinder .indian-gas-container { position:absolute; top:51px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:4; width:100%; }
-  .cylinder .indian-text { font-family:'Inter', sans-serif; font-weight:700; font-size:10px; letter-spacing:0.8px; color:#ffffff; line-height:1; text-shadow:0 1px 2px rgba(0,0,0,0.8); }
-  .cylinder .cyl-foot{ position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:48px; height:12px; background:linear-gradient(180deg, #d32020, #a81616); border-radius:0 0 6px 6px; border-top:1.5px solid #820e0e; box-shadow:0 2px 4px rgba(200,30,30,0.4); display:flex; justify-content:space-around; align-items:flex-end; padding-bottom:2px; }
-  .cylinder .cyl-foot-hole { width:8px; height:4px; background:#f8f9fa; border-radius:2px 2px 0 0; }
+  .cylinder .cyl-pillar-center { left:50%; transform:translateX(-50%); width:2.5px; }
+  .cylinder .cyl-valve-tag { position:absolute; top:9px; left:50%; transform:translateX(-50%); width:8px; height:10px; background:#e0d8b0; border:1px solid #a89f78; border-radius:1px; z-index:2; }
+  .cylinder .cyl-valve-tag::after { content:''; position:absolute; top:3px; left:50%; transform:translateX(-50%); width:4px; height:4px; background:#e63939; border-radius:50%; }
+  .cylinder .cyl-dome{ position:absolute; top:19px; left:50%; transform:translateX(-50%); width:46px; height:20px; background:radial-gradient(ellipse at top, #f03232 0%, #c81e1e 60%, #820e0e 100%); border-radius:50% 50% 0 0 / 100% 100% 0 0; box-shadow:inset 0 3px 5px rgba(255,255,255,0.3); }
+  .cylinder .cyl-dome-text { position:absolute; top:25px; left:50%; transform:translateX(-50%); font-size:5.5px; font-weight:700; color:rgba(0,0,0,0.6); letter-spacing:0.4px; white-space:nowrap; }
+  .cylinder .cyl-body{ position:absolute; top:38px; left:50%; transform:translateX(-50%); width:48px; height:44px; background:linear-gradient(90deg, #7a0c0c 0%, #e62828 20%, #ff5252 45%, #c81e1e 75%, #520606 100%); border-radius:2px; box-shadow:inset 0 0 8px rgba(0,0,0,0.5), inset 4px 0 5px rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; }
+  .cylinder .cyl-weld-line { position:absolute; top:60px; left:50%; transform:translateX(-50%); width:48px; height:2px; background:rgba(0,0,0,0.35); box-shadow:0 1px 1px rgba(255,255,255,0.15); z-index:3; }
+  .cylinder .indian-gas-container { position:absolute; top:44px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:4; width:100%; }
+  .cylinder .indian-text { font-family:'Inter', sans-serif; font-weight:700; font-size:9px; letter-spacing:0.4px; color:#ffffff; line-height:1; text-shadow:0 1px 2px rgba(0,0,0,0.8); }
+  .cylinder .cyl-foot{ position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:42px; height:10px; background:linear-gradient(180deg, #d32020, #a81616); border-radius:0 0 6px 6px; border-top:1.5px solid #820e0e; display:flex; justify-content:space-around; align-items:flex-end; padding-bottom:2px; }
+  .cylinder .cyl-foot-hole { width:7px; height:3px; background:#f8f9fa; border-radius:2px 2px 0 0; }
 </style>
 </head>
 <body>
