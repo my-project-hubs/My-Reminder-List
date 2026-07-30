@@ -26,7 +26,7 @@
   #list-alerts .event { text-align: left; }
   .empty-state { color: #555; font-size: 16px; margin-top: 12px; text-align: center; width: 100%; }
   .event-gas-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
-  .gas-cylinder-icon { flex-shrink: 0; width: 52px; height: 92px; margin-left: 16px; }
+  .gas-cylinder-icon { flex-shrink: 0; width: 56px; height: 96px; margin-left: 16px; }
   
   .loading { color: #555; text-align: center; width: 100%; }
   .page { display: none; }
@@ -335,59 +335,63 @@ function buildEventDisplay(rawName, rawDate, rawType) {
 }
 
 const GAS_CYLINDER_SVG = `
-<svg viewBox="0 0 100 180" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
   <defs>
-    <linearGradient id="cylBody" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#700000"/>
-      <stop offset="20%" stop-color="#b50000"/>
-      <stop offset="45%" stop-color="#e62e12"/>
-      <stop offset="70%" stop-color="#b50000"/>
-      <stop offset="100%" stop-color="#600000"/>
+    <!-- Realistic metallic red paint gradient for Indane cylinder body -->
+    <linearGradient id="indaneBody" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#800000"/>
+      <stop offset="18%" stop-color="#cc0000"/>
+      <stop offset="42%" stop-color="#e62e12"/>
+      <stop offset="75%" stop-color="#b30000"/>
+      <stop offset="100%" stop-color="#590000"/>
     </linearGradient>
-    <linearGradient id="cylMetal" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#555555"/>
-      <stop offset="30%" stop-color="#cccccc"/>
-      <stop offset="60%" stop-color="#aaaaaa"/>
-      <stop offset="100%" stop-color="#444444"/>
+    <linearGradient id="metalCollar" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#666666"/>
+      <stop offset="35%" stop-color="#d9d9d9"/>
+      <stop offset="70%" stop-color="#aaaaaa"/>
+      <stop offset="100%" stop-color="#404040"/>
     </linearGradient>
-    <radialGradient id="cylValve" cx="40%" cy="30%" r="70%">
+    <radialGradient id="valveKnob" cx="35% " cy="30%" r="70%">
       <stop offset="0%" stop-color="#ffffff"/>
-      <stop offset="50%" stop-color="#aaaaaa"/>
-      <stop offset="100%" stop-color="#555555"/>
+      <stop offset="40%" stop-color="#b3b3b3"/>
+      <stop offset="100%" stop-color="#4d4d4d"/>
     </radialGradient>
   </defs>
 
-  <!-- base support ring / feet -->
-  <ellipse cx="38" cy="173" rx="9" ry="4" fill="#333333"/>
-  <ellipse cx="62" cy="173" rx="9" ry="4" fill="#333333"/>
+  <!-- Base support feet -->
+  <ellipse cx="44" cy="193" rx="10" ry="5" fill="#222222"/>
+  <ellipse cx="76" cy="193" rx="10" ry="5" fill="#222222"/>
 
-  <!-- main cylinder body -->
-  <path d="M30,56 C16,65 11,88 11,108 C11,132 16,154 25,164 C30,170 70,170 75,164 C84,154 89,132 89,108 C89,88 84,65 70,56 C58,50 42,50 30,56 Z" fill="url(#cylBody)" stroke="#4a0000" stroke-width="1.5"/>
+  <!-- Main body with realistic LPG cylinder contours -->
+  <path d="M35,62 C20,72 14,98 14,122 C14,152 20,178 30,188 C38,195 82,195 90,188 C100,178 106,152 106,122 C106,98 100,72 85,62 C70,54 50,54 35,62 Z" fill="url(#indaneBody)" stroke="#380000" stroke-width="1.5"/>
 
-  <!-- realistic glossy reflection highlight -->
-  <path d="M23,72 C18,90 18,125 24,152" fill="none" stroke="#ffffff" stroke-opacity="0.3" stroke-width="5" stroke-linecap="round"/>
+  <!-- Glossy curved reflection highlight -->
+  <path d="M26,80 C20,105 20,140 27,172" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="6" stroke-linecap="round"/>
 
-  <!-- metallic weld / body rings -->
-  <path d="M12,98 C40,103 60,103 88,98" fill="none" stroke="#400000" stroke-opacity="0.6" stroke-width="1.5"/>
-  <path d="M13,138 C40,143 60,143 87,138" fill="none" stroke="#400000" stroke-opacity="0.6" stroke-width="1.5"/>
+  <!-- Center welding joint ring line -->
+  <path d="M15,114 C50,119 70,119 105,114" fill="none" stroke="#400000" stroke-opacity="0.65" stroke-width="2"/>
+  <path d="M16,156 C50,161 70,161 104,156" fill="none" stroke="#400000" stroke-opacity="0.65" stroke-width="2"/>
 
-  <!-- central brand label badge -->
-  <rect x="24" y="110" width="52" height="20" rx="3" fill="#ffffff" opacity="0.95"/>
-  <text x="50" y="124" font-family="Arial, sans-serif" font-weight="bold" font-size="11" fill="#b50000" text-anchor="middle">GAS</text>
+  <!-- Indane Branding Badge -->
+  <rect x="23" y="123" width="74" height="27" rx="3" fill="#ffffff" opacity="0.96"/>
+  <!-- Flame logo icon inside brand badge -->
+  <path d="M36,142 C33,138 34,133 37,130 C38,133 41,133 42,130 C44,134 42,141 36,142 Z" fill="#e62e12"/>
+  <!-- "इण्डेन" Hindi text -->
+  <text x="64" y="142" font-family="Arial, sans-serif" font-weight="bold" font-size="16" fill="#cc0000" text-anchor="middle">इण्डेन</text>
 
-  <!-- neck collar -->
-  <rect x="36" y="38" width="28" height="19" rx="3" fill="url(#cylMetal)" stroke="#333333" stroke-width="1"/>
+  <!-- Upper neck assembly collar -->
+  <rect x="44" y="44" width="32" height="19" rx="3" fill="url(#metalCollar)" stroke="#262626" stroke-width="1.2"/>
 
-  <!-- guard ring vertical support bars -->
-  <rect x="33" y="16" width="6" height="24" rx="2" fill="url(#cylMetal)" stroke="#333333" stroke-width="1"/>
-  <rect x="61" y="16" width="6" height="24" rx="2" fill="url(#cylMetal)" stroke="#333333" stroke-width="1"/>
+  <!-- Safety guard ring vertical support bars -->
+  <rect x="40" y="18" width="7" height="28" rx="2" fill="url(#metalCollar)" stroke="#262626" stroke-width="1.2"/>
+  <rect x="73" y="18" width="7" height="28" rx="2" fill="url(#metalCollar)" stroke="#262626" stroke-width="1.2"/>
 
-  <!-- top safety guard ring -->
-  <ellipse cx="50" cy="15" rx="23" ry="8" fill="none" stroke="url(#cylMetal)" stroke-width="5"/>
+  <!-- Top protective handle/guard loop -->
+  <ellipse cx="60" cy="16" rx="26" ry="9" fill="none" stroke="url(#metalCollar)" stroke-width="5.5"/>
 
-  <!-- top valve details -->
-  <circle cx="50" cy="20" r="7" fill="url(#cylValve)" stroke="#444444" stroke-width="1"/>
-  <rect x="47" y="9" width="6" height="9" rx="1" fill="#666666"/>
+  <!-- Valve and nozzle on top -->
+  <circle cx="60" cy="22" r="7.5" fill="url(#valveKnob)" stroke="#333333" stroke-width="1.2"/>
+  <rect x="57" y="10" width="6" height="11" rx="1.5" fill="#595959"/>
 </svg>`;
 
 function renderEvents(container, events, showGasIcon) {
