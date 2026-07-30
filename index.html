@@ -126,6 +126,28 @@
   .settings-controls:has(#page-bg-color) .settings-field { align-items: flex-start; }
   .settings-controls:has(#page-bg-color) label { text-align: left; }
   .settings-row:has(#header-size), .settings-row:has(#name-size), .settings-row:has(#countdown-size), .settings-row:has(#date-size) { border: 1px solid #555555; border-top: 1px solid #555555; border-radius: 6px; padding: 8px 10px; margin-bottom: 10px; }
+
+  /* Gas Cylinder graphic (no animation) */
+  .gas-row{ display:flex; align-items:center; justify-content:space-between; gap:14px; width:100%; }
+  .gas-left{ display:flex; flex-direction:column; gap:8px; min-width:0; flex:1; }
+  .cylinder-wrap-side{ flex-shrink:0; display:flex; align-items:center; }
+  .cylinder{ position:relative; width:68px; height:120px; }
+  .cylinder .cyl-top-collar { position:absolute; top:0; left:50%; transform:translateX(-50%); width:42px; height:12px; border:3.5px solid #c81e1e; border-radius:50%; box-shadow:inset 0 2px 3px rgba(0,0,0,0.5); }
+  .cylinder .cyl-support-pillars { position:absolute; top:9px; left:50%; transform:translateX(-50%); width:40px; height:18px; }
+  .cylinder .cyl-support-pillars::before, .cylinder .cyl-support-pillars::after, .cylinder .cyl-pillar-center { content:''; position:absolute; top:0; width:3.5px; height:18px; background:linear-gradient(180deg, #d32020, #961111); border-radius:1px; }
+  .cylinder .cyl-support-pillars::before { left:2px; }
+  .cylinder .cyl-support-pillars::after { right:2px; }
+  .cylinder .cyl-pillar-center { left:50%; transform:translateX(-50%); width:3px; }
+  .cylinder .cyl-valve-tag { position:absolute; top:11px; left:50%; transform:translateX(-50%); width:10px; height:14px; background:#e0d8b0; border:1px solid #a89f78; border-radius:1px; z-index:2; }
+  .cylinder .cyl-valve-tag::after { content:''; position:absolute; top:5px; left:50%; transform:translateX(-50%); width:6px; height:5px; background:#e63939; border-radius:50%; }
+  .cylinder .cyl-dome{ position:absolute; top:25px; left:50%; transform:translateX(-50%); width:62px; height:26px; background:radial-gradient(ellipse at top, #f03232 0%, #c81e1e 60%, #820e0e 100%); border-radius:50% 50% 0 0 / 100% 100% 0 0; box-shadow:inset 0 3px 5px rgba(255,255,255,0.3); }
+  .cylinder .cyl-dome-text { position:absolute; top:33px; left:50%; transform:translateX(-50%); font-size:6px; font-weight:700; color:rgba(0,0,0,0.6); letter-spacing:0.5px; white-space:nowrap; }
+  .cylinder .cyl-body{ position:absolute; top:49px; left:50%; transform:translateX(-50%); width:64px; height:58px; background:linear-gradient(90deg, #7a0c0c 0%, #e62828 20%, #ff5252 45%, #c81e1e 75%, #520606 100%); border-radius:2px; box-shadow:inset 0 0 8px rgba(0,0,0,0.5), inset 4px 0 5px rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; }
+  .cylinder .cyl-weld-line { position:absolute; top:78px; left:50%; transform:translateX(-50%); width:64px; height:2px; background:rgba(0,0,0,0.35); box-shadow:0 1px 1px rgba(255,255,255,0.15); z-index:3; }
+  .cylinder .indian-gas-container { position:absolute; top:57px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:4; width:100%; }
+  .cylinder .indian-text { font-family:'Inter', sans-serif; font-weight:700; font-size:11px; letter-spacing:0.8px; color:#ffffff; line-height:1; text-shadow:0 1px 2px rgba(0,0,0,0.8); }
+  .cylinder .cyl-foot{ position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:56px; height:14px; background:linear-gradient(180deg, #d32020, #a81616); border-radius:0 0 6px 6px; border-top:1.5px solid #820e0e; box-shadow:0 2px 4px rgba(200,30,30,0.4); display:flex; justify-content:space-around; align-items:flex-end; padding-bottom:2px; }
+  .cylinder .cyl-foot-hole { width:8px; height:4px; background:#f8f9fa; border-radius:2px 2px 0 0; }
 </style>
 </head>
 <body>
@@ -336,7 +358,36 @@ function renderEvents(container, events) {
   events.forEach((e) => {
     const item = document.createElement("div");
     item.className = "event";
-    item.innerHTML = `<div class="event-name">${e.name}</div><div class="event-countdown">${e.countdown}</div><div class="event-date">${e.date}</div>`;
+    const isGasCylinder = e.name.trim().toLowerCase() === "gas cylinder";
+
+    if (isGasCylinder) {
+      item.innerHTML = `
+        <div class="gas-row">
+          <div class="gas-left">
+            <div class="event-name">${e.name}</div>
+            <div class="event-countdown">${e.countdown}</div>
+            <div class="event-date">${e.date}</div>
+          </div>
+          <div class="cylinder-wrap-side">
+            <div class="cylinder">
+              <div class="cyl-top-collar"></div>
+              <div class="cyl-support-pillars"><div class="cyl-pillar-center"></div></div>
+              <div class="cyl-valve-tag"></div>
+              <div class="cyl-dome"></div>
+              <div class="cyl-dome-text">14.2 kg</div>
+              <div class="cyl-body"></div>
+              <div class="cyl-weld-line"></div>
+              <div class="indian-gas-container"><div class="indian-text">INDIAN</div></div>
+              <div class="cyl-foot">
+                <div class="cyl-foot-hole"></div><div class="cyl-foot-hole"></div><div class="cyl-foot-hole"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    } else {
+      item.innerHTML = `<div class="event-name">${e.name}</div><div class="event-countdown">${e.countdown}</div><div class="event-date">${e.date}</div>`;
+    }
     container.appendChild(item);
   });
 }
