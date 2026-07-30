@@ -19,9 +19,9 @@
   .header-date { font-size: var(--header-size, 19px); color: var(--header-color, #000000); font-family: var(--header-font, inherit); font-weight: var(--header-weight, 400); margin-bottom: 28px; }
   .event { margin-bottom: 22px; }
   .event-name { color: var(--name-color, #000000); font-size: var(--name-size, 20px); font-family: var(--name-font, inherit); font-weight: var(--name-weight, 400); margin-bottom: 4px; }
+  .alerts-page-title { text-align: center; color: #ff0000; font-size: 26px; font-weight: 700; margin: -42px 0 22px; }
   .event-countdown { color: var(--countdown-color, #ff0000); font-size: var(--countdown-size, 26px); font-family: var(--countdown-font, inherit); font-weight: var(--countdown-weight, 700); margin-bottom: 2px; }
   .event-date { color: var(--date-color, #000000); font-size: var(--date-size, 15px); font-family: var(--date-font, inherit); font-weight: var(--date-weight, 400); }
-  #page-alerts .header-date { text-align: center; }
   #list-alerts { display: flex; flex-direction: column; align-items: flex-start; max-width: fit-content; margin: 0 auto; width: 100%; }
   #list-alerts .event { text-align: left; }
   .empty-state { color: #555; font-size: 16px; margin-top: 12px; text-align: center; width: 100%; }
@@ -29,35 +29,60 @@
   .page { display: none; }
   .page.active { display: block; }
 
+  #page-alerts, #page-data {
+    padding-top: 50px;
+  }
+  #page-alerts .header-date, #page-data .header-date {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    z-index: 20;
+    padding: 8px 20px 8px 20px;
+    margin: 0 auto;
+    border-bottom: 2px solid #d40000;
+    max-width: 640px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
   .page-toggle-btn {
     position: fixed;
     top: 50%;
     right: 0;
-    transform: translateY(-50%);
+    transform: translateY(calc(-50% - 144px));
     background: transparent;
-    color: #e0dfdd;
+    color: #b9b7b5;
     border: none;
     padding: 0;
-    font-size: 14px;
+    width: 38px;
+    height: 38px;
+    font-size: 22px;
     font-weight: 700;
     cursor: pointer;
     z-index: 15;
-    display: inline-block;
-    width: auto;
-    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     line-height: 1;
     pointer-events: auto;
+  }
+  .page-toggle-btn .toggle-icon {
+    display: inline-block;
+    transition: transform 0.4s ease;
   }
 
   .settings-icon {
     position: fixed;
     top: 50%;
     right: 0;
-    transform: translateY(30px);
+    transform: translateY(calc(-50% - 48px));
     width: 38px;
     height: 38px;
     background: transparent;
-    color: #d8d6d4;
+    color: #b9b7b5;
     border: none;
     font-size: 22px;
     cursor: pointer;
@@ -77,6 +102,9 @@
   .cfgtab.active { background: #d40000; color: #ffffff; border-color: #d40000; }
   .settings-row { border-top: 1px solid #eee; padding: 14px 0; }
   .settings-row-label { font-weight: 600; font-size: 15px; margin-bottom: 10px; }
+  .settings-row-label-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .settings-row-label-flex .settings-row-label { margin-bottom: 0; }
+  .settings-row-close { background: none; border: none; font-size: 20px; font-weight: 700; cursor: pointer; color: #000000; padding: 0; line-height: 1; }
   .settings-controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: center; }
   .settings-controls label { font-size: 24px; color: #555; display: block; margin-bottom: 2px; text-align: center; }
   .settings-controls label.lbl-sm { font-size: 22px; }
@@ -103,7 +131,7 @@
 <body>
 
 <div id="syncStatus" class="sync-status"></div>
-<button id="pageToggleBtn" class="page-toggle-btn" onclick="togglePage()">List</button>
+<button id="pageToggleBtn" class="page-toggle-btn" onclick="togglePage()" title="Switch page"><span id="toggleIcon" class="toggle-icon">⇄</span></button>
 <button class="settings-icon" onclick="openSettings()" title="Settings">⚙</button>
 
 <div id="settingsOverlay" class="settings-overlay">
@@ -121,7 +149,10 @@
       <button id="cfgtab-data" class="cfgtab" onclick="switchConfigTab('data')">List Page</button>
     </div>
     <div class="settings-row">
-      <div class="settings-row-label">Page Background</div>
+      <div class="settings-row-label-flex">
+        <div class="settings-row-label">Page Background</div>
+        <button class="settings-row-close" onclick="closeSettings()" title="Close">✕</button>
+      </div>
       <div class="settings-controls">
         <div class="settings-field"><label>Color</label><div class="color-combo"><input type="color" id="page-bg-color"></div></div>
       </div>
@@ -171,19 +202,19 @@
 
 <!-- PAGE 1: Alerts -->
 <div id="page-alerts" class="page active">
-  <div id="header-alerts" class="header-date"></div>
+  <div id="header-alerts" class="header-date"><span id="header-alerts-left"></span><span id="header-alerts-right"></span></div>
+  <div class="alerts-page-title">Alert</div>
   <div id="list-alerts"><div class="loading">Loading...</div></div>
 </div>
 
-<!-- PAGE 2: All Data -->
+<!-- PAGE 2: All Data (List) -->
 <div id="page-data" class="page">
-  <div id="header-data" class="header-date"></div>
+  <div id="header-data" class="header-date"><span id="header-data-left"></span><span id="header-data-right"></span></div>
   <div id="list-data"><div class="loading">Loading...</div></div>
 </div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
-const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhnQJrsY7BIuA3h5iMxaU3-yr3J9skyPtSSL_YoQfmYYQYXfPFnGWDH1loxyXC3mtl9-PS-oLa5_0n/pub?output=csv";
 let ALERT_THRESHOLD_DAYS = 15;
 let CYLINDER_THRESHOLD_VALUE = 3.00;
 
@@ -199,9 +230,11 @@ const firebaseConfig = {
 };
 
 let settingsRef = null;
+let eventsRef = null;
 try {
   firebase.initializeApp(firebaseConfig);
   settingsRef = firebase.database().ref("settings");
+  eventsRef = firebase.database().ref("remindersData/events");
 } catch (e) {
   console.error("Firebase init failed:", e);
 }
@@ -223,48 +256,79 @@ function getActivePageName() {
 function showPage(name) {
   document.getElementById("page-alerts").classList.toggle("active", name === "alerts");
   document.getElementById("page-data").classList.toggle("active", name === "data");
-  document.getElementById("pageToggleBtn").textContent = name === "alerts" ? "List" : "Alerts";
   sessionStorage.setItem("activePage", name);
   applyPageBackground(name);
 }
 
+let toggleIconRotation = 0;
 function togglePage() {
   const next = getActivePageName() === "alerts" ? "data" : "alerts";
   showPage(next);
+  toggleIconRotation += 180;
+  document.getElementById("toggleIcon").style.transform = "rotate(" + toggleIconRotation + "deg)";
 }
 
-function parseSheetCSV(csvText) {
-  const rawLines = csvText.split("\n");
-  const values = rawLines.map((line) => {
-    const idx = line.indexOf(",");
-    const col = idx === -1 ? "" : line.slice(idx + 1);
-    return col.replace(/\r/g, "").trim();
-  });
-  const nonEmpty = values.filter((v) => v.length > 0);
-  if (nonEmpty.length === 0) return { header: "", events: [] };
-  const header = nonEmpty[0];
-  const rest = nonEmpty.slice(1);
-  const events = [];
-  for (let i = 0; i < rest.length; i += 3) {
-    const name = rest[i];
-    const countdown = rest[i + 1];
-    const date = rest[i + 2];
-    if (!name || !countdown) continue;
-    const dayMatch = countdown.match(/^(\d+)\s*\.\s*Day Left/i);
-    const monthMatch = countdown.match(/^(\d+)\s*\.\s*Months\s*-\s*(\d+)\s*\.\s*Days/i);
-    let days = null, isDayFormat = false, isMonthFormat = false, monthsElapsed = null, daysElapsed = null;
-    if (dayMatch) { days = parseInt(dayMatch[1], 10); isDayFormat = true; }
-    else if (monthMatch) { monthsElapsed = parseInt(monthMatch[1], 10); daysElapsed = parseInt(monthMatch[2], 10); isMonthFormat = true; }
-    events.push({ name, countdown, date, days, isDayFormat, isMonthFormat, monthsElapsed, daysElapsed });
+function parseEventDateString(dateStr) {
+  const parts = String(dateStr).trim().split(/[-.\/]/).map((p) => parseInt(p, 10));
+  if (parts.length !== 3 || parts.some((p) => isNaN(p))) return null;
+  const [d, m, y] = parts;
+  const dt = new Date(y, m - 1, d);
+  dt.setHours(0, 0, 0, 0);
+  return dt;
+}
+
+function formatDisplayDate(dt) {
+  const d = String(dt.getDate()).padStart(2, "0");
+  const m = String(dt.getMonth() + 1).padStart(2, "0");
+  const y = dt.getFullYear();
+  return `${d}/${m}/${y}`;
+}
+
+function getTodayMidnight() {
+  const t = new Date();
+  t.setHours(0, 0, 0, 0);
+  return t;
+}
+
+function getCylinderThresholdParts() {
+  const months = Math.floor(CYLINDER_THRESHOLD_VALUE);
+  const days = Math.round((CYLINDER_THRESHOLD_VALUE - months) * 100);
+  return { months, days };
+}
+
+function getHeaderText() {
+  const today = getTodayMidnight();
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  return `Today - ${formatDisplayDate(today)} (${dayNames[today.getDay()]})`;
+}
+
+function buildEventDisplay(rawName, rawDate, rawType) {
+  const eventDate = parseEventDateString(rawDate);
+  if (!eventDate) return null;
+  const today = getTodayMidnight();
+  const name = rawName || "";
+  const displayDate = formatDisplayDate(eventDate);
+  const type = (rawType || "countdown").toLowerCase();
+
+  if (type === "elapsed") {
+    const elapsedDays = Math.max(0, Math.round((today - eventDate) / 86400000));
+    const months = Math.floor(elapsedDays / 30);
+    const days = elapsedDays % 30;
+    const countdown = months === 0 ? `${days} Days` : `${months} Months - ${days} Days`;
+    const { months: thMonths, days: thDays } = getCylinderThresholdParts();
+    let isAlert = false;
+    if (months > thMonths) isAlert = true;
+    else if (months === thMonths) isAlert = days >= thDays;
+    return { name, date: displayDate, countdown, isAlert };
   }
-  return { header, events };
-}
 
-async function fetchSheetData() {
-  const response = await fetch(SHEET_CSV_URL, { cache: "no-store" });
-  if (!response.ok) throw new Error("Network response was not ok");
-  const text = await response.text();
-  return parseSheetCSV(text);
+  const diffDays = Math.round((eventDate - today) / 86400000);
+  if (diffDays < 0) {
+    return { name, date: displayDate, countdown: "Expired", isAlert: true };
+  }
+  const countdown = `${diffDays} Day Left`;
+  const isAlert = diffDays <= ALERT_THRESHOLD_DAYS;
+  return { name, date: displayDate, countdown, isAlert };
 }
 
 function renderEvents(container, events) {
@@ -277,43 +341,63 @@ function renderEvents(container, events) {
   });
 }
 
-function getCylinderThresholdParts() {
-  const months = Math.floor(CYLINDER_THRESHOLD_VALUE);
-  const days = Math.round((CYLINDER_THRESHOLD_VALUE - months) * 100);
-  return { months, days };
-}
+let latestRawEvents = [];
 
-async function loadAll() {
-  const headerAlerts = document.getElementById("header-alerts");
+function renderAll() {
   const listAlerts = document.getElementById("list-alerts");
-  const headerData = document.getElementById("header-data");
   const listData = document.getElementById("list-data");
-  try {
-    const { header, events } = await fetchSheetData();
-    headerAlerts.textContent = header;
-    headerData.textContent = header;
+  const headerText = getHeaderText();
+
+  document.getElementById("header-alerts-left").textContent = headerText;
+  document.getElementById("header-data-left").textContent = headerText;
+
+  const events = latestRawEvents
+    .map((ev) => buildEventDisplay(ev.name, ev.date, ev.type))
+    .filter(Boolean);
+
+  document.getElementById("header-data-right").textContent = "Reminders List: " + events.length;
+
+  if (events.length === 0) {
+    listData.innerHTML = '<div class="empty-state">No events yet.</div>';
+  } else {
     renderEvents(listData, events);
-    const { months: thMonths, days: thDays } = getCylinderThresholdParts();
-    const alerts = events.filter((e) => {
-      if (e.isDayFormat && e.days !== null) return e.days <= ALERT_THRESHOLD_DAYS;
-      if (e.isMonthFormat && e.monthsElapsed !== null) {
-        if (e.monthsElapsed > thMonths) return true;
-        if (e.monthsElapsed === thMonths) return (e.daysElapsed || 0) >= thDays;
-        return false;
-      }
-      return false;
-    });
-    if (alerts.length === 0) listAlerts.innerHTML = '<div class="empty-state">No alerts right now.</div>';
-    else renderEvents(listAlerts, alerts);
-  } catch (err) {
-    const msg = '<div class="empty-state">Could not load data. Please try again later.</div>';
-    listAlerts.innerHTML = msg;
-    listData.innerHTML = msg;
   }
+
+  const alerts = events.filter((e) => e.isAlert);
+  if (alerts.length === 0) listAlerts.innerHTML = '<div class="empty-state">No alerts right now.</div>';
+  else renderEvents(listAlerts, alerts);
 }
 
-loadAll();
-setInterval(loadAll, 3000);
+function loadAll() {
+  renderAll();
+}
+
+if (eventsRef) {
+  eventsRef.on("value", (snapshot) => {
+    const val = snapshot.val();
+    const raw = [];
+    if (val) {
+      Object.keys(val).forEach((key) => {
+        const ev = val[key];
+        if (!ev || !ev.name || !ev.date) return;
+        raw.push({ name: ev.name, date: ev.date, type: ev.type });
+      });
+    }
+    latestRawEvents = raw;
+    renderAll();
+  }, (error) => {
+    const msg = '<div class="empty-state">Could not load data. Please try again later.</div>';
+    document.getElementById("list-alerts").innerHTML = msg;
+    document.getElementById("list-data").innerHTML = msg;
+  });
+} else {
+  const msg = '<div class="empty-state">Could not load data. Please try again later.</div>';
+  document.getElementById("list-alerts").innerHTML = msg;
+  document.getElementById("list-data").innerHTML = msg;
+}
+
+renderAll();
+setInterval(renderAll, 60000);
 
 const FONT_OPTIONS = [
   { label: "Default", value: "inherit" },
