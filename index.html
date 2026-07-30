@@ -57,12 +57,12 @@
     right: 0;
     transform: translateY(calc(-50% - 144px));
     background: transparent;
-    color: #b9b7b5;
+    color: var(--nav-icon-color, #b9b7b5);
     border: none;
     padding: 0;
-    width: 38px;
-    height: 38px;
-    font-size: 22px;
+    width: 48px;
+    height: 48px;
+    font-size: 28px;
     font-weight: 700;
     cursor: pointer;
     z-index: 15;
@@ -85,7 +85,7 @@
     width: 38px;
     height: 38px;
     background: transparent;
-    color: #b9b7b5;
+    color: var(--nav-icon-color, #b9b7b5);
     border: none;
     font-size: 22px;
     cursor: pointer;
@@ -134,7 +134,7 @@
   .gas-row{ display:flex; align-items:center; justify-content:space-between; gap:14px; width:100%; }
   .gas-left{ display:flex; flex-direction:column; gap:8px; min-width:0; flex:1; }
   .cylinder-wrap-side{ flex-shrink:0; display:flex; align-items:center; margin-top:14px; }
-  #list-data .cylinder-wrap-side{ margin-top:34px; margin-left:-192px; }
+  #list-data .cylinder-wrap-side{ margin-top:34px; margin-left:-216px; }
   @keyframes wiggle{
     0%, 100%{ transform:rotate(0deg) translateX(0); }
     20%{ transform:rotate(-4deg) translateX(-1px); }
