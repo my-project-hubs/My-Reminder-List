@@ -314,7 +314,7 @@ function buildEventDisplay(rawName, rawDate, rawType) {
     const elapsedDays = Math.max(0, Math.round((today - eventDate) / 86400000));
     const months = Math.floor(elapsedDays / 30);
     const days = elapsedDays % 30;
-    const countdown = `${months} Months - ${days} Days`;
+    const countdown = months === 0 ? `${days} Days` : `${months} Months - ${days} Days`;
     const { months: thMonths, days: thDays } = getCylinderThresholdParts();
     let isAlert = false;
     if (months > thMonths) isAlert = true;
