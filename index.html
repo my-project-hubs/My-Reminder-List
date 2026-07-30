@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reminders</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { overflow-x: hidden; }
+  body {
+    background: #ffffff;
+    color: #000000;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.5;
+    padding: 70px 20px 80px;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .header-date { font-size: var(--header-size, 19px); color: var(--header-color, #000000); font-family: var(--header-font, inherit); font-weight: var(--header-weight, 400); margin-bottom: 28px; }
+  .event { margin-bottom: 22px; }
+  .event-name { color: var(--name-color, #000000); font-size: var(--name-size, 20px); font-family: var(--name-font, inherit); font-weight: var(--name-weight, 400); margin-bottom: 4px; }
+  .alerts-page-title { text-align: center; color: #ff0000; font-size: 26px; font-weight: 700; margin: -42px 0 22px; }
+  .event-countdown { color: var(--countdown-color, #ff0000); font-size: var(--countdown-size, 26px); font-family: var(--countdown-font, inherit); font-weight: var(--countdown-weight, 700); margin-bottom: 2px; }
+  .event-date { color: var(--date-color, #000000); font-size: var(--date-size, 15px); font-family: var(--date-font, inherit); font-weight: var(--date-weight, 400); }
+  #list-alerts { display: flex; flex-direction: column; align-items: flex-start; max-width: fit-content; margin: 0 auto; width: 100%; }
+  #list-alerts .event { text-align: left; }
+  #list-data { display: flex; flex-direction: column; align-items: flex-start; width: 100%; }
+  #list-data .event { text-align: left; width: 100%; }
+  .empty-state { color: #555; font-size: 16px; margin-top: 12px; text-align: center; width: 100%; }
+  .loading { color: #555; text-align: center; width: 100%; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  #page-alerts, #page-data {
+    padding-top: 50px;
+  }
+  #page-alerts .header-date, #page-data .header-date {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    z-index: 20;
+    padding: 8px 20px 8px 20px;
+    margin: 0 auto;
+    border-bottom: 2px solid #d40000;
+    max-width: 640px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .page-toggle-btn {
+    position: fixed;
+    top: 50%;
+    right: 0;
+    transform: translateY(calc(-50% - 144px));
+    background: transparent;
+    color: var(--nav-icon-color, #b9b7b5);
+    border: none;
+    padding: 0;
+    width: 48px;
+    height: 48px;
+    font-size: 28px;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 15;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    pointer-events: auto;
+  }
+  .page-toggle-btn .toggle-icon {
+    display: inline-block;
+    transition: transform 0.4s ease;
+  }
+
+  .settings-icon {
+    position: fixed;
+    top: 50%;
+    right: 0;
+    transform: translateY(calc(-50% - 48px));
+    width: 38px;
+    height: 38px;
+    background: transparent;
+    color: var(--nav-icon-color, #b9b7b5);
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .settings-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 30; align-items: flex-end; justify-content: center; }
+  .settings-overlay.open { display: flex; }
+  .settings-panel { background: #ffffff; width: 100%; max-width: 640px; max-height: 85vh; overflow-y: auto; border-radius: 16px 16px 0 0; padding: 20px; }
+  .settings-title { display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+  .settings-title button { background: none; border: none; font-size: 20px; cursor: pointer; color: #000000; }
+  .settings-page-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .cfgtab { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd; background: #f5f5f5; color: #000; font-size: 20px; font-weight: 600; cursor: pointer; }
+  .cfgtab.active { background: #d40000; color: #ffffff; border-color: #d40000; }
+  .settings-row { border-top: 1px solid #eee; padding: 14px 0; }
+  .settings-row-label { font-weight: 600; font-size: 15px; margin-bottom: 10px; }
+  .settings-row-label-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .settings-row-label-flex .settings-row-label { margin-bottom: 0; }
+  .settings-row-close { background: none; border: none; font-size: 20px; font-weight: 700; cursor: pointer; color: #000000; padding: 0; line-height: 1; }
+  .settings-controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: center; }
+  .settings-controls label { font-size: 24px; color: #555; display: block; margin-bottom: 2px; text-align: center; }
+  .settings-controls label.lbl-sm { font-size: 22px; }
+  .settings-field { display: flex; flex-direction: column; align-items: center; }
+  .settings-field input[type="number"] { width: 64px; padding: 6px; border: 1px solid #ccc; border-radius: 6px; font-size: 22px; }
+  .settings-field select { padding: 6px; border: 1px solid #ccc; border-radius: 6px; max-width: 140px; font-size: 18px; }
+  .color-combo { display: flex; gap: 6px; align-items: center; justify-content: center; }
+  .color-combo input[type="color"] { width: 34px; height: 34px; padding: 0; border: 1px solid #ccc; border-radius: 6px; }
+  .settings-field-bold { display: flex; flex-direction: column; align-items: center; }
+  .settings-field-bold input[type="checkbox"] { width: 20px; height: 20px; margin-top: 4px; }
+  .settings-actions { display: flex; gap: 10px; margin-top: 18px; }
+  .settings-actions button { flex: 1; padding: 12px; border-radius: 8px; border: none; font-size: 20px; font-weight: 700; cursor: pointer; }
+  .settings-apply { background: #d40000; color: #ffffff; }
+  .settings-reset { background: #eee; color: #000000; }
+  .sync-status { position: fixed; top: 18px; left: 16px; font-size: 11px; color: #ffffff; z-index: 15; }
+  .settings-row:has(#threshold-days) .settings-controls { gap: 60px; justify-content: flex-start; }
+  .settings-controls:has(#header-size), .settings-controls:has(#name-size), .settings-controls:has(#countdown-size), .settings-controls:has(#date-size) { justify-content: space-between; }
+  .settings-controls:has(#page-bg-color) { justify-content: flex-start; }
+  .settings-controls:has(#page-bg-color) .settings-field { align-items: flex-start; }
+  .settings-controls:has(#page-bg-color) label { text-align: left; }
+  .settings-row:has(#header-size), .settings-row:has(#name-size), .settings-row:has(#countdown-size), .settings-row:has(#date-size) { border: 1px solid #555555; border-top: 1px solid #555555; border-radius: 6px; padding: 8px 10px; margin-bottom: 10px; }
+
+  /* Gas Cylinder graphic */
+  .gas-row{ display:flex; align-items:center; justify-content:space-between; gap:14px; width:100%; }
+  .gas-left{ display:flex; flex-direction:column; gap:8px; min-width:0; flex:1; }
+  .cylinder-wrap-side{ flex-shrink:0; display:flex; align-items:center; margin-top:14px; }
+  #list-data .cylinder-wrap-side{ margin-top:34px; margin-left:-216px; }
+  @keyframes wiggle{
+    0%, 100%{ transform:rotate(0deg) translateX(0); }
+    20%{ transform:rotate(-4deg) translateX(-1px); }
+    40%{ transform:rotate(4deg) translateX(1px); }
+    60%{ transform:rotate(-3deg) translateX(-1px); }
+    80%{ transform:rotate(3deg) translateX(1px); }
+  }
+  .cylinder{ position:relative; width:50px; height:92px; transform-origin:bottom center; animation:wiggle 3.2s ease-in-out infinite; }
+  .cylinder .cyl-top-collar { position:absolute; top:0; left:50%; transform:translateX(-50%); width:31px; height:10px; border:2.5px solid #c81e1e; border-radius:50%; box-shadow:inset 0 2px 3px rgba(0,0,0,0.5); }
+  .cylinder .cyl-support-pillars { position:absolute; top:7px; left:50%; transform:translateX(-50%); width:29px; height:14px; }
+  .cylinder .cyl-support-pillars::before, .cylinder .cyl-support-pillars::after, .cylinder .cyl-pillar-center { content:''; position:absolute; top:0; width:2.5px; height:14px; background:linear-gradient(180deg, #d32020, #961111); border-radius:1px; }
+  .cylinder .cyl-support-pillars::before { left:2px; }
+  .cylinder .cyl-support-pillars::after { right:2px; }
+  .cylinder .cyl-pillar-center { left:50%; transform:translateX(-50%); width:2.5px; }
+  .cylinder .cyl-valve-tag { position:absolute; top:9px; left:50%; transform:translateX(-50%); width:8px; height:10px; background:#e0d8b0; border:1px solid #a89f78; border-radius:1px; z-index:2; }
+  .cylinder .cyl-valve-tag::after { content:''; position:absolute; top:3px; left:50%; transform:translateX(-50%); width:4px; height:4px; background:#e63939; border-radius:50%; }
+  .cylinder .cyl-dome{ position:absolute; top:19px; left:50%; transform:translateX(-50%); width:46px; height:20px; background:radial-gradient(ellipse at top, #f03232 0%, #c81e1e 60%, #820e0e 100%); border-radius:50% 50% 0 0 / 100% 100% 0 0; box-shadow:inset 0 3px 5px rgba(255,255,255,0.3); }
+  .cylinder .cyl-dome-text { position:absolute; top:25px; left:50%; transform:translateX(-50%); font-size:5.5px; font-weight:700; color:rgba(0,0,0,0.6); letter-spacing:0.4px; white-space:nowrap; }
+  .cylinder .cyl-body{ position:absolute; top:38px; left:50%; transform:translateX(-50%); width:48px; height:44px; background:linear-gradient(90deg, #7a0c0c 0%, #e62828 20%, #ff5252 45%, #c81e1e 75%, #520606 100%); border-radius:2px; box-shadow:inset 0 0 8px rgba(0,0,0,0.5), inset 4px 0 5px rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; }
+  .cylinder .cyl-weld-line { position:absolute; top:60px; left:50%; transform:translateX(-50%); width:48px; height:2px; background:rgba(0,0,0,0.35); box-shadow:0 1px 1px rgba(255,255,255,0.15); z-index:3; }
+  .cylinder .indian-gas-container { position:absolute; top:44px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:4; width:100%; }
+  .cylinder .indian-text { font-family:'Inter', sans-serif; font-weight:700; font-size:9px; letter-spacing:0.4px; color:#ffffff; line-height:1; text-shadow:0 1px 2px rgba(0,0,0,0.8); }
+  .cylinder .cyl-foot{ position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:42px; height:10px; background:linear-gradient(180deg, #d32020, #a81616); border-radius:0 0 6px 6px; border-top:1.5px solid #820e0e; display:flex; justify-content:space-around; align-items:flex-end; padding-bottom:2px; }
+  .cylinder .cyl-foot-hole { width:7px; height:3px; background:#f8f9fa; border-radius:2px 2px 0 0; }
+</style>
+</head>
+<body>
+
+<div id="syncStatus" class="sync-status"></div>
+<button id="pageToggleBtn" class="page-toggle-btn" onclick="togglePage()" title="Switch page"><span id="toggleIcon" class="toggle-icon">⇄</span></button>
+<button class="settings-icon" onclick="openSettings()" title="Settings">⚙</button>
+
+<div id="settingsOverlay" class="settings-overlay">
+  <div class="settings-panel">
+    <div class="settings-title"><span>Settings</span><button onclick="closeSettings()">✕</button></div>
+    <div class="settings-row">
+      <div class="settings-row-label">Alert Threshold</div>
+      <div class="settings-controls">
+        <div class="settings-field"><label class="lbl-sm">Day Left</label><input type="number" id="threshold-days" min="1" max="365"></div>
+        <div class="settings-field"><label class="lbl-sm">Gas Cylinder</label><input type="number" id="threshold-cylinder" step="0.01" min="0" max="24"></div>
+      </div>
+    </div>
+    <div class="settings-page-tabs">
+      <button id="cfgtab-alerts" class="cfgtab active" onclick="switchConfigTab('alerts')">Alerts Page</button>
+      <button id="cfgtab-data" class="cfgtab" onclick="switchConfigTab('data')">List Page</button>
+    </div>
+    <div class="settings-row">
+      <div class="settings-row-label-flex">
+        <div class="settings-row-label">Page Background</div>
+        <button class="settings-row-close" onclick="closeSettings()" title="Close">✕</button>
+      </div>
+      <div class="settings-controls">
+        <div class="settings-field"><label>Color</label><div class="color-combo"><input type="color" id="page-bg-color"></div></div>
+      </div>
+    </div>
+    <div class="settings-row">
+      <div class="settings-row-label">Today Date</div>
+      <div class="settings-controls">
+        <div class="settings-field"><label>Size</label><input type="number" id="header-size" min="8" max="60"></div>
+        <div class="settings-field"><label class="lbl-sm">Color</label><div class="color-combo"><input type="color" id="header-color"></div></div>
+        <div class="settings-field"><label class="lbl-sm">Font Style</label><select id="header-font"></select></div>
+        <div class="settings-field-bold"><label>Bold</label><input type="checkbox" id="header-bold"></div>
+      </div>
+    </div>
+    <div class="settings-row">
+      <div class="settings-row-label">List Name</div>
+      <div class="settings-controls">
+        <div class="settings-field"><label>Size</label><input type="number" id="name-size" min="8" max="60"></div>
+        <div class="settings-field"><label class="lbl-sm">Color</label><div class="color-combo"><input type="color" id="name-color"></div></div>
+        <div class="settings-field"><label class="lbl-sm">Font Style</label><select id="name-font"></select></div>
+        <div class="settings-field-bold"><label>Bold</label><input type="checkbox" id="name-bold"></div>
+      </div>
+    </div>
+    <div class="settings-row">
+      <div class="settings-row-label">Day Left</div>
+      <div class="settings-controls">
+        <div class="settings-field"><label>Size</label><input type="number" id="countdown-size" min="8" max="60"></div>
+        <div class="settings-field"><label class="lbl-sm">Color</label><div class="color-combo"><input type="color" id="countdown-color"></div></div>
+        <div class="settings-field"><label class="lbl-sm">Font Style</label><select id="countdown-font"></select></div>
+        <div class="settings-field-bold"><label>Bold</label><input type="checkbox" id="countdown-bold"></div>
+      </div>
+    </div>
+    <div class="settings-row">
+      <div class="settings-row-label">Target Date</div>
+      <div class="settings-controls">
+        <div class="settings-field"><label>Size</label><input type="number" id="date-size" min="8" max="60"></div>
+        <div class="settings-field"><label class="lbl-sm">Color</label><div class="color-combo"><input type="color" id="date-color"></div></div>
+        <div class="settings-field"><label class="lbl-sm">Font Style</label><select id="date-font"></select></div>
+        <div class="settings-field-bold"><label>Bold</label><input type="checkbox" id="date-bold"></div>
+      </div>
+    </div>
+    <div class="settings-actions">
+      <button class="settings-reset" onclick="resetSettings()">Reset (this page)</button>
+      <button class="settings-apply" onclick="applySettings()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 1: Alerts -->
+<div id="page-alerts" class="page active">
+  <div id="header-alerts" class="header-date"><span id="header-alerts-left"></span><span id="header-alerts-right"></span></div>
+  <div class="alerts-page-title">Alert</div>
+  <div id="list-alerts"><div class="loading">Loading...</div></div>
+</div>
+
+<!-- PAGE 2: All Data (List) -->
+<div id="page-data" class="page">
+  <div id="header-data" class="header-date"><span id="header-data-left"></span><span id="header-data-right"></span></div>
+  <div id="list-data"><div class="loading">Loading...</div></div>
+</div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+let ALERT_THRESHOLD_DAYS = 15;
+let CYLINDER_THRESHOLD_VALUE = 3.00;
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAynuPWAbwu6etjBTqBejpppw4S4umoKPM",
+  authDomain: "my-tracker-d4776.firebaseapp.com",
+  databaseURL: "https://my-tracker-d4776-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "my-tracker-d4776",
+  storageBucket: "my-tracker-d4776.firebasestorage.app",
+  messagingSenderId: "207196018290",
+  appId: "1:207196018290:web:e544ccd2eac3e84150d4eb",
+  measurementId: "G-HPDX62VBWK"
+};
+
+let settingsRef = null;
+let eventsRef = null;
+try {
+  firebase.initializeApp(firebaseConfig);
+  settingsRef = firebase.database().ref("settings");
+  eventsRef = firebase.database().ref("remindersData/events");
+} catch (e) {
+  console.error("Firebase init failed:", e);
+}
+
+function saveCloudSettings(data) {
+  if (!settingsRef) return Promise.reject(new Error("Firebase not available"));
+  return settingsRef.set(data);
+}
+
+function setSyncStatus(text) {
+  const el = document.getElementById("syncStatus");
+  if (el) el.textContent = text;
+}
+
+function getActivePageName() {
+  return document.getElementById("page-alerts").classList.contains("active") ? "alerts" : "data";
+}
+
+function showPage(name) {
+  document.getElementById("page-alerts").classList.toggle("active", name === "alerts");
+  document.getElementById("page-data").classList.toggle("active", name === "data");
+  sessionStorage.setItem("activePage", name);
+  applyPageBackground(name);
+}
+
+let toggleIconRotation = 0;
+function togglePage() {
+  const next = getActivePageName() === "alerts" ? "data" : "alerts";
+  showPage(next);
+  toggleIconRotation += 180;
+  document.getElementById("toggleIcon").style.transform = "rotate(" + toggleIconRotation + "deg)";
+}
+
+function parseEventDateString(dateStr) {
+  const parts = String(dateStr).trim().split(/[-.\/]/).map((p) => parseInt(p, 10));
+  if (parts.length !== 3 || parts.some((p) => isNaN(p))) return null;
+  const [d, m, y] = parts;
+  const dt = new Date(y, m - 1, d);
+  dt.setHours(0, 0, 0, 0);
+  return dt;
+}
+
+function formatDisplayDate(dt) {
+  const d = String(dt.getDate()).padStart(2, "0");
+  const m = String(dt.getMonth() + 1).padStart(2, "0");
+  const y = dt.getFullYear();
+  return `${d}/${m}/${y}`;
+}
+
+function getTodayMidnight() {
+  const t = new Date();
+  t.setHours(0, 0, 0, 0);
+  return t;
+}
+
+function getCylinderThresholdParts() {
+  const months = Math.floor(CYLINDER_THRESHOLD_VALUE);
+  const days = Math.round((CYLINDER_THRESHOLD_VALUE - months) * 100);
+  return { months, days };
+}
+
+function getHeaderText() {
+  const today = getTodayMidnight();
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  return `Today - ${formatDisplayDate(today)} (${dayNames[today.getDay()]})`;
+}
+
+function buildEventDisplay(rawName, rawDate, rawType) {
+  const eventDate = parseEventDateString(rawDate);
+  if (!eventDate) return null;
+  const today = getTodayMidnight();
+  const name = rawName || "";
+  const displayDate = formatDisplayDate(eventDate);
+  const type = (rawType || "countdown").toLowerCase();
+
+  if (type === "elapsed") {
+    const elapsedDays = Math.max(0, Math.round((today - eventDate) / 86400000));
+    const months = Math.floor(elapsedDays / 30);
+    const days = elapsedDays % 30;
+    const countdown = months === 0 ? `${days} . Days` : `${months} . Months - ${days} . Days`;
+    const { months: thMonths, days: thDays } = getCylinderThresholdParts();
+    let isAlert = false;
+    if (months > thMonths) isAlert = true;
+    else if (months === thMonths) isAlert = days >= thDays;
+    return { name, date: displayDate, countdown, isAlert };
+  }
+
+  const diffDays = Math.round((eventDate - today) / 86400000);
+  if (diffDays < 0) {
+    return { name, date: displayDate, countdown: "Expired", isAlert: true };
+  }
+  const countdown = `${diffDays} . Day Left`;
+  const isAlert = diffDays <= ALERT_THRESHOLD_DAYS;
+  return { name, date: displayDate, countdown, isAlert };
+}
+
+function renderEvents(container, events) {
+  container.innerHTML = "";
+  events.forEach((e) => {
+    const item = document.createElement("div");
+    item.className = "event";
+    const isGasCylinder = e.name.trim().toLowerCase() === "gas cylinder";
+
+    if (isGasCylinder) {
+      item.innerHTML = `
+        <div class="gas-row">
+          <div class="gas-left">
+            <div class="event-name">${e.name}</div>
+            <div class="event-countdown">${e.countdown}</div>
+            <div class="event-date">${e.date}</div>
+          </div>
+          <div class="cylinder-wrap-side">
+            <div class="cylinder">
+              <div class="cyl-top-collar"></div>
+              <div class="cyl-support-pillars"><div class="cyl-pillar-center"></div></div>
+              <div class="cyl-valve-tag"></div>
+              <div class="cyl-dome"></div>
+              <div class="cyl-dome-text">14.2 kg</div>
+              <div class="cyl-body"></div>
+              <div class="cyl-weld-line"></div>
+              <div class="indian-gas-container"><div class="indian-text">INDIAN</div></div>
+              <div class="cyl-foot">
+                <div class="cyl-foot-hole"></div><div class="cyl-foot-hole"></div><div class="cyl-foot-hole"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    } else {
+      item.innerHTML = `<div class="event-name">${e.name}</div><div class="event-countdown">${e.countdown}</div><div class="event-date">${e.date}</div>`;
+    }
+    container.appendChild(item);
+  });
+}
+
+let latestRawEvents = [];
+
+function renderAll() {
+  const listAlerts = document.getElementById("list-alerts");
+  const listData = document.getElementById("list-data");
+  const headerText = getHeaderText();
+
+  document.getElementById("header-alerts-left").textContent = headerText;
+  document.getElementById("header-data-left").textContent = headerText;
+
+  const events = latestRawEvents
+    .map((ev) => buildEventDisplay(ev.name, ev.date, ev.type))
+    .filter(Boolean);
+
+  document.getElementById("header-data-right").textContent = "Reminders List: " + events.length;
+
+  if (events.length === 0) {
+    listData.innerHTML = '<div class="empty-state">No events yet.</div>';
+  } else {
+    renderEvents(listData, events);
+  }
+
+  const alerts = events.filter((e) => e.isAlert);
+  if (alerts.length === 0) listAlerts.innerHTML = '<div class="empty-state">No alerts right now.</div>';
+  else renderEvents(listAlerts, alerts);
+}
+
+function loadAll() {
+  renderAll();
+}
+
+if (eventsRef) {
+  eventsRef.on("value", (snapshot) => {
+    const val = snapshot.val();
+    const raw = [];
+    if (val) {
+      Object.keys(val).forEach((key) => {
+        const ev = val[key];
+        if (!ev || !ev.name || !ev.date) return;
+        raw.push({ name: ev.name, date: ev.date, type: ev.type });
+      });
+    }
+    latestRawEvents = raw;
+    renderAll();
+  }, (error) => {
+    const msg = '<div class="empty-state">Could not load data. Please try again later.</div>';
+    document.getElementById("list-alerts").innerHTML = msg;
+    document.getElementById("list-data").innerHTML = msg;
+  });
+} else {
+  const msg = '<div class="empty-state">Could not load data. Please try again later.</div>';
+  document.getElementById("list-alerts").innerHTML = msg;
+  document.getElementById("list-data").innerHTML = msg;
+}
+
+renderAll();
+setInterval(renderAll, 60000);
+
+const FONT_OPTIONS = [
+  { label: "Default", value: "inherit" },
+  { label: "Arial", value: "Arial, sans-serif" },
+  { label: "Helvetica", value: "Helvetica, Arial, sans-serif" },
+  { label: "Verdana", value: "Verdana, sans-serif" },
+  { label: "Tahoma", value: "Tahoma, sans-serif" },
+  { label: "Trebuchet MS", value: "'Trebuchet MS', sans-serif" },
+  { label: "Segoe UI", value: "'Segoe UI', sans-serif" },
+  { label: "Calibri", value: "Calibri, sans-serif" },
+  { label: "Century Gothic", value: "'Century Gothic', sans-serif" },
+  { label: "Franklin Gothic", value: "'Franklin Gothic Medium', sans-serif" },
+  { label: "Arial Black", value: "'Arial Black', sans-serif" },
+  { label: "Georgia", value: "Georgia, serif" },
+  { label: "Times New Roman", value: "'Times New Roman', serif" },
+  { label: "Garamond", value: "Garamond, serif" },
+  { label: "Palatino", value: "'Palatino Linotype', serif" },
+  { label: "Book Antiqua", value: "'Book Antiqua', serif" },
+  { label: "Cambria", value: "Cambria, serif" },
+  { label: "Courier New", value: "'Courier New', monospace" },
+  { label: "Lucida Console", value: "'Lucida Console', monospace" },
+  { label: "Consolas", value: "Consolas, monospace" }
+];
+
+function populateFontSelects() {
+  ["header-font", "name-font", "countdown-font", "date-font"].forEach((id) => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = "";
+    FONT_OPTIONS.forEach((opt) => {
+      const o = document.createElement("option");
+      o.value = opt.value;
+      o.textContent = opt.label;
+      o.style.fontFamily = opt.value;
+      sel.appendChild(o);
+    });
+  });
+}
+populateFontSelects();
+
+const FONT_TARGETS = ["header", "name", "countdown", "date"];
+const DEFAULT_PAGE_SETTINGS = {
+  header: { size: 19, color: "#000000", font: "inherit", bold: false },
+  name: { size: 20, color: "#000000", font: "inherit", bold: false },
+  countdown: { size: 26, color: "#ff0000", font: "inherit", bold: true },
+  date: { size: 15, color: "#000000", font: "inherit", bold: false },
+  background: "#ffffff"
+};
+
+function cloneDefaults() { return JSON.parse(JSON.stringify(DEFAULT_PAGE_SETTINGS)); }
+let cloudSettings = { alerts: cloneDefaults(), data: cloneDefaults() };
+function getSavedFontSettings(page) { return cloudSettings[page] || cloneDefaults(); }
+
+const savedPage = sessionStorage.getItem("activePage");
+showPage(savedPage === "data" ? "data" : "alerts");
+
+function applyFontSettingsToContainer(containerId, settings) {
+  const container = document.getElementById(containerId);
+  FONT_TARGETS.forEach((target) => {
+    const s = settings[target] || DEFAULT_PAGE_SETTINGS[target];
+    container.style.setProperty(`--${target}-size`, s.size + "px");
+    container.style.setProperty(`--${target}-color`, s.color);
+    container.style.setProperty(`--${target}-font`, s.font);
+    container.style.setProperty(`--${target}-weight`, s.bold ? "700" : "400");
+  });
+}
+
+function applyPageBackground(page) {
+  const settings = getSavedFontSettings(page);
+  document.body.style.backgroundColor = settings.background || "#ffffff";
+}
+
+function fillSettingsForm(settings) {
+  FONT_TARGETS.forEach((target) => {
+    const s = settings[target] || DEFAULT_PAGE_SETTINGS[target];
+    document.getElementById(`${target}-size`).value = s.size;
+    document.getElementById(`${target}-color`).value = s.color;
+    document.getElementById(`${target}-font`).value = s.font;
+    document.getElementById(`${target}-bold`).checked = !!s.bold;
+  });
+  document.getElementById("page-bg-color").value = settings.background || "#ffffff";
+}
+
+function readSettingsForm() {
+  const settings = {};
+  FONT_TARGETS.forEach((target) => {
+    settings[target] = {
+      size: parseInt(document.getElementById(`${target}-size`).value, 10) || DEFAULT_PAGE_SETTINGS[target].size,
+      color: document.getElementById(`${target}-color`).value,
+      font: document.getElementById(`${target}-font`).value,
+      bold: document.getElementById(`${target}-bold`).checked
+    };
+  });
+  settings.background = document.getElementById("page-bg-color").value;
+  return settings;
+}
+
+let configDrafts = null;
+let currentConfigTab = "alerts";
+
+function updateTabUI() {
+  document.getElementById("cfgtab-alerts").classList.toggle("active", currentConfigTab === "alerts");
+  document.getElementById("cfgtab-data").classList.toggle("active", currentConfigTab === "data");
+}
+
+function switchConfigTab(tab) {
+  configDrafts[currentConfigTab] = readSettingsForm();
+  currentConfigTab = tab;
+  updateTabUI();
+  fillSettingsForm(configDrafts[currentConfigTab]);
+}
+
+function openSettings() {
+  configDrafts = {
+    alerts: JSON.parse(JSON.stringify(getSavedFontSettings("alerts"))),
+    data: JSON.parse(JSON.stringify(getSavedFontSettings("data")))
+  };
+  currentConfigTab = getActivePageName();
+  updateTabUI();
+  fillSettingsForm(configDrafts[currentConfigTab]);
+  document.getElementById("threshold-days").value = ALERT_THRESHOLD_DAYS;
+  document.getElementById("threshold-cylinder").value = CYLINDER_THRESHOLD_VALUE.toFixed(2);
+  document.getElementById("settingsOverlay").classList.add("open");
+}
+
+function closeSettings() {
+  document.getElementById("settingsOverlay").classList.remove("open");
+}
+
+async function applySettings() {
+  configDrafts[currentConfigTab] = readSettingsForm();
+  cloudSettings.alerts = configDrafts.alerts;
+  cloudSettings.data = configDrafts.data;
+  const daysVal = parseInt(document.getElementById("threshold-days").value, 10);
+  const cylVal = parseFloat(document.getElementById("threshold-cylinder").value);
+  cloudSettings.thresholds = {
+    days: isNaN(daysVal) ? ALERT_THRESHOLD_DAYS : daysVal,
+    cylinder: isNaN(cylVal) ? CYLINDER_THRESHOLD_VALUE : cylVal
+  };
+  ALERT_THRESHOLD_DAYS = cloudSettings.thresholds.days;
+  CYLINDER_THRESHOLD_VALUE = cloudSettings.thresholds.cylinder;
+  applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
+  applyFontSettingsToContainer("page-data", cloudSettings.data);
+  applyPageBackground(getActivePageName());
+  loadAll();
+  setSyncStatus("Saving...");
+  try {
+    await saveCloudSettings(cloudSettings);
+    setSyncStatus("Synced");
+  } catch (err) {
+    setSyncStatus("Sync failed");
+  }
+  closeSettings();
+}
+
+function resetSettings() {
+  const defaults = cloneDefaults();
+  configDrafts[currentConfigTab] = defaults;
+  fillSettingsForm(defaults);
+}
+
+if (settingsRef) {
+  settingsRef.on("value", (snapshot) => {
+    const val = snapshot.val();
+    if (val) {
+      if (val.alerts) cloudSettings.alerts = val.alerts;
+      if (val.data) cloudSettings.data = val.data;
+      if (val.thresholds) {
+        cloudSettings.thresholds = val.thresholds;
+        ALERT_THRESHOLD_DAYS = val.thresholds.days || ALERT_THRESHOLD_DAYS;
+        CYLINDER_THRESHOLD_VALUE = (val.thresholds.cylinder !== undefined) ? val.thresholds.cylinder : CYLINDER_THRESHOLD_VALUE;
+      }
+      applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
+      applyFontSettingsToContainer("page-data", cloudSettings.data);
+      applyPageBackground(getActivePageName());
+      loadAll();
+      setSyncStatus("Synced");
+    } else {
+      setSyncStatus("");
+    }
+  }, (error) => {
+    setSyncStatus("Sync error");
+  });
+} else {
+  setSyncStatus("Offline");
+}
+</script>
+</body>
+</html>
