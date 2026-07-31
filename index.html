@@ -423,13 +423,13 @@ function renderAll() {
   document.getElementById("header-data-right").textContent = events.length + ".Reminder List";
 
   if (events.length === 0) {
-    listData.innerHTML = '<div class="empty-state">No events yet.</div>';
+    listData.innerHTML = '<div class="empty-state">Refreshing.....</div>';
   } else {
     renderEvents(listData, events);
   }
 
   const alerts = events.filter((e) => e.isAlert);
-  if (alerts.length === 0) listAlerts.innerHTML = '<div class="empty-state">No alerts right now.</div>';
+  if (alerts.length === 0) listAlerts.innerHTML = '<div class="empty-state">Refreshing.....</div>';
   else renderEvents(listAlerts, alerts);
 }
 
