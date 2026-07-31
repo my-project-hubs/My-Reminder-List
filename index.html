@@ -424,13 +424,13 @@ function renderAll() {
   document.getElementById("header-data-right").textContent = events.length + ".Reminder List";
 
   if (events.length === 0) {
-    listData.innerHTML = '<div class="refreshing-state">Refreshing.....</div>';
+    listData.innerHTML = '<div class="refreshing-state">Refreshing . . . . .</div>';
   } else {
     renderEvents(listData, events);
   }
 
   const alerts = events.filter((e) => e.isAlert);
-  if (alerts.length === 0) listAlerts.innerHTML = '<div class="refreshing-state">Refreshing.....</div>';
+  if (alerts.length === 0) listAlerts.innerHTML = '<div class="refreshing-state">Refreshing . . . . .</div>';
   else renderEvents(listAlerts, alerts);
 }
 
