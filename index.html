@@ -420,7 +420,7 @@ function renderAll() {
     .map((ev) => buildEventDisplay(ev.name, ev.date, ev.type))
     .filter(Boolean);
 
-  document.getElementById("header-data-right").textContent = events.length + " . Reminder List";
+  document.getElementById("header-data-right").textContent = events.length + ".Reminder List";
 
   if (events.length === 0) {
     listData.innerHTML = '<div class="empty-state">No events yet.</div>';
@@ -667,6 +667,12 @@ if (settingsRef) {
   }
   checkForUpdate();
   setInterval(checkForUpdate, 3000);
+  document.addEventListener("visibilitychange", function(){
+    if(!document.hidden){
+      checkForUpdate();
+    }
+  });
+  window.addEventListener("focus", checkForUpdate);
 })();
 </script>
 </body>
