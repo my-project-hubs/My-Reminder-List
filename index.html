@@ -138,6 +138,29 @@
   .gas-left{ display:flex; flex-direction:column; gap:8px; min-width:0; flex:1; }
   .cylinder-wrap-side{ flex-shrink:0; display:flex; align-items:center; margin-top:14px; }
   #list-data .cylinder-wrap-side{ margin-top:34px; margin-left:-216px; }
+
+  /* Page switch animations */
+  @keyframes anim-fade { from{opacity:0;} to{opacity:1;} }
+  @keyframes anim-slide-left { from{opacity:0; transform:translateX(40px);} to{opacity:1; transform:translateX(0);} }
+  @keyframes anim-slide-right { from{opacity:0; transform:translateX(-40px);} to{opacity:1; transform:translateX(0);} }
+  @keyframes anim-slide-up { from{opacity:0; transform:translateY(40px);} to{opacity:1; transform:translateY(0);} }
+  @keyframes anim-slide-down { from{opacity:0; transform:translateY(-40px);} to{opacity:1; transform:translateY(0);} }
+  @keyframes anim-zoom-in { from{opacity:0; transform:scale(0.85);} to{opacity:1; transform:scale(1);} }
+  @keyframes anim-zoom-out { from{opacity:0; transform:scale(1.15);} to{opacity:1; transform:scale(1);} }
+  @keyframes anim-flip { from{opacity:0; transform:rotateY(90deg);} to{opacity:1; transform:rotateY(0);} }
+  @keyframes anim-bounce { 0%{opacity:0; transform:translateY(30px);} 60%{opacity:1; transform:translateY(-8px);} 100%{opacity:1; transform:translateY(0);} }
+  @keyframes anim-rotate { from{opacity:0; transform:rotate(-8deg) scale(0.9);} to{opacity:1; transform:rotate(0) scale(1);} }
+  .page-anim-fade{ animation: anim-fade 0.5s ease both; }
+  .page-anim-slide-left{ animation: anim-slide-left 0.45s ease both; }
+  .page-anim-slide-right{ animation: anim-slide-right 0.45s ease both; }
+  .page-anim-slide-up{ animation: anim-slide-up 0.45s ease both; }
+  .page-anim-slide-down{ animation: anim-slide-down 0.45s ease both; }
+  .page-anim-zoom-in{ animation: anim-zoom-in 0.4s ease both; }
+  .page-anim-zoom-out{ animation: anim-zoom-out 0.4s ease both; }
+  .page-anim-flip{ animation: anim-flip 0.5s ease both; perspective:600px; }
+  .page-anim-bounce{ animation: anim-bounce 0.6s ease both; }
+  .page-anim-rotate{ animation: anim-rotate 0.45s ease both; }
+
   @keyframes wiggle{
     0%, 100%{ transform:rotate(0deg) translateX(0); }
     20%{ transform:rotate(-4deg) translateX(-1px); }
@@ -191,6 +214,12 @@
       </div>
       <div class="settings-controls">
         <div class="settings-field"><label>Color</label><div class="color-combo"><input type="color" id="page-bg-color"></div></div>
+      </div>
+    </div>
+    <div class="settings-row">
+      <div class="settings-row-label">Page Animation</div>
+      <div class="settings-controls">
+        <div class="settings-field"><label class="lbl-sm">Animation</label><select id="page-animation"></select></div>
       </div>
     </div>
     <div class="settings-row">
@@ -294,6 +323,7 @@ function showPage(name) {
   document.getElementById("page-data").classList.toggle("active", name === "data");
   sessionStorage.setItem("activePage", name);
   applyPageBackground(name);
+  applyPageAnimation(name);
 }
 
 let toggleIconRotation = 0;
@@ -508,8 +538,34 @@ const DEFAULT_PAGE_SETTINGS = {
   name: { size: 20, color: "#000000", font: "inherit", bold: false },
   countdown: { size: 26, color: "#ff0000", font: "inherit", bold: true },
   date: { size: 15, color: "#000000", font: "inherit", bold: false },
-  background: "#ffffff"
+  background: "#ffffff",
+  animation: "none"
 };
+
+const PAGE_ANIMATIONS = [
+  { value: "none", label: "None" },
+  { value: "fade", label: "Fade In" },
+  { value: "slide-left", label: "Slide Left" },
+  { value: "slide-right", label: "Slide Right" },
+  { value: "slide-up", label: "Slide Up" },
+  { value: "slide-down", label: "Slide Down" },
+  { value: "zoom-in", label: "Zoom In" },
+  { value: "zoom-out", label: "Zoom Out" },
+  { value: "flip", label: "Flip" },
+  { value: "bounce", label: "Bounce" },
+  { value: "rotate", label: "Rotate" }
+];
+function populateAnimationSelect() {
+  const sel = document.getElementById("page-animation");
+  sel.innerHTML = "";
+  PAGE_ANIMATIONS.forEach((opt) => {
+    const o = document.createElement("option");
+    o.value = opt.value;
+    o.textContent = opt.label;
+    sel.appendChild(o);
+  });
+}
+populateAnimationSelect();
 
 function cloneDefaults() { return JSON.parse(JSON.stringify(DEFAULT_PAGE_SETTINGS)); }
 let cloudSettings = { alerts: cloneDefaults(), data: cloneDefaults() };
@@ -534,6 +590,19 @@ function applyPageBackground(page) {
   document.body.style.backgroundColor = settings.background || "#ffffff";
 }
 
+function applyPageAnimation(page) {
+  const settings = getSavedFontSettings(page);
+  const anim = settings.animation || "none";
+  const pageEl = document.getElementById(page === "alerts" ? "page-alerts" : "page-data");
+  PAGE_ANIMATIONS.forEach((opt) => {
+    if (opt.value !== "none") pageEl.classList.remove("page-anim-" + opt.value);
+  });
+  if (anim !== "none") {
+    void pageEl.offsetWidth;
+    pageEl.classList.add("page-anim-" + anim);
+  }
+}
+
 function fillSettingsForm(settings) {
   FONT_TARGETS.forEach((target) => {
     const s = settings[target] || DEFAULT_PAGE_SETTINGS[target];
@@ -543,6 +612,7 @@ function fillSettingsForm(settings) {
     document.getElementById(`${target}-bold`).checked = !!s.bold;
   });
   document.getElementById("page-bg-color").value = settings.background || "#ffffff";
+  document.getElementById("page-animation").value = settings.animation || "none";
 }
 
 function readSettingsForm() {
@@ -556,6 +626,7 @@ function readSettingsForm() {
     };
   });
   settings.background = document.getElementById("page-bg-color").value;
+  settings.animation = document.getElementById("page-animation").value;
   return settings;
 }
 
@@ -606,6 +677,7 @@ async function applySettings() {
   applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
   applyFontSettingsToContainer("page-data", cloudSettings.data);
   applyPageBackground(getActivePageName());
+  applyPageAnimation(getActivePageName());
   loadAll();
   setSyncStatus("Saving...");
   try {
@@ -637,6 +709,7 @@ if (settingsRef) {
       applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
       applyFontSettingsToContainer("page-data", cloudSettings.data);
       applyPageBackground(getActivePageName());
+      applyPageAnimation(getActivePageName());
       loadAll();
       setSyncStatus("Synced");
     } else {
