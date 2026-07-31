@@ -47,7 +47,6 @@
     z-index: 20;
     padding: 8px 20px 8px 20px;
     margin: 0 auto;
-    border-bottom: 2px solid #e75480;
     max-width: 640px;
     display: flex;
     justify-content: space-between;
@@ -139,7 +138,7 @@
   .cylinder-wrap-side{ flex-shrink:0; display:flex; align-items:center; margin-top:14px; }
   #list-data .cylinder-wrap-side{ margin-top:34px; margin-left:-216px; }
 
-  /* Page switch animations */
+  /* Element-level entrance animations (applied per element via Settings) */
   @keyframes anim-fade { from{opacity:0;} to{opacity:1;} }
   @keyframes anim-slide-left { from{opacity:0; transform:translateX(40px);} to{opacity:1; transform:translateX(0);} }
   @keyframes anim-slide-right { from{opacity:0; transform:translateX(-40px);} to{opacity:1; transform:translateX(0);} }
@@ -150,16 +149,17 @@
   @keyframes anim-flip { from{opacity:0; transform:rotateY(90deg);} to{opacity:1; transform:rotateY(0);} }
   @keyframes anim-bounce { 0%{opacity:0; transform:translateY(30px);} 60%{opacity:1; transform:translateY(-8px);} 100%{opacity:1; transform:translateY(0);} }
   @keyframes anim-rotate { from{opacity:0; transform:rotate(-8deg) scale(0.9);} to{opacity:1; transform:rotate(0) scale(1);} }
-  .page-anim-fade{ animation: anim-fade 0.5s ease both; }
-  .page-anim-slide-left{ animation: anim-slide-left 0.45s ease both; }
-  .page-anim-slide-right{ animation: anim-slide-right 0.45s ease both; }
-  .page-anim-slide-up{ animation: anim-slide-up 0.45s ease both; }
-  .page-anim-slide-down{ animation: anim-slide-down 0.45s ease both; }
-  .page-anim-zoom-in{ animation: anim-zoom-in 0.4s ease both; }
-  .page-anim-zoom-out{ animation: anim-zoom-out 0.4s ease both; }
-  .page-anim-flip{ animation: anim-flip 0.5s ease both; perspective:600px; }
-  .page-anim-bounce{ animation: anim-bounce 0.6s ease both; }
-  .page-anim-rotate{ animation: anim-rotate 0.45s ease both; }
+  .anim-fade{ animation: anim-fade 0.5s ease both; }
+  .anim-slide-left{ animation: anim-slide-left 0.45s ease both; }
+  .anim-slide-right{ animation: anim-slide-right 0.45s ease both; }
+  .anim-slide-up{ animation: anim-slide-up 0.45s ease both; }
+  .anim-slide-down{ animation: anim-slide-down 0.45s ease both; }
+  .anim-zoom-in{ animation: anim-zoom-in 0.4s ease both; }
+  .anim-zoom-out{ animation: anim-zoom-out 0.4s ease both; }
+  .anim-flip{ animation: anim-flip 0.5s ease both; display:inline-block; perspective:600px; }
+  .anim-bounce{ animation: anim-bounce 0.6s ease both; }
+  .anim-rotate{ animation: anim-rotate 0.45s ease both; display:inline-block; }
+  .header-divider{ position:absolute; left:20px; right:20px; bottom:0; height:2px; background:#e75480; }
 
   @keyframes wiggle{
     0%, 100%{ transform:rotate(0deg) translateX(0); }
@@ -217,9 +217,17 @@
       </div>
     </div>
     <div class="settings-row">
-      <div class="settings-row-label">Page Animation</div>
-      <div class="settings-controls">
-        <div class="settings-field"><label class="lbl-sm">Animation</label><select id="page-animation"></select></div>
+      <div class="settings-row-label">Animations</div>
+      <div class="settings-controls" style="flex-direction:column; align-items:stretch; gap:12px;">
+        <div class="settings-field" style="flex-direction:row; justify-content:space-between; align-items:center;"><label class="lbl-sm" style="margin:0;">Alert Title (Alert page)</label><select id="anim-title"></select></div>
+        <div class="settings-field" style="flex-direction:row; justify-content:space-between; align-items:center;"><label class="lbl-sm" style="margin:0;">Today Date</label><select id="anim-header"></select></div>
+        <div class="settings-field" style="flex-direction:row; justify-content:space-between; align-items:center;"><label class="lbl-sm" style="margin:0;">Reminder List Text</label><select id="anim-reminder"></select></div>
+        <div class="settings-field" style="flex-direction:row; justify-content:space-between; align-items:center;"><label class="lbl-sm" style="margin:0;">Divider Line</label><select id="anim-divider"></select></div>
+        <div class="settings-field" style="flex-direction:row; justify-content:space-between; align-items:center;"><label class="lbl-sm" style="margin:0;">List Item Name</label><select id="anim-item-name"></select></div>
+        <div class="settings-field" style="flex-direction:row; justify-content:space-between; align-items:center;"><label class="lbl-sm" style="margin:0;">List Item Countdown</label><select id="anim-item-countdown"></select></div>
+        <div class="settings-field" style="flex-direction:row; justify-content:space-between; align-items:center;"><label class="lbl-sm" style="margin:0;">List Item Date</label><select id="anim-item-date"></select></div>
+        <div class="settings-field" style="flex-direction:row; justify-content:space-between; align-items:center;"><label class="lbl-sm" style="margin:0;">Gas Cylinder Image</label><select id="anim-cylinder"></select></div>
+        <div class="settings-field" style="flex-direction:row; justify-content:space-between; align-items:center;"><label class="lbl-sm" style="margin:0;">List Items Timing</label><select id="anim-stagger"></select></div>
       </div>
     </div>
     <div class="settings-row">
@@ -267,14 +275,14 @@
 
 <!-- PAGE 1: Alerts -->
 <div id="page-alerts" class="page active">
-  <div id="header-alerts" class="header-date"><span id="header-alerts-left"></span><span id="header-alerts-right"></span></div>
-  <div class="alerts-page-title">Alert</div>
+  <div id="header-alerts" class="header-date"><span id="header-alerts-left"></span><span id="header-alerts-right"></span><div id="divider-alerts" class="header-divider"></div></div>
+  <div id="alerts-title" class="alerts-page-title">Alert</div>
   <div id="list-alerts"><div class="loading">Loading...</div></div>
 </div>
 
 <!-- PAGE 2: All Data (List) -->
 <div id="page-data" class="page">
-  <div id="header-data" class="header-date"><span id="header-data-left"></span><span id="header-data-right"></span></div>
+  <div id="header-data" class="header-date"><span id="header-data-left"></span><span id="header-data-right"></span><div id="divider-data" class="header-divider"></div></div>
   <div id="list-data"><div class="loading">Loading...</div></div>
 </div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -397,9 +405,18 @@ function buildEventDisplay(rawName, rawDate, rawType) {
   return { name, date: displayDate, countdown, isAlert };
 }
 
-function renderEvents(container, events) {
+function applyStaggeredAnimation(el, value, delaySeconds) {
+  if (!el || !value || value === "none") return;
+  el.classList.add("anim-" + value);
+  if (delaySeconds) el.style.animationDelay = delaySeconds + "s";
+}
+
+function renderEvents(container, events, page) {
   container.innerHTML = "";
-  events.forEach((e) => {
+  const settings = getSavedFontSettings(page);
+  const anims = settings.animations || DEFAULT_PAGE_SETTINGS.animations;
+  const stagger = anims.stagger === "sequence";
+  events.forEach((e, idx) => {
     const item = document.createElement("div");
     item.className = "event";
     const isGasCylinder = e.name.trim().toLowerCase() === "gas cylinder";
@@ -433,6 +450,14 @@ function renderEvents(container, events) {
       item.innerHTML = `<div class="event-name">${e.name}</div><div class="event-countdown">${e.countdown}</div><div class="event-date">${e.date}</div>`;
     }
     container.appendChild(item);
+
+    const delay = stagger ? idx * 0.12 : 0;
+    applyStaggeredAnimation(item.querySelector(".event-name"), anims.itemName, delay);
+    applyStaggeredAnimation(item.querySelector(".event-countdown"), anims.itemCountdown, delay);
+    applyStaggeredAnimation(item.querySelector(".event-date"), anims.itemDate, delay);
+    if (isGasCylinder) {
+      applyStaggeredAnimation(item.querySelector(".cylinder-wrap-side"), anims.cylinder, delay);
+    }
   });
 }
 
@@ -455,12 +480,12 @@ function renderAll() {
   if (events.length === 0) {
     listData.innerHTML = '<div class="empty-state">No events yet.</div>';
   } else {
-    renderEvents(listData, events);
+    renderEvents(listData, events, "data");
   }
 
   const alerts = events.filter((e) => e.isAlert);
   if (alerts.length === 0) listAlerts.innerHTML = '<div class="empty-state">No alerts right now.</div>';
-  else renderEvents(listAlerts, alerts);
+  else renderEvents(listAlerts, alerts, "alerts");
 }
 
 function loadAll() {
@@ -539,10 +564,20 @@ const DEFAULT_PAGE_SETTINGS = {
   countdown: { size: 26, color: "#ff0000", font: "inherit", bold: true },
   date: { size: 15, color: "#000000", font: "inherit", bold: false },
   background: "#ffffff",
-  animation: "none"
+  animations: {
+    title: "none",
+    header: "none",
+    reminder: "none",
+    divider: "none",
+    itemName: "none",
+    itemCountdown: "none",
+    itemDate: "none",
+    cylinder: "none",
+    stagger: "together"
+  }
 };
 
-const PAGE_ANIMATIONS = [
+const ANIMATION_OPTIONS = [
   { value: "none", label: "None" },
   { value: "fade", label: "Fade In" },
   { value: "slide-left", label: "Slide Left" },
@@ -555,17 +590,42 @@ const PAGE_ANIMATIONS = [
   { value: "bounce", label: "Bounce" },
   { value: "rotate", label: "Rotate" }
 ];
-function populateAnimationSelect() {
-  const sel = document.getElementById("page-animation");
-  sel.innerHTML = "";
-  PAGE_ANIMATIONS.forEach((opt) => {
+const STAGGER_OPTIONS = [
+  { value: "together", label: "Sab ek saath" },
+  { value: "sequence", label: "Ek ke baad ek" }
+];
+const ANIM_FIELD_IDS = {
+  title: "anim-title",
+  header: "anim-header",
+  reminder: "anim-reminder",
+  divider: "anim-divider",
+  itemName: "anim-item-name",
+  itemCountdown: "anim-item-countdown",
+  itemDate: "anim-item-date",
+  cylinder: "anim-cylinder"
+};
+
+function populateAnimationSelects() {
+  Object.values(ANIM_FIELD_IDS).forEach((id) => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = "";
+    ANIMATION_OPTIONS.forEach((opt) => {
+      const o = document.createElement("option");
+      o.value = opt.value;
+      o.textContent = opt.label;
+      sel.appendChild(o);
+    });
+  });
+  const staggerSel = document.getElementById("anim-stagger");
+  staggerSel.innerHTML = "";
+  STAGGER_OPTIONS.forEach((opt) => {
     const o = document.createElement("option");
     o.value = opt.value;
     o.textContent = opt.label;
-    sel.appendChild(o);
+    staggerSel.appendChild(o);
   });
 }
-populateAnimationSelect();
+populateAnimationSelects();
 
 function cloneDefaults() { return JSON.parse(JSON.stringify(DEFAULT_PAGE_SETTINGS)); }
 let cloudSettings = { alerts: cloneDefaults(), data: cloneDefaults() };
@@ -590,16 +650,30 @@ function applyPageBackground(page) {
   document.body.style.backgroundColor = settings.background || "#ffffff";
 }
 
+function applyElementAnimation(el, value) {
+  if (!el) return;
+  ANIMATION_OPTIONS.forEach((opt) => {
+    if (opt.value !== "none") el.classList.remove("anim-" + opt.value);
+  });
+  el.style.animationDelay = "";
+  if (value && value !== "none") {
+    void el.offsetWidth;
+    el.classList.add("anim-" + value);
+  }
+}
+
 function applyPageAnimation(page) {
   const settings = getSavedFontSettings(page);
-  const anim = settings.animation || "none";
-  const pageEl = document.getElementById(page === "alerts" ? "page-alerts" : "page-data");
-  PAGE_ANIMATIONS.forEach((opt) => {
-    if (opt.value !== "none") pageEl.classList.remove("page-anim-" + opt.value);
-  });
-  if (anim !== "none") {
-    void pageEl.offsetWidth;
-    pageEl.classList.add("page-anim-" + anim);
+  const anims = settings.animations || DEFAULT_PAGE_SETTINGS.animations;
+  if (page === "alerts") {
+    applyElementAnimation(document.getElementById("alerts-title"), anims.title);
+    applyElementAnimation(document.getElementById("header-alerts-left"), anims.header);
+    applyElementAnimation(document.getElementById("header-alerts-right"), anims.reminder);
+    applyElementAnimation(document.getElementById("divider-alerts"), anims.divider);
+  } else {
+    applyElementAnimation(document.getElementById("header-data-left"), anims.header);
+    applyElementAnimation(document.getElementById("header-data-right"), anims.reminder);
+    applyElementAnimation(document.getElementById("divider-data"), anims.divider);
   }
 }
 
@@ -612,7 +686,11 @@ function fillSettingsForm(settings) {
     document.getElementById(`${target}-bold`).checked = !!s.bold;
   });
   document.getElementById("page-bg-color").value = settings.background || "#ffffff";
-  document.getElementById("page-animation").value = settings.animation || "none";
+  const anims = settings.animations || DEFAULT_PAGE_SETTINGS.animations;
+  Object.keys(ANIM_FIELD_IDS).forEach((key) => {
+    document.getElementById(ANIM_FIELD_IDS[key]).value = anims[key] || "none";
+  });
+  document.getElementById("anim-stagger").value = anims.stagger || "together";
 }
 
 function readSettingsForm() {
@@ -626,7 +704,12 @@ function readSettingsForm() {
     };
   });
   settings.background = document.getElementById("page-bg-color").value;
-  settings.animation = document.getElementById("page-animation").value;
+  const anims = {};
+  Object.keys(ANIM_FIELD_IDS).forEach((key) => {
+    anims[key] = document.getElementById(ANIM_FIELD_IDS[key]).value;
+  });
+  anims.stagger = document.getElementById("anim-stagger").value;
+  settings.animations = anims;
   return settings;
 }
 
