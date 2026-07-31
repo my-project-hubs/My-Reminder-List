@@ -138,27 +138,34 @@
   .cylinder-wrap-side{ flex-shrink:0; display:flex; align-items:center; margin-top:14px; }
   #list-data .cylinder-wrap-side{ margin-top:34px; margin-left:-216px; }
 
-  /* Element-level entrance animations (applied per element via Settings) */
-  @keyframes anim-fade { from{opacity:0;} to{opacity:1;} }
-  @keyframes anim-slide-left { from{opacity:0; transform:translateX(40px);} to{opacity:1; transform:translateX(0);} }
-  @keyframes anim-slide-right { from{opacity:0; transform:translateX(-40px);} to{opacity:1; transform:translateX(0);} }
-  @keyframes anim-slide-up { from{opacity:0; transform:translateY(40px);} to{opacity:1; transform:translateY(0);} }
-  @keyframes anim-slide-down { from{opacity:0; transform:translateY(-40px);} to{opacity:1; transform:translateY(0);} }
-  @keyframes anim-zoom-in { from{opacity:0; transform:scale(0.85);} to{opacity:1; transform:scale(1);} }
-  @keyframes anim-zoom-out { from{opacity:0; transform:scale(1.15);} to{opacity:1; transform:scale(1);} }
-  @keyframes anim-flip { from{opacity:0; transform:rotateY(90deg);} to{opacity:1; transform:rotateY(0);} }
-  @keyframes anim-bounce { 0%{opacity:0; transform:translateY(30px);} 60%{opacity:1; transform:translateY(-8px);} 100%{opacity:1; transform:translateY(0);} }
-  @keyframes anim-rotate { from{opacity:0; transform:rotate(-8deg) scale(0.9);} to{opacity:1; transform:rotate(0) scale(1);} }
-  .anim-fade{ animation: anim-fade 0.5s ease both; }
-  .anim-slide-left{ animation: anim-slide-left 0.45s ease both; }
-  .anim-slide-right{ animation: anim-slide-right 0.45s ease both; }
-  .anim-slide-up{ animation: anim-slide-up 0.45s ease both; }
-  .anim-slide-down{ animation: anim-slide-down 0.45s ease both; }
-  .anim-zoom-in{ animation: anim-zoom-in 0.4s ease both; }
-  .anim-zoom-out{ animation: anim-zoom-out 0.4s ease both; }
-  .anim-flip{ animation: anim-flip 0.5s ease both; display:inline-block; perspective:600px; }
-  .anim-bounce{ animation: anim-bounce 0.6s ease both; }
-  .anim-rotate{ animation: anim-rotate 0.45s ease both; display:inline-block; }
+  /* Element-level continuous animations (loop forever, applied per element via Settings) */
+  @keyframes anim-pulse { 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.09); } }
+  @keyframes anim-glow { 0%,100%{ text-shadow:0 0 4px currentColor, 0 0 8px currentColor; } 50%{ text-shadow:0 0 14px currentColor, 0 0 26px currentColor; } }
+  @keyframes anim-float { 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-7px); } }
+  @keyframes anim-wobble { 0%,100%{ transform:rotate(0deg); } 25%{ transform:rotate(-5deg); } 75%{ transform:rotate(5deg); } }
+  @keyframes anim-heartbeat { 0%,100%{ transform:scale(1); } 15%{ transform:scale(1.16); } 30%{ transform:scale(1); } 45%{ transform:scale(1.16); } 60%{ transform:scale(1); } }
+  @keyframes anim-flicker { 0%,19%,21%,23%,25%,54%,56%,100%{ opacity:1; } 20%,22%,24%,55%{ opacity:0.3; } }
+  @keyframes anim-rainbow { 0%{ filter:hue-rotate(0deg); } 100%{ filter:hue-rotate(360deg); } }
+  @keyframes anim-swing { 0%,100%{ transform:rotate(0deg); } 20%{ transform:rotate(11deg); } 40%{ transform:rotate(-9deg); } 60%{ transform:rotate(6deg); } 80%{ transform:rotate(-3deg); } }
+  @keyframes anim-shake { 0%,100%{ transform:translateX(0); } 10%,30%,50%,70%,90%{ transform:translateX(-2.5px); } 20%,40%,60%,80%{ transform:translateX(2.5px); } }
+  @keyframes anim-shimmer { 0%{ background-position:-200% 0; } 100%{ background-position:200% 0; } }
+  .anim-pulse{ animation: anim-pulse var(--anim-dur, 1.8s) ease-in-out infinite; }
+  .anim-glow{ animation: anim-glow var(--anim-dur, 2s) ease-in-out infinite; }
+  .anim-float{ animation: anim-float var(--anim-dur, 2.4s) ease-in-out infinite; }
+  .anim-wobble{ animation: anim-wobble var(--anim-dur, 2s) ease-in-out infinite; display:inline-block; }
+  .anim-heartbeat{ animation: anim-heartbeat var(--anim-dur, 1.2s) ease-in-out infinite; display:inline-block; }
+  .anim-flicker{ animation: anim-flicker var(--anim-dur, 2.6s) linear infinite; }
+  .anim-rainbow{ animation: anim-rainbow var(--anim-dur, 3s) linear infinite; }
+  .anim-swing{ animation: anim-swing var(--anim-dur, 2.2s) ease-in-out infinite; display:inline-block; transform-origin: top center; }
+  .anim-shake{ animation: anim-shake var(--anim-dur, 0.6s) linear infinite; display:inline-block; }
+  .anim-shimmer{
+    background: linear-gradient(90deg, currentColor 0%, currentColor 40%, rgba(255,255,255,0.85) 50%, currentColor 60%, currentColor 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: anim-shimmer var(--anim-dur, 2.5s) linear infinite;
+  }
   .header-divider{ position:absolute; left:20px; right:20px; bottom:0; height:2px; background:#e75480; }
 
   @keyframes wiggle{
@@ -227,6 +234,7 @@
         <div class="settings-field" style="flex-direction:row; justify-content:space-between; align-items:center;"><label class="lbl-sm" style="margin:0;">List Item Countdown</label><select id="anim-item-countdown"></select></div>
         <div class="settings-field" style="flex-direction:row; justify-content:space-between; align-items:center;"><label class="lbl-sm" style="margin:0;">List Item Date</label><select id="anim-item-date"></select></div>
         <div class="settings-field" style="flex-direction:row; justify-content:space-between; align-items:center;"><label class="lbl-sm" style="margin:0;">Gas Cylinder Image</label><select id="anim-cylinder"></select></div>
+        <div class="settings-field" style="flex-direction:row; justify-content:space-between; align-items:center;"><label class="lbl-sm" style="margin:0;">Animation Speed</label><select id="anim-speed"></select></div>
         <div class="settings-field" style="flex-direction:row; justify-content:space-between; align-items:center;"><label class="lbl-sm" style="margin:0;">List Items Timing</label><select id="anim-stagger"></select></div>
       </div>
     </div>
@@ -405,8 +413,11 @@ function buildEventDisplay(rawName, rawDate, rawType) {
   return { name, date: displayDate, countdown, isAlert };
 }
 
-function applyStaggeredAnimation(el, value, delaySeconds) {
+function applyStaggeredAnimation(el, value, delaySeconds, speedValue) {
   if (!el || !value || value === "none") return;
+  const base = ANIM_BASE_DURATION[value] || 2;
+  const dur = base * getSpeedMultiplier(speedValue);
+  el.style.setProperty("--anim-dur", dur.toFixed(2) + "s");
   el.classList.add("anim-" + value);
   if (delaySeconds) el.style.animationDelay = delaySeconds + "s";
 }
@@ -416,6 +427,7 @@ function renderEvents(container, events, page) {
   const settings = getSavedFontSettings(page);
   const anims = settings.animations || DEFAULT_PAGE_SETTINGS.animations;
   const stagger = anims.stagger === "sequence";
+  const speed = anims.speed || "medium";
   events.forEach((e, idx) => {
     const item = document.createElement("div");
     item.className = "event";
@@ -452,11 +464,11 @@ function renderEvents(container, events, page) {
     container.appendChild(item);
 
     const delay = stagger ? idx * 0.12 : 0;
-    applyStaggeredAnimation(item.querySelector(".event-name"), anims.itemName, delay);
-    applyStaggeredAnimation(item.querySelector(".event-countdown"), anims.itemCountdown, delay);
-    applyStaggeredAnimation(item.querySelector(".event-date"), anims.itemDate, delay);
+    applyStaggeredAnimation(item.querySelector(".event-name"), anims.itemName, delay, speed);
+    applyStaggeredAnimation(item.querySelector(".event-countdown"), anims.itemCountdown, delay, speed);
+    applyStaggeredAnimation(item.querySelector(".event-date"), anims.itemDate, delay, speed);
     if (isGasCylinder) {
-      applyStaggeredAnimation(item.querySelector(".cylinder-wrap-side"), anims.cylinder, delay);
+      applyStaggeredAnimation(item.querySelector(".cylinder-wrap-side"), anims.cylinder, delay, speed);
     }
   });
 }
@@ -516,8 +528,7 @@ if (eventsRef) {
   document.getElementById("list-data").innerHTML = msg;
 }
 
-renderAll();
-setInterval(renderAll, 60000);
+
 
 const FONT_OPTIONS = [
   { label: "Default", value: "inherit" },
@@ -573,22 +584,33 @@ const DEFAULT_PAGE_SETTINGS = {
     itemCountdown: "none",
     itemDate: "none",
     cylinder: "none",
+    speed: "medium",
     stagger: "together"
   }
 };
 
 const ANIMATION_OPTIONS = [
   { value: "none", label: "None" },
-  { value: "fade", label: "Fade In" },
-  { value: "slide-left", label: "Slide Left" },
-  { value: "slide-right", label: "Slide Right" },
-  { value: "slide-up", label: "Slide Up" },
-  { value: "slide-down", label: "Slide Down" },
-  { value: "zoom-in", label: "Zoom In" },
-  { value: "zoom-out", label: "Zoom Out" },
-  { value: "flip", label: "Flip" },
-  { value: "bounce", label: "Bounce" },
-  { value: "rotate", label: "Rotate" }
+  { value: "pulse", label: "Pulse" },
+  { value: "glow", label: "Glow" },
+  { value: "float", label: "Float" },
+  { value: "wobble", label: "Wobble" },
+  { value: "heartbeat", label: "Heartbeat" },
+  { value: "flicker", label: "Neon Flicker" },
+  { value: "rainbow", label: "Rainbow Shift" },
+  { value: "swing", label: "Swing" },
+  { value: "shake", label: "Shake" },
+  { value: "shimmer", label: "Shimmer" }
+];
+const ANIM_BASE_DURATION = {
+  pulse: 1.8, glow: 2.0, float: 2.4, wobble: 2.0, heartbeat: 1.2,
+  flicker: 2.6, rainbow: 3.0, swing: 2.2, shake: 0.6, shimmer: 2.5
+};
+const SPEED_OPTIONS = [
+  { value: "slow", label: "Slow", mult: 1.8 },
+  { value: "normal", label: "Normal", mult: 1.3 },
+  { value: "medium", label: "Medium", mult: 1.0 },
+  { value: "high", label: "High", mult: 0.55 }
 ];
 const STAGGER_OPTIONS = [
   { value: "together", label: "Sab ek saath" },
@@ -624,6 +646,14 @@ function populateAnimationSelects() {
     o.textContent = opt.label;
     staggerSel.appendChild(o);
   });
+  const speedSel = document.getElementById("anim-speed");
+  speedSel.innerHTML = "";
+  SPEED_OPTIONS.forEach((opt) => {
+    const o = document.createElement("option");
+    o.value = opt.value;
+    o.textContent = opt.label;
+    speedSel.appendChild(o);
+  });
 }
 populateAnimationSelects();
 
@@ -633,6 +663,8 @@ function getSavedFontSettings(page) { return cloudSettings[page] || cloneDefault
 
 const savedPage = sessionStorage.getItem("activePage");
 showPage(savedPage === "data" ? "data" : "alerts");
+renderAll();
+setInterval(renderAll, 60000);
 
 function applyFontSettingsToContainer(containerId, settings) {
   const container = document.getElementById(containerId);
@@ -650,14 +682,22 @@ function applyPageBackground(page) {
   document.body.style.backgroundColor = settings.background || "#ffffff";
 }
 
-function applyElementAnimation(el, value) {
+function getSpeedMultiplier(speedValue) {
+  const found = SPEED_OPTIONS.find((s) => s.value === speedValue);
+  return found ? found.mult : 1.0;
+}
+
+function applyElementAnimation(el, value, speedValue) {
   if (!el) return;
   ANIMATION_OPTIONS.forEach((opt) => {
     if (opt.value !== "none") el.classList.remove("anim-" + opt.value);
   });
   el.style.animationDelay = "";
+  el.style.removeProperty("--anim-dur");
   if (value && value !== "none") {
-    void el.offsetWidth;
+    const base = ANIM_BASE_DURATION[value] || 2;
+    const dur = base * getSpeedMultiplier(speedValue);
+    el.style.setProperty("--anim-dur", dur.toFixed(2) + "s");
     el.classList.add("anim-" + value);
   }
 }
@@ -665,15 +705,16 @@ function applyElementAnimation(el, value) {
 function applyPageAnimation(page) {
   const settings = getSavedFontSettings(page);
   const anims = settings.animations || DEFAULT_PAGE_SETTINGS.animations;
+  const speed = anims.speed || "medium";
   if (page === "alerts") {
-    applyElementAnimation(document.getElementById("alerts-title"), anims.title);
-    applyElementAnimation(document.getElementById("header-alerts-left"), anims.header);
-    applyElementAnimation(document.getElementById("header-alerts-right"), anims.reminder);
-    applyElementAnimation(document.getElementById("divider-alerts"), anims.divider);
+    applyElementAnimation(document.getElementById("alerts-title"), anims.title, speed);
+    applyElementAnimation(document.getElementById("header-alerts-left"), anims.header, speed);
+    applyElementAnimation(document.getElementById("header-alerts-right"), anims.reminder, speed);
+    applyElementAnimation(document.getElementById("divider-alerts"), anims.divider, speed);
   } else {
-    applyElementAnimation(document.getElementById("header-data-left"), anims.header);
-    applyElementAnimation(document.getElementById("header-data-right"), anims.reminder);
-    applyElementAnimation(document.getElementById("divider-data"), anims.divider);
+    applyElementAnimation(document.getElementById("header-data-left"), anims.header, speed);
+    applyElementAnimation(document.getElementById("header-data-right"), anims.reminder, speed);
+    applyElementAnimation(document.getElementById("divider-data"), anims.divider, speed);
   }
 }
 
@@ -690,6 +731,7 @@ function fillSettingsForm(settings) {
   Object.keys(ANIM_FIELD_IDS).forEach((key) => {
     document.getElementById(ANIM_FIELD_IDS[key]).value = anims[key] || "none";
   });
+  document.getElementById("anim-speed").value = anims.speed || "medium";
   document.getElementById("anim-stagger").value = anims.stagger || "together";
 }
 
@@ -708,6 +750,7 @@ function readSettingsForm() {
   Object.keys(ANIM_FIELD_IDS).forEach((key) => {
     anims[key] = document.getElementById(ANIM_FIELD_IDS[key]).value;
   });
+  anims.speed = document.getElementById("anim-speed").value;
   anims.stagger = document.getElementById("anim-stagger").value;
   settings.animations = anims;
   return settings;
