@@ -23,7 +23,8 @@ function getTodayMidnight() {
   return new Date(now.getFullYear(), now.getMonth(), now.getDate());
 }
 
-const ALERT_THRESHOLD_DAYS = 15;
+const ALERT_THRESHOLD_DAYS_DEFAULT = 15;
+let ALERT_THRESHOLD_DAYS = ALERT_THRESHOLD_DAYS_DEFAULT;
 let CYLINDER_THRESHOLD_VALUE = 3.0;
 
 function getCylinderThresholdParts() {
@@ -61,17 +62,24 @@ function computeIsAlert(rawName, rawDate, rawType) {
 async function main() {
   const settingsSnap = await db.ref("settings").once("value");
   const settings = settingsSnap.val() || {};
+  console.log("Settings fetched:", JSON.stringify(settings));
   if (settings.thresholds && typeof settings.thresholds.cylinder === "number") {
     CYLINDER_THRESHOLD_VALUE = settings.thresholds.cylinder;
+  }
+  if (settings.thresholds && typeof settings.thresholds.days === "number") {
+    ALERT_THRESHOLD_DAYS = settings.thresholds.days;
   }
 
   const eventsSnap = await db.ref("remindersData/events").once("value");
   const rawEvents = eventsSnap.val() || [];
   const eventsArray = Array.isArray(rawEvents) ? rawEvents : Object.values(rawEvents);
+  console.log("Raw events fetched:", JSON.stringify(eventsArray));
+  console.log("ALERT_THRESHOLD_DAYS:", ALERT_THRESHOLD_DAYS);
 
   const alerts = eventsArray
     .map((ev) => computeIsAlert(ev.name, ev.date, ev.type))
     .filter((e) => e && e.isAlert);
+  console.log("Computed alerts:", JSON.stringify(alerts));
 
   if (alerts.length === 0) {
     console.log("No alerts today. Nothing to send.");
@@ -113,4 +121,4 @@ main()
     console.error("Script failed:", err);
     process.exit(1);
   });
-                                               
+  
