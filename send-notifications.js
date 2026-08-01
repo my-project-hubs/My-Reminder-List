@@ -11,10 +11,9 @@ const db = admin.database();
 
 function parseEventDateString(str) {
   if (!str) return null;
-  const parts = str.split("/");
-  if (parts.length !== 3) return null;
-  const [d, m, y] = parts.map(Number);
-  if (!d || !m || !y) return null;
+  const parts = String(str).trim().split(/[-.\/]/).map((p) => parseInt(p, 10));
+  if (parts.length !== 3 || parts.some((p) => isNaN(p))) return null;
+  const [d, m, y] = parts;
   return new Date(y, m - 1, d);
 }
 
@@ -121,4 +120,3 @@ main()
     console.error("Script failed:", err);
     process.exit(1);
   });
-  
