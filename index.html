@@ -32,8 +32,9 @@
   .line-wrap .event-actions { top: 100%; left: 50%; transform: translate(-50%, 8px); }
   .event-countdown { color: var(--countdown-color, #ff0000); font-size: var(--countdown-size, 26px); font-family: var(--countdown-font, inherit); font-weight: var(--countdown-weight, 700); margin-bottom: 10px; line-height: 1.1; }
   .event-date { color: var(--date-color, #000000); font-size: var(--date-size, 15px); font-family: var(--date-font, inherit); font-weight: var(--date-weight, 400); line-height: 1.1; }
-  #list-alerts { display: flex; flex-direction: column; align-items: flex-start; max-width: fit-content; margin: 0 auto; width: 100%; }
-  #list-alerts .event { text-align: left; }
+  #list-alerts { display: flex; flex-direction: column; align-items: center; max-width: none; margin: 0 auto; width: 100%; }
+  #list-alerts .event { text-align: center; width: 50%; }
+  #list-alerts .event.event-gas { text-align: left; width: 100%; }
   #list-data { display: flex; flex-direction: column; align-items: flex-start; width: 100%; }
   #list-data .event { text-align: left; width: 100%; }
   .empty-state { color: #555; font-size: 16px; margin-top: 12px; text-align: center; width: 100%; }
@@ -512,8 +513,8 @@
   .gas-row{ display:flex; align-items:center; justify-content:space-between; gap:14px; width:100%; }
   .gas-left{ display:flex; flex-direction:column; gap:0px; min-width:0; flex:1; }
   .cylinder-wrap-side{ flex-shrink:0; display:flex; align-items:center; margin-top:14px; transform: translate(-0.5in, -0.5cm); }
-  #list-data .cylinder-wrap-side{ margin-top:0px; margin-left:-216px; transform: translate(-0.5in, calc(-0.5cm + 34px - 1mm)); }
-  #list-alerts .cylinder-wrap-side{ transform: translate(0, calc(-0.5cm + 3mm)); }
+  #list-data .cylinder-wrap-side{ margin-top:0px; margin-left:-216px; transform: translate(-0.5in, calc(-0.5cm + 34px - 2mm)); }
+  #list-alerts .cylinder-wrap-side{ transform: translate(0, -0.5cm); }
   @keyframes wiggle{
     0%, 100%{ transform:rotate(0deg) translateX(0); }
     20%{ transform:rotate(-4deg) translateX(-1px); }
@@ -892,8 +893,8 @@ function renderEvents(container, events, allowActions) {
   container.innerHTML = "";
   events.forEach((e, idx) => {
     const item = document.createElement("div");
-    item.className = "event";
     const isGasCylinder = e.name.trim().toLowerCase() === "gas cylinder";
+    item.className = "event" + (isGasCylinder ? " event-gas" : "");
 
     let contentHTML;
     if (isGasCylinder) {
