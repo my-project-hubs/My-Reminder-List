@@ -541,10 +541,10 @@
   .cylinder .cyl-foot-hole { width:7px; height:3px; background:#f8f9fa; border-radius:2px 2px 0 0; }
 
   /* Gas Cylinder move popup */
-  .cyl-move-popup{ position:fixed; z-index:60; background:rgba(20,20,20,0.92); border-radius:14px; padding:8px; display:none; grid-template-columns:42px 42px 42px; grid-template-rows:42px 42px 42px; gap:4px; box-shadow:0 4px 16px rgba(0,0,0,0.4); }
+  .cyl-move-popup{ position:fixed; z-index:60; background:#ffffff; border-radius:10px; padding:6px; display:none; grid-template-columns:22px 22px 22px; grid-template-rows:22px 22px 22px; gap:3px; box-shadow:0 4px 18px rgba(0,0,0,0.28); }
   .cyl-move-popup.open{ display:grid; }
-  .cyl-move-popup button{ width:42px; height:42px; border:none; border-radius:8px; background:#333333; color:#ffffff; font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-  .cyl-move-popup button:active{ background:#555555; }
+  .cyl-move-popup button{ width:22px; height:22px; border:none; border-radius:5px; background:#f2f2f2; color:#333333; font-size:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .cyl-move-popup button:active{ background:#dddddd; }
   .cyl-move-popup .cmp-up{ grid-column:2; grid-row:1; }
   .cyl-move-popup .cmp-left{ grid-column:1; grid-row:2; }
   .cyl-move-popup .cmp-right{ grid-column:3; grid-row:2; }
@@ -913,11 +913,11 @@ document.addEventListener('click', (e) => {
     activeEl = el;
     activeKey = key;
     const rect = el.getBoundingClientRect();
-    let top = rect.top - 150;
-    let left = rect.left + rect.width / 2 - 68;
+    let top = rect.top - 92;
+    let left = rect.left + rect.width / 2 - 42;
     if (top < 8) top = rect.bottom + 8;
     if (left < 8) left = 8;
-    if (left + 136 > window.innerWidth - 8) left = window.innerWidth - 144;
+    if (left + 84 > window.innerWidth - 8) left = window.innerWidth - 92;
     popup.style.top = top + "px";
     popup.style.left = left + "px";
     popup.classList.add("open");
