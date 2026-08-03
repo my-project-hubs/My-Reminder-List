@@ -954,16 +954,10 @@ document.addEventListener('click', (e) => {
 
   window.attachCylinderMovePopup = function (wrapEl, containerKey) {
     applyOffset(wrapEl, loadOffset(containerKey));
-    let timer = null;
-    const clearT = () => { if (timer) { clearTimeout(timer); timer = null; } };
-    const start = (ev) => { ev.stopPropagation(); clearT(); timer = setTimeout(() => openPopupFor(wrapEl, containerKey), 500); };
-    wrapEl.addEventListener("touchstart", start, { passive: true });
-    wrapEl.addEventListener("touchend", clearT);
-    wrapEl.addEventListener("touchmove", clearT, { passive: true });
-    wrapEl.addEventListener("touchcancel", clearT);
-    wrapEl.addEventListener("mousedown", start);
-    wrapEl.addEventListener("mouseup", clearT);
-    wrapEl.addEventListener("mouseleave", clearT);
+    wrapEl.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      openPopupFor(wrapEl, containerKey);
+    });
   };
 })();
 
@@ -1059,7 +1053,7 @@ function renderEvents(container, events, allowActions) {
       item.querySelector(".event-edit-btn").addEventListener("click", () => openEditReminder(e.key));
       item.querySelector(".event-delete-btn").addEventListener("click", () => deleteReminder(e.key, e.name));
       item.querySelector(".event-anim-btn").addEventListener("click", () => openAnimationPage("event", e.key, normalizeAnimationIds(e.animations, e.animation)));
-      attachLongPress(item, () => toggleItemActions(item, e.key));
+      item.addEventListener("click", () => toggleItemActions(item, e.key));
     }
 
     // Wrap the card in nested animation wrapper elements so up to 3 animations
