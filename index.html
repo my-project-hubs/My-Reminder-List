@@ -25,7 +25,7 @@
   .event { margin-bottom: 30px; position: relative; }
   .event-name { color: var(--name-color, #000000); font-size: var(--name-size, 20px); font-family: var(--name-font, inherit); font-weight: var(--name-weight, 400); margin-bottom: 10px; line-height: 1.15; }
   .alerts-page-title { text-align: center; color: var(--title-color, #b266b2); font-size: var(--title-size, 26px); font-family: var(--title-font, inherit); font-weight: var(--title-weight, 700); }
-  .alerts-page-title-row { display: flex; align-items: center; justify-content: center; gap: 6px; margin: -42px 0 22px; }
+  .alerts-page-title-row { display: flex; align-items: center; justify-content: center; gap: 6px; margin: -42px 0 40px; }
   .header-line-group { display: inline-flex; align-items: baseline; gap: 4px; }
   .line-wrap { position: relative; display: inline-flex; align-items: baseline; }
   .line-wrap.actions-visible .event-actions { opacity: 1; pointer-events: auto; }
@@ -47,7 +47,7 @@
     padding-top: 50px;
   }
   #page-data {
-    padding-top: 0px;
+    padding-top: 28px;
   }
   #page-alerts .header-date, #page-data .header-date {
     position: fixed;
@@ -113,59 +113,6 @@
   .line-style-color-dot { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid #bbbbbb; }
   .line-style-color-wrap input[type="color"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; border: none; padding: 0; }
   .line-style-thickness-input { width: 38px; height: 28px; text-align: center; border: 1px solid #cccccc; border-radius: 6px; font-size: 14px; color: #000000; padding: 0; }
-
-  /* Rotating border box */
-  .rotate-box-wrap { position: relative; display: flex; justify-content: center; margin: 40px 0 70px; padding: 0 10px; }
-  .rotate-box-frame {
-    position: relative;
-    width: calc(var(--rotate-box-width-mm, 53) * 1mm);
-    height: calc(var(--rotate-box-height-mm, 26) * 1mm);
-    transform: translate(calc(var(--rotate-box-x-mm, 0) * 1mm), calc(var(--rotate-box-y-mm, 0) * 1mm));
-    touch-action: none;
-  }
-  .border-image-clip-path {
-    width: 100%;
-    height: 100%;
-    border: 4px solid;
-    border-image: linear-gradient(45deg, gold, deeppink) 1;
-    clip-path: inset(0px round 10px);
-    animation: huerotate 6s infinite linear;
-    background: transparent;
-    cursor: grab;
-  }
-  .rotate-box-frame.dragging .border-image-clip-path { cursor: grabbing; }
-  @keyframes huerotate {
-    0% { filter: hue-rotate(0deg); clip-path: inset(0px round 10px); }
-    50% { clip-path: inset(4px round 10px); }
-    100% { filter: hue-rotate(360deg); clip-path: inset(0px round 10px); }
-  }
-  .rotate-resize-handle {
-    position: absolute;
-    right: -11px;
-    bottom: -11px;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: #ffffff;
-    border: 2px solid #b266b2;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    touch-action: none;
-    cursor: nwse-resize;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.15s ease;
-  }
-  .rotate-resize-handle.visible {
-    opacity: 1;
-    pointer-events: auto;
-  }
-  .rotate-resize-handle::after {
-    content: "";
-    position: absolute;
-    inset: 6px;
-    border-right: 2px solid #b266b2;
-    border-bottom: 2px solid #b266b2;
-  }
 
   .settings-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 30; align-items: flex-end; justify-content: center; }
   .settings-overlay.open { display: flex; }
@@ -502,6 +449,14 @@
   .la-100::after { content:""; position:absolute; inset:-4px -8px; border-radius:8px; border:2px solid transparent; background: linear-gradient(#fff,#fff) padding-box, conic-gradient(from 90deg,#ff5f6d,#ffc371,#00c6ff,#a367fc,#ff5f6d) border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; animation: n100 3s linear infinite; animation-duration: calc(3s / var(--la-speed, 1)); }
   @keyframes n100 { to { transform: rotate(360deg); } }
 
+  /* 101-103: newly requested styles */
+  @keyframes k101 { 0%{transform:perspective(500px) rotateY(0deg);} 100%{transform:perspective(500px) rotateY(360deg);} }
+  .la-101 { display:inline-block; animation: k101 2.4s linear infinite; animation-duration: calc(2.4s / var(--la-speed, 1)); }
+  @keyframes k102 { 0%,100%{transform:translateY(0);} 25%{transform:translateY(-6px);} 50%{transform:translateY(0);} 75%{transform:translateY(6px);} }
+  .la-102 { display:inline-block; animation: k102 1.8s ease-in-out infinite; animation-duration: calc(1.8s / var(--la-speed, 1)); }
+  @keyframes k103 { 0%,45%{clip-path:inset(0 50% 0 50%); opacity:0;} 55%{clip-path:inset(0 0 0 0); opacity:1;} 100%{clip-path:inset(0 0 0 0); opacity:1;} }
+  .la-103 { display:inline-block; animation: k103 2.6s ease-in-out infinite; animation-duration: calc(2.6s / var(--la-speed, 1)); }
+
   .add-icon-btn {
     position: fixed;
     top: 50%;
@@ -681,14 +636,6 @@
   <div id="header-alerts" class="header-date"><div class="header-date-inner line-style-wrap" id="lineStyleWrap-alerts" onclick="toggleLineStylePopup(event,'lineStyleWrap-alerts')"><div class="gradient-separator"><div class="gradient-separator-bar"></div></div><span class="line-wrap" id="lw-header-alerts"><span id="header-alerts-left"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('header','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button class="event-delete-btn" title="Delete" onclick="deleteLabel('header')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button><button class="event-anim-btn" title="Animate" onclick="openAnimationPage('label','header')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3z"></path><path d="M19 15l0.9 2.3L22 18l-2.1 0.7L19 21l-0.9-2.3L16 18l2.1-0.7L19 15z"></path></svg></button></div></span><span id="header-alerts-right"></span><div class="line-style-popup" onclick="event.stopPropagation()"><button type="button" title="Move Up" onclick="adjustLineOffset(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg></button><button type="button" title="Move Down" onclick="adjustLineOffset(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M19 12l-7 7-7-7"></path></svg></button><input type="number" class="line-style-thickness-input" id="lineThicknessInput-alerts" min="1" max="10" value="2" onclick="event.stopPropagation()" onchange="setLineThickness(this.value)"></div></div></div>
   <div class="alerts-page-title-row"><span class="line-wrap" id="lw-alert-title"><span class="alerts-page-title" id="alertTitleText">Alert</span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('alertTitle','Alert')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button class="event-delete-btn" title="Delete" onclick="deleteLabel('alertTitle')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button><button class="event-anim-btn" title="Animate" onclick="openAnimationPage('label','alertTitle')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3z"></path><path d="M19 15l0.9 2.3L22 18l-2.1 0.7L19 21l-0.9-2.3L16 18l2.1-0.7L19 15z"></path></svg></button></div></span></div>
   <div id="list-alerts"><div class="loading">Loading...</div></div>
-
-  <!-- Rotating Border Box -->
-  <div class="rotate-box-wrap" id="rotateBoxWrap">
-    <div class="rotate-box-frame" id="rotateBoxFrame">
-      <div class="border-image-clip-path" id="rotateBox"></div>
-      <div class="rotate-resize-handle" id="rotateResizeHandle" title="Resize"></div>
-    </div>
-  </div>
 </div>
 
 <!-- PAGE 2: All Data (List) -->
@@ -771,7 +718,13 @@ function saveCloudSettings(data) {
   } catch (e) {
     return Promise.reject(e);
   }
-  return settingsRef.set(clean);
+  // update() instead of set(): set() replaces the ENTIRE /settings node, so if
+  // cloudSettings in memory hadn't yet received e.g. the saved alertTitle label
+  // from the server (still loading) at the moment some other setting was saved,
+  // set() would silently erase it from Firebase for good -- which looked like
+  // "it never comes back after a refresh". update() only touches the keys
+  // actually present in `clean`, leaving everything else on the server untouched.
+  return settingsRef.update(clean);
 }
 
 function setSyncStatus(text) {
@@ -1379,146 +1332,6 @@ setupLineStylePopupAutoExtend('lineStyleWrap-data');
 
 syncLineStyleUI();
 
-// Rotating border box: tap to open popup with fine mm controls,
-// AND drag directly with finger/mouse to move, drag the corner handle to resize (crop-tool style)
-let rotateBoxXMM = 0;
-let rotateBoxYMM = 0;
-let rotateBoxWidthMM = 53;
-let rotateBoxHeightMM = 26;
-const MM_PER_PX = 25.4 / 96;
-
-function applyRotateBoxTransform() {
-  const frame = document.getElementById('rotateBoxFrame');
-  if (!frame) return;
-  frame.style.setProperty('--rotate-box-x-mm', rotateBoxXMM);
-  frame.style.setProperty('--rotate-box-y-mm', rotateBoxYMM);
-  frame.style.setProperty('--rotate-box-width-mm', rotateBoxWidthMM);
-  frame.style.setProperty('--rotate-box-height-mm', rotateBoxHeightMM);
-}
-applyRotateBoxTransform();
-
-// Previously the box's position/size only ever lived in these 4 local
-// variables — nothing ever wrote them to Firebase, so every refresh silently
-// reset them back to the defaults (0, 0, 53, 26). This saves them the same
-// way everything else in the settings panel is saved, and they're restored
-// from Firebase below wherever cloudSettings is loaded.
-function saveRotateBoxState() {
-  cloudSettings.rotateBox = { x: rotateBoxXMM, y: rotateBoxYMM, w: rotateBoxWidthMM, h: rotateBoxHeightMM };
-  setSyncStatus("Saving...");
-  saveCloudSettings(cloudSettings).then(() => setSyncStatus("Synced")).catch((err) => {
-    setSyncStatus("Sync failed");
-    const reason = (err && err.message) ? err.message : "unknown error";
-    alert("Box position could not be saved.\n\nReason: " + reason);
-  });
-}
-
-function applyRotateBoxStateFromCloud() {
-  const rb = cloudSettings.rotateBox;
-  if (!rb) return;
-  if (typeof rb.x === "number") rotateBoxXMM = rb.x;
-  if (typeof rb.y === "number") rotateBoxYMM = rb.y;
-  if (typeof rb.w === "number") rotateBoxWidthMM = rb.w;
-  if (typeof rb.h === "number") rotateBoxHeightMM = rb.h;
-  applyRotateBoxTransform();
-}
-
-// Box behaviour:
-// - drag anywhere on the box to move it (horizontal + vertical)
-// - press and hold (long-press) the box to reveal the round resize handle
-// - the handle fades away automatically after 3 seconds of no activity
-// - while actively resizing, every movement keeps extending that 3s timer
-(function () {
-  const frame = document.getElementById('rotateBoxFrame');
-  const handle = document.getElementById('rotateResizeHandle');
-  if (!frame || !handle) return;
-
-  const HANDLE_HIDE_MS = 3000;
-  const LONG_PRESS_MS = 450;
-  let handleHideTimer = null;
-
-  function showHandle() {
-    handle.classList.add('visible');
-    scheduleHandleHide();
-  }
-  function scheduleHandleHide() {
-    clearTimeout(handleHideTimer);
-    handleHideTimer = setTimeout(() => {
-      handle.classList.remove('visible');
-    }, HANDLE_HIDE_MS);
-  }
-
-  let dragging = false, dragMoved = false, longPressTimer = null;
-  let startClientX = 0, startClientY = 0, startXMM = 0, startYMM = 0;
-
-  frame.addEventListener('pointerdown', (e) => {
-    if (e.target === handle) return;
-    dragging = true;
-    dragMoved = false;
-    startClientX = e.clientX;
-    startClientY = e.clientY;
-    startXMM = rotateBoxXMM;
-    startYMM = rotateBoxYMM;
-    frame.classList.add('dragging');
-    frame.setPointerCapture(e.pointerId);
-    longPressTimer = setTimeout(showHandle, LONG_PRESS_MS);
-  });
-  frame.addEventListener('pointermove', (e) => {
-    if (!dragging) return;
-    const dxPx = e.clientX - startClientX;
-    const dyPx = e.clientY - startClientY;
-    if (Math.abs(dxPx) > 3 || Math.abs(dyPx) > 3) {
-      dragMoved = true;
-      if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
-    }
-    rotateBoxXMM = Math.round((startXMM + dxPx * MM_PER_PX) * 10) / 10;
-    rotateBoxYMM = Math.round((startYMM + dyPx * MM_PER_PX) * 10) / 10;
-    applyRotateBoxTransform();
-  });
-  function endDrag() {
-    dragging = false;
-    frame.classList.remove('dragging');
-    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
-    if (dragMoved) saveRotateBoxState();
-  }
-  frame.addEventListener('pointerup', endDrag);
-  frame.addEventListener('pointercancel', endDrag);
-  frame.addEventListener('click', (e) => {
-    if (dragMoved) { e.stopPropagation(); dragMoved = false; }
-  });
-
-  // Drag on the corner dot: resize width + height together (crop-tool style)
-  let resizing = false;
-  let rStartClientX = 0, rStartClientY = 0, rStartW = 0, rStartH = 0;
-
-  handle.addEventListener('pointerdown', (e) => {
-    e.stopPropagation();
-    resizing = true;
-    rStartClientX = e.clientX;
-    rStartClientY = e.clientY;
-    rStartW = rotateBoxWidthMM;
-    rStartH = rotateBoxHeightMM;
-    handle.setPointerCapture(e.pointerId);
-    scheduleHandleHide();
-  });
-  handle.addEventListener('pointermove', (e) => {
-    if (!resizing) return;
-    const dxPx = e.clientX - rStartClientX;
-    const dyPx = e.clientY - rStartClientY;
-    rotateBoxWidthMM = Math.max(8, Math.round((rStartW + dxPx * MM_PER_PX) * 10) / 10);
-    rotateBoxHeightMM = Math.max(4, Math.round((rStartH + dyPx * MM_PER_PX) * 10) / 10);
-    applyRotateBoxTransform();
-    scheduleHandleHide();
-  });
-  function endResize(e) {
-    resizing = false;
-    scheduleHandleHide();
-    saveRotateBoxState();
-  }
-  handle.addEventListener('pointerup', endResize);
-  handle.addEventListener('pointercancel', endResize);
-  handle.addEventListener('click', (e) => e.stopPropagation());
-})();
-
 function getLabelValue(key, defaultText) {
   const label = (cloudSettings.labels && cloudSettings.labels[key]) || { text: null, hidden: false };
   if (label.hidden) return "";
@@ -1754,7 +1567,10 @@ const ANIMATIONS = [
   { id: 97, name: "Emerald Flow Text" },
   { id: 98, name: "Candy Pop Color Cycle" },
   { id: 99, name: "Duotone Wave Shift" },
-  { id: 100, name: "Iridescent Border Sweep" }
+  { id: 100, name: "Iridescent Border Sweep" },
+  { id: 101, name: "3D Spin" },
+  { id: 102, name: "Wavy" },
+  { id: 103, name: "Split Text" }
 ];
 
 let currentAnimTarget = null;
@@ -1943,10 +1759,6 @@ if (settingsRef) {
       if (val.headerLine) {
         cloudSettings.headerLine = val.headerLine;
         syncLineStyleUI();
-      }
-      if (val.rotateBox) {
-        cloudSettings.rotateBox = val.rotateBox;
-        applyRotateBoxStateFromCloud();
       }
       applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
       applyFontSettingsToContainer("page-data", cloudSettings.data);
