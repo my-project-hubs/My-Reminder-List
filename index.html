@@ -513,8 +513,8 @@
   .gas-row{ display:flex; align-items:center; justify-content:space-between; gap:14px; width:100%; }
   .gas-left{ display:flex; flex-direction:column; gap:0px; min-width:0; flex:1; }
   .cylinder-wrap-side{ flex-shrink:0; display:flex; align-items:center; margin-top:14px; transform: translate(-0.5in, -0.5cm); }
-  #list-data .cylinder-wrap-side{ margin-top:0px; margin-left:-256px; transform: translate(-0.5in, calc(-0.5cm + 34px - 2mm)); }
-  #list-alerts .cylinder-wrap-side{ transform: translate(-40px, calc(-0.5cm + 3mm)); }
+  #list-data .cylinder-wrap-side{ margin-top:0px; margin-left:-256px; transform: translate(calc(-0.5in + var(--cyl-dx, 0px)), calc(-0.5cm + 34px - 2mm + var(--cyl-dy, 0px))); }
+  #list-alerts .cylinder-wrap-side{ transform: translate(calc(-40px + var(--cyl-dx, 0px)), calc(-0.5cm + 3mm + var(--cyl-dy, 0px))); }
   @keyframes wiggle{
     0%, 100%{ transform:rotate(0deg) translateX(0); }
     20%{ transform:rotate(-4deg) translateX(-1px); }
@@ -539,11 +539,27 @@
   .cylinder .indian-text { font-family:'Inter', sans-serif; font-weight:700; font-size:9px; letter-spacing:0.4px; color:#ffffff; line-height:1; text-shadow:0 1px 2px rgba(0,0,0,0.8); }
   .cylinder .cyl-foot{ position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:42px; height:10px; background:linear-gradient(180deg, #d32020, #a81616); border-radius:0 0 6px 6px; border-top:1.5px solid #820e0e; display:flex; justify-content:space-around; align-items:flex-end; padding-bottom:2px; }
   .cylinder .cyl-foot-hole { width:7px; height:3px; background:#f8f9fa; border-radius:2px 2px 0 0; }
+
+  /* Gas Cylinder move popup */
+  .cyl-move-popup{ position:fixed; z-index:60; background:rgba(20,20,20,0.92); border-radius:14px; padding:8px; display:none; grid-template-columns:42px 42px 42px; grid-template-rows:42px 42px 42px; gap:4px; box-shadow:0 4px 16px rgba(0,0,0,0.4); }
+  .cyl-move-popup.open{ display:grid; }
+  .cyl-move-popup button{ width:42px; height:42px; border:none; border-radius:8px; background:#333333; color:#ffffff; font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .cyl-move-popup button:active{ background:#555555; }
+  .cyl-move-popup .cmp-up{ grid-column:2; grid-row:1; }
+  .cyl-move-popup .cmp-left{ grid-column:1; grid-row:2; }
+  .cyl-move-popup .cmp-right{ grid-column:3; grid-row:2; }
+  .cyl-move-popup .cmp-down{ grid-column:2; grid-row:3; }
 </style>
 </head>
 <body>
 
 <div id="syncStatus" class="sync-status"></div>
+<div id="cylMovePopup" class="cyl-move-popup">
+  <button class="cmp-up" data-dir="up" title="Up">▲</button>
+  <button class="cmp-left" data-dir="left" title="Left">◀</button>
+  <button class="cmp-right" data-dir="right" title="Right">▶</button>
+  <button class="cmp-down" data-dir="down" title="Down">▼</button>
+</div>
 <button id="pageToggleBtn" class="page-toggle-btn" onclick="togglePage()" title="Switch page"><span id="toggleIcon" class="toggle-icon">⇄</span></button>
 <button class="settings-icon" onclick="openSettings()" title="Settings">⚙</button>
 <button class="add-icon-btn" onclick="openAddReminder()" title="Add New Reminder">+</button>
@@ -864,6 +880,85 @@ document.addEventListener('click', (e) => {
   if (openItem && !openItem.contains(e.target)) hideAllActions();
 });
 
+(function () {
+  const STEP = 3;
+  const popup = document.getElementById("cylMovePopup");
+  if (!popup) return;
+  let activeEl = null;
+  let activeKey = null;
+  let hideTimer = null;
+
+  function loadOffset(key) {
+    try { return JSON.parse(localStorage.getItem("cylOffset_" + key)) || { x: 0, y: 0 }; }
+    catch (e) { return { x: 0, y: 0 }; }
+  }
+  function saveOffset(key, off) {
+    try { localStorage.setItem("cylOffset_" + key, JSON.stringify(off)); } catch (e) {}
+  }
+  function applyOffset(el, off) {
+    el.style.setProperty("--cyl-dx", off.x + "px");
+    el.style.setProperty("--cyl-dy", off.y + "px");
+  }
+  function scheduleHide() {
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(closePopup, 3000);
+  }
+  function closePopup() {
+    clearTimeout(hideTimer);
+    popup.classList.remove("open");
+    activeEl = null;
+    activeKey = null;
+  }
+  function openPopupFor(el, key) {
+    activeEl = el;
+    activeKey = key;
+    const rect = el.getBoundingClientRect();
+    let top = rect.top - 150;
+    let left = rect.left + rect.width / 2 - 68;
+    if (top < 8) top = rect.bottom + 8;
+    if (left < 8) left = 8;
+    if (left + 136 > window.innerWidth - 8) left = window.innerWidth - 144;
+    popup.style.top = top + "px";
+    popup.style.left = left + "px";
+    popup.classList.add("open");
+    scheduleHide();
+  }
+
+  popup.querySelectorAll("button").forEach((btn) => {
+    btn.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      if (!activeEl || !activeKey) return;
+      const off = loadOffset(activeKey);
+      const dir = btn.dataset.dir;
+      if (dir === "up") off.y -= STEP;
+      if (dir === "down") off.y += STEP;
+      if (dir === "left") off.x -= STEP;
+      if (dir === "right") off.x += STEP;
+      saveOffset(activeKey, off);
+      applyOffset(activeEl, off);
+      scheduleHide();
+    });
+  });
+
+  document.addEventListener("click", (ev) => {
+    if (popup.classList.contains("open") && !popup.contains(ev.target) && (!activeEl || !activeEl.contains(ev.target))) closePopup();
+  });
+
+  window.attachCylinderMovePopup = function (wrapEl, containerKey) {
+    applyOffset(wrapEl, loadOffset(containerKey));
+    let timer = null;
+    const clearT = () => { if (timer) { clearTimeout(timer); timer = null; } };
+    const start = (ev) => { ev.stopPropagation(); clearT(); timer = setTimeout(() => openPopupFor(wrapEl, containerKey), 500); };
+    wrapEl.addEventListener("touchstart", start, { passive: true });
+    wrapEl.addEventListener("touchend", clearT);
+    wrapEl.addEventListener("touchmove", clearT, { passive: true });
+    wrapEl.addEventListener("touchcancel", clearT);
+    wrapEl.addEventListener("mousedown", start);
+    wrapEl.addEventListener("mouseup", clearT);
+    wrapEl.addEventListener("mouseleave", clearT);
+  };
+})();
+
 function attachLongPress(item, onLongPress) {
   let timer = null;
   const clear = () => { if (timer) { clearTimeout(timer); timer = null; } };
@@ -938,6 +1033,11 @@ function renderEvents(container, events, allowActions) {
     }
 
     item.innerHTML = contentHTML;
+
+    if (isGasCylinder) {
+      const cylWrap = item.querySelector(".cylinder-wrap-side");
+      if (cylWrap && window.attachCylinderMovePopup) attachCylinderMovePopup(cylWrap, container.id);
+    }
 
     if (allowActions && e.key) {
       const actionsEl = item.querySelector(".event-actions");
