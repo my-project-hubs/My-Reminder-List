@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="build-id" content="2026-08-03-10">
+<meta name="build-id" content="2026-08-03-11">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -129,8 +129,8 @@
   .settings-panel { background: #ffffff; width: 100%; max-width: 640px; max-height: 85vh; overflow-y: auto; border-radius: 16px 16px 0 0; padding: 20px; }
   .settings-title { display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: 700; margin-bottom: 16px; }
   .settings-title button { background: none; border: none; font-size: 20px; cursor: pointer; color: #000000; }
-  .settings-page-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-  .cfgtab { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd; background: #f5f5f5; color: #000; font-size: 20px; font-weight: 600; cursor: pointer; }
+  .settings-page-tabs { display: flex; gap: 8px; margin-bottom: 16px; justify-content: center; }
+  .cfgtab { flex: 0 0 auto; padding: 10px 28px; border-radius: 8px; border: 1px solid #ddd; background: #f5f5f5; color: #000; font-size: 20px; font-weight: 600; cursor: pointer; }
   .cfgtab.active { background: #d40000; color: #ffffff; border-color: #d40000; }
   .settings-row { border-top: 1px solid #eee; padding: 14px 0; }
   .settings-row-label { font-weight: 600; font-size: 15px; margin-bottom: 10px; }
@@ -649,7 +649,7 @@
         <div class="settings-field-bold"><label>Bold</label><input type="checkbox" id="header-bold"></div>
       </div>
     </div>
-    <div class="settings-row">
+    <div class="settings-row" id="settingsRow-title">
       <div class="settings-row-label">Alert Title</div>
       <div class="settings-controls">
         <div class="settings-field"><label>Size</label><input type="number" id="title-size" min="8" max="60"></div>
@@ -1582,6 +1582,15 @@ let currentConfigTab = "alerts";
 function updateTabUI() {
   document.getElementById("cfgtab-alerts").classList.toggle("active", currentConfigTab === "alerts");
   document.getElementById("cfgtab-data").classList.toggle("active", currentConfigTab === "data");
+  // Only the tab for the page you're currently on should be visible/usable —
+  // same rule as the Animation Control panel: Alert page shows Alert-only,
+  // List page shows List-only, with no way to peek at or switch to the other.
+  document.getElementById("cfgtab-alerts").style.display = (currentConfigTab === "alerts") ? "" : "none";
+  document.getElementById("cfgtab-data").style.display = (currentConfigTab === "data") ? "" : "none";
+  // "Alert Title" only exists on the Alert page, so hide that row completely
+  // while configuring the List page — nothing Alert-specific should show there.
+  const titleRow = document.getElementById("settingsRow-title");
+  if (titleRow) titleRow.style.display = (currentConfigTab === "alerts") ? "" : "none";
 }
 
 function switchConfigTab(tab) {
