@@ -199,7 +199,7 @@
 
   #animationOverlay { align-items: center; }
   #animationOverlay .settings-panel { border-radius: 0; height: calc(100vh - 2in); max-height: calc(100vh - 2in); width: 100%; max-width: 100%; margin: 0; display: flex; flex-direction: column; background: #ffffff; }
-  #animationOverlay .settings-title span { color: #000000; font-weight: 700; font-size: 17px; }
+  #animationOverlay .settings-title span { color: #000000; font-weight: 700; font-size: 34px; }
   #animationOverlay .settings-title button { color: #000000; }
   #animationOverlay .settings-actions { margin-top: 0; justify-content: center; border-top: 1px solid #eee; padding-top: 14px; }
   #animationOverlay .settings-actions button { flex: none; width: 25%; }
@@ -208,12 +208,23 @@
   .anim-pick-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 6px; border-bottom: 1px solid #eee; cursor: pointer; gap: 10px; }
   .anim-pick-row.selected { background: #fff0f0; }
   .anim-pick-order { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: #d40000; color: #fff; font-size: 12px; font-weight: 700; margin-right: 8px; flex: none; }
+
+  #animControlOverlay { align-items: center; }
+  #animControlOverlay .settings-panel { border-radius: 0; height: calc(100vh - 2in); max-height: calc(100vh - 2in); width: 100%; max-width: 100%; margin: 0; display: flex; flex-direction: column; background: #ffffff; }
+  #animControlOverlay .settings-title span { color: #000000; font-weight: 700; font-size: 17px; }
+  #animControlOverlay .settings-title button { color: #000000; }
+  .anim-control-list-wrap { flex: 1; overflow-y: auto; }
+  .anim-control-group-title { position: sticky; top: 0; background: #d40000; color: #ffffff; font-weight: 700; font-size: 26px; text-transform: uppercase; letter-spacing: 0.4px; padding: 10px 6px; border-bottom: 1px solid #eee; text-align: center; }
+  .anim-control-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 6px; border-bottom: 1px solid #eee; cursor: pointer; gap: 10px; }
+  .anim-control-row:active { background: #f5f5f5; }
+  .anim-control-row-name { font-size: 30px; color: #000000; }
+  .anim-control-row-arrow { color: #999999; font-size: 36px; }
   .anim-pick-hint { text-align: center; color: #555; font-size: 13px; padding: 8px 6px 0; }
-  .anim-pick-name { font-size: 15px; color: #000; flex: 1; }
+  .anim-pick-name { font-size: 30px; color: #000; flex: 1; }
   .anim-pick-row.selected .anim-pick-name { color: #d40000; font-weight: 700; }
-  .anim-pick-preview { font-size: 19px; font-weight: 700; color: #d40000; min-width: 46px; text-align: center; }
+  .anim-pick-preview { font-size: 38px; font-weight: 700; color: #d40000; min-width: 46px; text-align: center; }
   .anim-speed-row { display: flex; gap: 8px; padding: 10px 6px 14px; border-bottom: 1px solid #eee; }
-  .anim-speed-btn { flex: 1; padding: 8px 4px; font-size: 13px; font-weight: 600; border: 1.5px solid #d40000; border-radius: 8px; background: #fff; color: #d40000; cursor: pointer; }
+  .anim-speed-btn { flex: 1; padding: 8px 4px; font-size: 26px; font-weight: 600; border: 1.5px solid #d40000; border-radius: 8px; background: #fff; color: #d40000; cursor: pointer; }
   .anim-speed-btn.selected { background: #d40000; color: #fff; }
 
   #header-alerts-left, #header-data-left, #header-data-right, #alertTitleText, .anim-pick-preview { display: inline-block; }
@@ -484,6 +495,24 @@
     line-height: 1;
   }
 
+  .anim-control-icon {
+    position: fixed;
+    top: 50%;
+    right: 0;
+    transform: translateY(calc(-50% - 228px));
+    background: transparent;
+    color: var(--nav-icon-color, #b9b7b5);
+    border: none;
+    width: 48px;
+    height: 48px;
+    font-size: 22px;
+    cursor: pointer;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   .add-field-row { display: flex; }
   .add-field-row input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 18px; color: #000; }
   .add-field-row input[type="number"] { width: 100px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 18px; color: #000; }
@@ -546,14 +575,10 @@
   .cylinder .cyl-foot-hole { width:7px; height:3px; background:#f8f9fa; border-radius:2px 2px 0 0; }
 
   /* Gas Cylinder move popup */
-  .cyl-move-popup{ position:fixed; z-index:60; background:#ffffff; border-radius:10px; padding:6px; display:none; grid-template-columns:22px 22px 22px; grid-template-rows:22px 22px 22px; gap:3px; box-shadow:0 4px 18px rgba(0,0,0,0.28); }
-  .cyl-move-popup.open{ display:grid; }
-  .cyl-move-popup button{ width:22px; height:22px; border:none; border-radius:5px; background:#f2f2f2; color:#333333; font-size:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .cyl-move-popup{ position:fixed; z-index:60; background:#ffffff; border-radius:26px; padding:10px 14px; display:none; flex-direction:row; align-items:center; gap:10px; box-shadow:0 4px 18px rgba(0,0,0,0.28); }
+  .cyl-move-popup.open{ display:flex; }
+  .cyl-move-popup button{ width:44px; height:44px; border:none; border-radius:8px; background:#f2f2f2; color:#333333; font-size:20px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
   .cyl-move-popup button:active{ background:#dddddd; }
-  .cyl-move-popup .cmp-up{ grid-column:2; grid-row:1; }
-  .cyl-move-popup .cmp-left{ grid-column:1; grid-row:2; }
-  .cyl-move-popup .cmp-right{ grid-column:3; grid-row:2; }
-  .cyl-move-popup .cmp-down{ grid-column:2; grid-row:3; }
 </style>
 </head>
 <body>
@@ -568,6 +593,7 @@
 <button id="pageToggleBtn" class="page-toggle-btn" onclick="togglePage()" title="Switch page"><span id="toggleIcon" class="toggle-icon">⇄</span></button>
 <button class="settings-icon" onclick="openSettings()" title="Settings">⚙</button>
 <button class="add-icon-btn" onclick="openAddReminder()" title="Add New Reminder">+</button>
+<button class="anim-control-icon" onclick="openAnimControlPanel()" title="Animation Control">A</button>
 
 <div id="animationOverlay" class="settings-overlay">
   <div class="settings-panel">
@@ -582,6 +608,18 @@
     <div class="anim-picker-list" id="animPickerList"></div>
     <div class="settings-actions">
       <button class="settings-apply" id="animApplyBtn" onclick="applyAnimationChoice()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<div id="animControlOverlay" class="settings-overlay">
+  <div class="settings-panel">
+    <div class="settings-title"><span>Animation Control</span><button onclick="closeAnimControlPanel()" title="Close">✕</button></div>
+    <div class="anim-control-list-wrap">
+      <div class="anim-control-group-title" id="animControlAlertsTitle">Alert Page</div>
+      <div id="animControlAlertsList"></div>
+      <div class="anim-control-group-title" id="animControlDataTitle">List Page</div>
+      <div id="animControlDataList"></div>
     </div>
   </div>
 </div>
@@ -656,14 +694,14 @@
 
 <!-- PAGE 1: Alerts -->
 <div id="page-alerts" class="page active">
-  <div id="header-alerts" class="header-date"><div class="header-date-inner line-style-wrap" id="lineStyleWrap-alerts" onclick="toggleLineStylePopup(event,'lineStyleWrap-alerts')"><div class="gradient-separator"><div class="gradient-separator-bar"></div></div><span class="line-wrap" id="lw-header-alerts"><span id="header-alerts-left"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('header','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button class="event-delete-btn" title="Delete" onclick="deleteLabel('header')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button><button class="event-anim-btn" title="Animate" onclick="openAnimationPage('label','header')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3z"></path><path d="M19 15l0.9 2.3L22 18l-2.1 0.7L19 21l-0.9-2.3L16 18l2.1-0.7L19 15z"></path></svg></button></div></span><span id="header-alerts-right"></span><div class="line-style-popup" onclick="event.stopPropagation()"><button type="button" title="Move Up" onclick="adjustLineOffset(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg></button><button type="button" title="Move Down" onclick="adjustLineOffset(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M19 12l-7 7-7-7"></path></svg></button><div class="line-style-color-wrap" title="Color"><div class="line-style-color-dot" id="lineColorDot-alerts"></div><input type="color" id="lineColorInput-alerts" onclick="event.stopPropagation()" onchange="setLineColor(this.value)"></div><input type="number" class="line-style-thickness-input" id="lineThicknessInput-alerts" min="1" max="10" value="2" onclick="event.stopPropagation()" onchange="setLineThickness(this.value)"></div></div></div>
-  <div class="alerts-page-title-row"><span class="line-wrap" id="lw-alert-title"><span class="alerts-page-title" id="alertTitleText">Alert</span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('alertTitle','Alert')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button class="event-delete-btn" title="Delete" onclick="deleteLabel('alertTitle')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button><button class="event-anim-btn" title="Animate" onclick="openAnimationPage('label','alertTitle')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3z"></path><path d="M19 15l0.9 2.3L22 18l-2.1 0.7L19 21l-0.9-2.3L16 18l2.1-0.7L19 15z"></path></svg></button></div></span></div>
+  <div id="header-alerts" class="header-date"><div class="header-date-inner line-style-wrap" id="lineStyleWrap-alerts" onclick="toggleLineStylePopup(event,'lineStyleWrap-alerts')"><div class="gradient-separator"><div class="gradient-separator-bar"></div></div><span class="line-wrap" id="lw-header-alerts"><span id="header-alerts-left"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('header','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button class="event-delete-btn" title="Delete" onclick="deleteLabel('header')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button></div></span><span id="header-alerts-right"></span><div class="line-style-popup" onclick="event.stopPropagation()"><button type="button" title="Move Up" onclick="adjustLineOffset(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg></button><button type="button" title="Move Down" onclick="adjustLineOffset(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M19 12l-7 7-7-7"></path></svg></button><div class="line-style-color-wrap" title="Color"><div class="line-style-color-dot" id="lineColorDot-alerts"></div><input type="color" id="lineColorInput-alerts" onclick="event.stopPropagation()" onchange="setLineColor(this.value)"></div><input type="number" class="line-style-thickness-input" id="lineThicknessInput-alerts" min="1" max="10" value="2" onclick="event.stopPropagation()" onchange="setLineThickness(this.value)"></div></div></div>
+  <div class="alerts-page-title-row"><span class="line-wrap" id="lw-alert-title"><span class="alerts-page-title" id="alertTitleText">Alert</span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('alertTitle','Alert')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button class="event-delete-btn" title="Delete" onclick="deleteLabel('alertTitle')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button></div></span></div>
   <div id="list-alerts"><div class="loading">Loading...</div></div>
 </div>
 
 <!-- PAGE 2: All Data (List) -->
 <div id="page-data" class="page">
-  <div id="header-data" class="header-date"><div class="header-date-inner line-style-wrap" id="lineStyleWrap-data" onclick="toggleLineStylePopup(event,'lineStyleWrap-data')"><div class="gradient-separator"><div class="gradient-separator-bar"></div></div><span class="line-wrap" id="lw-header-data"><span id="header-data-left"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('header','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button class="event-delete-btn" title="Delete" onclick="deleteLabel('header')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button><button class="event-anim-btn" title="Animate" onclick="openAnimationPage('label','header')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3z"></path><path d="M19 15l0.9 2.3L22 18l-2.1 0.7L19 21l-0.9-2.3L16 18l2.1-0.7L19 15z"></path></svg></button></div></span><span class="line-wrap" id="lw-header-count"><span id="header-data-right"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('listCount','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button class="event-delete-btn" title="Delete" onclick="deleteLabel('listCount')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button><button class="event-anim-btn" title="Animate" onclick="openAnimationPage('label','listCount')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3z"></path><path d="M19 15l0.9 2.3L22 18l-2.1 0.7L19 21l-0.9-2.3L16 18l2.1-0.7L19 15z"></path></svg></button></div></span><div class="line-style-popup" onclick="event.stopPropagation()"><button type="button" title="Move Up" onclick="adjustLineOffset(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg></button><button type="button" title="Move Down" onclick="adjustLineOffset(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M19 12l-7 7-7-7"></path></svg></button><div class="line-style-color-wrap" title="Color"><div class="line-style-color-dot" id="lineColorDot-data"></div><input type="color" id="lineColorInput-data" onclick="event.stopPropagation()" onchange="setLineColor(this.value)"></div><input type="number" class="line-style-thickness-input" id="lineThicknessInput-data" min="1" max="10" value="2" onclick="event.stopPropagation()" onchange="setLineThickness(this.value)"></div></div></div>
+  <div id="header-data" class="header-date"><div class="header-date-inner line-style-wrap" id="lineStyleWrap-data" onclick="toggleLineStylePopup(event,'lineStyleWrap-data')"><div class="gradient-separator"><div class="gradient-separator-bar"></div></div><span class="line-wrap" id="lw-header-data"><span id="header-data-left"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('header','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button class="event-delete-btn" title="Delete" onclick="deleteLabel('header')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button></div></span><span class="line-wrap" id="lw-header-count"><span id="header-data-right"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('listCount','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button class="event-delete-btn" title="Delete" onclick="deleteLabel('listCount')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button></div></span><div class="line-style-popup" onclick="event.stopPropagation()"><button type="button" title="Move Up" onclick="adjustLineOffset(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg></button><button type="button" title="Move Down" onclick="adjustLineOffset(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M19 12l-7 7-7-7"></path></svg></button><div class="line-style-color-wrap" title="Color"><div class="line-style-color-dot" id="lineColorDot-data"></div><input type="color" id="lineColorInput-data" onclick="event.stopPropagation()" onchange="setLineColor(this.value)"></div><input type="number" class="line-style-thickness-input" id="lineThicknessInput-data" min="1" max="10" value="2" onclick="event.stopPropagation()" onchange="setLineThickness(this.value)"></div></div></div>
   <div id="list-data"><div class="loading">Loading...</div></div>
 </div>
 
@@ -918,8 +956,9 @@ document.addEventListener('click', (e) => {
     activeEl = el;
     activeKey = key;
     const rect = el.getBoundingClientRect();
-    const POPUP_W = 84;
-    const POPUP_H = 84;
+    popup.classList.add("open");
+    const POPUP_W = popup.offsetWidth;
+    const POPUP_H = popup.offsetHeight;
     const GAP = 1.5 * 96; // 1.5 inch gap to the left of the cylinder
     let left = rect.left - GAP - POPUP_W;
     let top = rect.top + rect.height / 2 - POPUP_H / 2;
@@ -928,7 +967,6 @@ document.addEventListener('click', (e) => {
     if (top + POPUP_H > window.innerHeight - 8) top = window.innerHeight - POPUP_H - 8;
     popup.style.top = top + "px";
     popup.style.left = left + "px";
-    popup.classList.add("open");
     scheduleHide();
   }
 
@@ -1030,7 +1068,6 @@ function renderEvents(container, events, allowActions) {
           <button class="event-move-down-btn" title="Move Down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M19 12l-7 7-7-7"></path></svg></button>
           <button class="event-edit-btn" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button>
           <button class="event-delete-btn" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button>
-          <button class="event-anim-btn" title="Animate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3z"></path><path d="M19 15l0.9 2.3L22 18l-2.1 0.7L19 21l-0.9-2.3L16 18l2.1-0.7L19 15z"></path></svg></button>
         </div>`;
     }
 
@@ -1052,7 +1089,6 @@ function renderEvents(container, events, allowActions) {
       downBtn.addEventListener("click", () => moveReminder(e.key, 1));
       item.querySelector(".event-edit-btn").addEventListener("click", () => openEditReminder(e.key));
       item.querySelector(".event-delete-btn").addEventListener("click", () => deleteReminder(e.key, e.name));
-      item.querySelector(".event-anim-btn").addEventListener("click", () => openAnimationPage("event", e.key, normalizeAnimationIds(e.animations, e.animation)));
       item.addEventListener("click", () => toggleItemActions(item, e.key));
     }
 
@@ -1682,6 +1718,7 @@ let currentAnimTarget = null;
 // animations at once (e.g. Zoom Out + Zoom In together) instead of just one.
 let currentAnimSelections = [];
 const MAX_ANIMATIONS_PER_ITEM = 3;
+let animControlReturnFlag = false;
 
 let currentAnimSpeedChoice = "normal";
 
@@ -1722,6 +1759,75 @@ function openAnimationPage(type, key, currentAnimIds) {
 
 function closeAnimationPage() {
   document.getElementById("animationOverlay").classList.remove("open");
+  if (animControlReturnFlag) {
+    animControlReturnFlag = false;
+    openAnimControlPanel();
+  }
+}
+
+function openAnimControlPanel() {
+  renderAnimControlList();
+  document.getElementById("animControlOverlay").classList.add("open");
+}
+
+function closeAnimControlPanel() {
+  document.getElementById("animControlOverlay").classList.remove("open");
+}
+
+function pickAnimControlItem(type, key, animIds) {
+  animControlReturnFlag = true;
+  document.getElementById("animControlOverlay").classList.remove("open");
+  openAnimationPage(type, key, animIds);
+}
+
+function renderAnimControlList() {
+  const alertsListEl = document.getElementById("animControlAlertsList");
+  const dataListEl = document.getElementById("animControlDataList");
+  const alertsTitleEl = document.getElementById("animControlAlertsTitle");
+  const dataTitleEl = document.getElementById("animControlDataTitle");
+  if (!alertsListEl || !dataListEl) return;
+  alertsListEl.innerHTML = "";
+  dataListEl.innerHTML = "";
+
+  const activePage = getActivePageName();
+  const showAlerts = activePage === "alerts";
+  alertsTitleEl.style.display = showAlerts ? "" : "none";
+  alertsListEl.style.display = showAlerts ? "" : "none";
+  dataTitleEl.style.display = showAlerts ? "none" : "";
+  dataListEl.style.display = showAlerts ? "none" : "";
+
+  const makeRow = (label, type, key, animIds) => {
+    const row = document.createElement("div");
+    row.className = "anim-control-row";
+    const nameSpan = document.createElement("span");
+    nameSpan.className = "anim-control-row-name";
+    nameSpan.textContent = label;
+    const arrowSpan = document.createElement("span");
+    arrowSpan.className = "anim-control-row-arrow";
+    arrowSpan.textContent = "\u203A";
+    row.appendChild(nameSpan);
+    row.appendChild(arrowSpan);
+    row.addEventListener("click", () => pickAnimControlItem(type, key, animIds));
+    return row;
+  };
+
+  const events = getSortedEvents()
+    .map((ev) => buildEventDisplay(ev.name, ev.date, ev.type, ev.alertDays, ev.key, ev.animation, ev.animations))
+    .filter(Boolean);
+
+  if (showAlerts) {
+    alertsListEl.appendChild(makeRow("Today Date", "label", "header", getLabelAnimations("header")));
+    alertsListEl.appendChild(makeRow("Alert Title", "label", "alertTitle", getLabelAnimations("alertTitle")));
+    events.filter((e) => e.isAlert).forEach((e) => {
+      alertsListEl.appendChild(makeRow(e.name, "event", e.key, e.animations));
+    });
+  } else {
+    dataListEl.appendChild(makeRow("Today Date", "label", "header", getLabelAnimations("header")));
+    dataListEl.appendChild(makeRow("List Name", "label", "listCount", getLabelAnimations("listCount")));
+    events.forEach((e) => {
+      dataListEl.appendChild(makeRow(e.name, "event", e.key, e.animations));
+    });
+  }
 }
 
 function replayPreview(el) {
@@ -1740,7 +1846,21 @@ function renderAnimPickerList() {
   }
   const listEl = document.getElementById("animPickerList");
   listEl.innerHTML = "";
-  ANIMATIONS.forEach((a) => {
+  // Show whichever animations are already applied to this line first (right
+  // after "None"), in the order they were picked, so the user doesn't have
+  // to hunt through the whole list to see what's currently set. Everything
+  // else keeps its normal order below.
+  const noneItem = ANIMATIONS.find((a) => a.id === "none");
+  const selectedItems = currentAnimSelections
+    .map((id) => ANIMATIONS.find((a) => a.id === id))
+    .filter(Boolean);
+  const remainingItems = ANIMATIONS.filter(
+    (a) => a.id !== "none" && !currentAnimSelections.includes(a.id)
+  );
+  const displayList = noneItem
+    ? [noneItem, ...selectedItems, ...remainingItems]
+    : [...selectedItems, ...remainingItems];
+  displayList.forEach((a) => {
     const row = document.createElement("div");
     const selectedIndex = currentAnimSelections.indexOf(a.id);
     const isSelected = a.id === "none" ? currentAnimSelections.length === 0 : selectedIndex !== -1;
