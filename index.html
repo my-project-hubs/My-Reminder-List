@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="build-id" content="2026-08-04-33">
+<meta name="build-id" content="2026-08-04-34">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -710,6 +710,11 @@
     <div class="settings-title"><span>⭐ Favorites</span><button onclick="closeAnimFavoritesBox()" title="Close">✕</button></div>
     <div class="anim-pick-hint" id="animFavHint"></div>
     <div class="anim-picker-list" id="animFavoritesList"></div>
+    <div class="anim-manage-toolbar" id="favManageToolbar">
+      <span class="amt-count" id="favManageCount">0 selected</span>
+      <button class="amt-delete" onclick="removeManagedFavorites()">🗑 Remove</button>
+      <button class="amt-cancel" onclick="exitFavManagementMode()" title="Cancel">✕</button>
+    </div>
   </div>
 </div>
 
@@ -2075,25 +2080,107 @@ async function deleteManagedAnimations() {
   }
 })();
 
+// --- Multi-select management mode for the Favorites box itself, mirroring
+// the main list's manage mode: long-press one row to start, tap others to
+// add them to the same batch, then remove them all in one go instead of
+// one confirm per item.
+let favManageMode = false;
+let favManageSelections = new Set();
+let favManageInactivityTimer = null;
+
+function resetFavManageInactivityTimer() {
+  if (favManageInactivityTimer) clearTimeout(favManageInactivityTimer);
+  favManageInactivityTimer = setTimeout(() => {
+    exitFavManagementMode();
+  }, ANIM_MANAGE_INACTIVITY_MS);
+}
+
+function enterFavManagementMode(firstId) {
+  favManageMode = true;
+  favManageSelections = new Set();
+  if (firstId !== undefined) favManageSelections.add(firstId);
+  if (navigator.vibrate) navigator.vibrate(15);
+  renderAnimFavoritesList();
+  resetFavManageInactivityTimer();
+}
+
+function exitFavManagementMode() {
+  if (favManageInactivityTimer) { clearTimeout(favManageInactivityTimer); favManageInactivityTimer = null; }
+  const wasActive = favManageMode;
+  favManageMode = false;
+  favManageSelections = new Set();
+  if (wasActive) renderAnimFavoritesList();
+  updateFavManageToolbar();
+}
+
+function toggleFavManageSelection(id) {
+  if (favManageSelections.has(id)) favManageSelections.delete(id);
+  else favManageSelections.add(id);
+  if (favManageSelections.size === 0) {
+    exitFavManagementMode();
+    return;
+  }
+  renderAnimFavoritesList();
+  resetFavManageInactivityTimer();
+}
+
+function updateFavManageToolbar() {
+  const toolbar = document.getElementById("favManageToolbar");
+  const countEl = document.getElementById("favManageCount");
+  if (!toolbar) return;
+  toolbar.classList.toggle("open", favManageMode && favManageSelections.size > 0);
+  if (countEl) countEl.textContent = favManageSelections.size + " selected";
+}
+
+async function removeManagedFavorites() {
+  const ids = Array.from(favManageSelections);
+  if (!ids.length) return;
+  if (!confirm(`Remove ${ids.length} animation${ids.length > 1 ? "s" : ""} from your Favorites list?`)) return;
+  cloudSettings.animFavorites = getAnimFavorites().filter((id) => !ids.includes(id));
+  exitFavManagementMode();
+  renderAnimFavoritesList();
+  try {
+    await saveCloudSettings(cloudSettings);
+  } catch (err) {
+    alert("Could not save. Please check your connection and try again.");
+  }
+}
+
+// Same activity guard as the main list: any touch/scroll inside the
+// Favorites box while managing keeps the toolbar alive, so it only
+// auto-closes after real inactivity, not while the person is still
+// scrolling or picking more items.
+(function attachFavManageActivityGuards() {
+  const overlayEl = document.getElementById("animFavoritesOverlay");
+  const listEl = document.getElementById("animFavoritesList");
+  const toolbarEl = document.getElementById("favManageToolbar");
+  const keepAlive = () => { if (favManageMode) resetFavManageInactivityTimer(); };
+  if (overlayEl) {
+    overlayEl.addEventListener("touchstart", keepAlive, { passive: true });
+    overlayEl.addEventListener("mousedown", keepAlive);
+  }
+  if (listEl) {
+    listEl.addEventListener("scroll", keepAlive, { passive: true });
+    listEl.addEventListener("touchmove", keepAlive, { passive: true });
+  }
+  if (toolbarEl) {
+    toolbarEl.addEventListener("touchstart", keepAlive, { passive: true });
+    toolbarEl.addEventListener("mousedown", keepAlive);
+  }
+})();
+
 function openAnimFavoritesBox() {
+  exitFavManagementMode();
   renderAnimFavoritesList();
   document.getElementById("animFavoritesOverlay").classList.add("open");
 }
 
 function closeAnimFavoritesBox() {
+  exitFavManagementMode();
   document.getElementById("animFavoritesOverlay").classList.remove("open");
   // Selections made from the Favorites box apply to the same line, so make
   // sure the main picker reflects them when the person goes back to it.
   renderAnimPickerList();
-}
-
-function removeFromFavorites(id) {
-  if (!confirm("Remove this animation from your Favorites list?")) return;
-  cloudSettings.animFavorites = getAnimFavorites().filter((fid) => fid !== id);
-  renderAnimFavoritesList();
-  saveCloudSettings(cloudSettings).catch(() => {
-    alert("Could not save. Please check your connection and try again.");
-  });
 }
 
 function renderAnimFavoritesList() {
@@ -2101,13 +2188,19 @@ function renderAnimFavoritesList() {
   const hintEl = document.getElementById("animFavHint");
   if (!listEl) return;
   listEl.innerHTML = "";
+  listEl.classList.toggle("manage-active", favManageMode);
+  updateFavManageToolbar();
   const favIds = getAnimFavorites();
   const favItems = favIds.map((id) => ANIMATIONS.find((a) => a.id === id)).filter(Boolean);
 
   if (hintEl) {
-    hintEl.textContent = favItems.length
-      ? `Tap to add/remove from this line · Hold to remove from Favorites`
-      : "No favorites yet — hold an animation in the main list, then tap ★ Favorite";
+    if (favManageMode) {
+      hintEl.textContent = "Tap more to select, then tap Remove below";
+    } else {
+      hintEl.textContent = favItems.length
+        ? `Tap to add/remove from this line · Hold to select & remove from Favorites`
+        : "No favorites yet — hold an animation in the main list, then tap ★ Favorite";
+    }
   }
   if (!favItems.length) {
     const empty = document.createElement("div");
@@ -2121,13 +2214,19 @@ function renderAnimFavoritesList() {
     const row = document.createElement("div");
     const selectedIndex = currentAnimSelections.indexOf(a.id);
     const isSelected = selectedIndex !== -1;
-    row.className = "anim-pick-row" + (isSelected ? " selected" : "");
+    const isManageSelected = favManageSelections.has(a.id);
+    row.className = "anim-pick-row" + (isSelected ? " selected" : "") + (isManageSelected ? " manage-selected" : "");
     const previewCls = "anim-pick-preview la-" + a.id;
     const orderBadge = selectedIndex !== -1 ? `<span class="anim-pick-order">${selectedIndex + 1}</span>` : "";
     const serialLabel = `<span class="anim-pick-serial">${idx + 1}</span>`;
-    row.innerHTML = `<span class="anim-pick-fav-star">★</span>${serialLabel}<span class="anim-pick-center">${orderBadge}<span class="${previewCls}">Aa</span></span>`;
+    const checkmark = `<span class="anim-pick-checkmark">${isManageSelected ? "✓" : ""}</span>`;
+    row.innerHTML = `<span class="anim-pick-fav-star">★</span>${serialLabel}<span class="anim-pick-center">${orderBadge}<span class="${previewCls}">Aa</span></span>${checkmark}`;
     row.addEventListener("click", () => {
       if (animLongPressTriggered) { animLongPressTriggered = false; return; }
+      if (favManageMode) {
+        toggleFavManageSelection(a.id);
+        return;
+      }
       if (isSelected) {
         currentAnimSelections = currentAnimSelections.filter((id) => id !== a.id);
       } else {
@@ -2142,8 +2241,11 @@ function renderAnimFavoritesList() {
       clearTimeout(animLongPressTimer);
       animLongPressTimer = setTimeout(() => {
         animLongPressTriggered = true;
-        if (navigator.vibrate) navigator.vibrate(15);
-        removeFromFavorites(a.id);
+        if (!favManageMode) {
+          enterFavManagementMode(a.id);
+        } else {
+          toggleFavManageSelection(a.id);
+        }
       }, 480);
     };
     const cancelFavLongPress = () => clearTimeout(animLongPressTimer);
