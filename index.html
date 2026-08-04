@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="build-id" content="2026-08-04-34">
+<meta name="build-id" content="2026-08-04-39">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -12,7 +12,7 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { overflow-x: hidden; }
   body {
-    background: #ffffff;
+    background: #08080f;
     color: #000000;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     font-size: 17px;
@@ -22,7 +22,11 @@
     margin: 0 auto;
   }
   .header-date { font-size: var(--header-size, 19px); color: var(--header-color, #000000); font-family: var(--header-font, inherit); font-weight: var(--header-weight, 400); margin-bottom: 28px; }
-  .event { margin-bottom: 16px; position: relative; background: #ffffff; border-radius: 18px; box-shadow: 0 2px 12px rgba(20,20,30,0.09), 0 0 0 1px rgba(20,20,30,0.04); padding: 16px 18px; }
+  .event { margin-bottom: 16px; position: relative; overflow: hidden; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.3); border-radius: 22px; padding: 16px 18px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); animation: cardBorderGlow 3s ease-in-out infinite; }
+  @keyframes cardBorderGlow {
+    0%, 100% { box-shadow: 0 8px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.15), 0 0 10px rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.3); }
+    50% { box-shadow: 0 8px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.22), 0 0 22px rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.5); }
+  }
   .event-name { color: var(--name-color, #000000); font-size: var(--name-size, 20px); font-family: var(--name-font, inherit); font-weight: var(--name-weight, 400); margin-bottom: 10px; line-height: 1.15; }
   .alerts-page-title { text-align: center; color: var(--title-color, #b266b2); font-size: var(--title-size, 26px); font-family: var(--title-font, inherit); font-weight: var(--title-weight, 700); }
   .alerts-page-title-row { display: flex; align-items: center; justify-content: center; gap: 6px; margin: -42px 0 40px; }
@@ -55,7 +59,7 @@
     top: 0;
     left: 0;
     right: 0;
-    background: var(--page-bg, #ffffff);
+    background: var(--page-bg, #08080f);
     z-index: 20;
     padding: 8px 20px 0px 20px;
     margin: 0 auto;
@@ -206,18 +210,28 @@
   .settings-reset { background: #eef0f4; color: #4b5160; }
   .sync-status { position: fixed; top: 18px; left: 16px; font-size: 11px; color: #ffffff; z-index: 15; opacity: 0.85; }
 
+  .page-toggle-btn, .settings-icon, .add-icon-btn, .anim-control-icon {
+    background: rgba(54,56,68,0.6);
+    border: 1px solid rgba(255,255,255,0.14);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 50%;
+  }
+  .page-toggle-btn:active, .settings-icon:active, .add-icon-btn:active, .anim-control-icon:active {
+    background: rgba(70,72,86,0.7);
+  }
+
   .page-toggle-btn {
     position: fixed;
     top: 50%;
-    right: 0;
-    transform: translateY(calc(-50% - 108px));
-    background: transparent;
-    color: #55565f;
-    border: none;
+    right: 14px;
+    transform: translateY(calc(-50% - 96px));
+    color: #ffffff;
     padding: 0;
-    width: 48px;
-    height: 48px;
-    font-size: 24px;
+    width: 56px;
+    height: 56px;
+    font-size: 22px;
     font-weight: 700;
     cursor: pointer;
     z-index: 15;
@@ -226,9 +240,9 @@
     justify-content: center;
     line-height: 1;
     pointer-events: auto;
-    transition: opacity 0.15s ease;
+    transition: opacity 0.15s ease, background 0.15s ease;
   }
-  .page-toggle-btn:active { opacity: 0.6; }
+  .page-toggle-btn:active { opacity: 0.85; }
   .page-toggle-btn .toggle-icon {
     display: inline-block;
     transition: transform 0.4s ease;
@@ -237,22 +251,20 @@
   .settings-icon {
     position: fixed;
     top: 50%;
-    right: 0;
-    transform: translateY(calc(-50% - 48px));
-    background: transparent;
-    color: #55565f;
-    border: none;
-    width: 48px;
-    height: 48px;
+    right: 14px;
+    transform: translateY(calc(-50% - 32px));
+    color: #ffffff;
+    width: 56px;
+    height: 56px;
     font-size: 22px;
     cursor: pointer;
     z-index: 20;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: opacity 0.15s ease;
+    transition: opacity 0.15s ease, background 0.15s ease;
   }
-  .settings-icon:active { opacity: 0.6; }
+  .settings-icon:active { opacity: 0.85; }
 
   #animationOverlay { align-items: center; }
   #animationOverlay .settings-panel { border-radius: 26px; height: calc(100vh - 2in); max-height: calc(100vh - 2in); width: 94%; max-width: 620px; margin: 0; display: flex; flex-direction: column; background: linear-gradient(180deg, #ffffff 0%, #f7f7fb 100%); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
@@ -557,14 +569,12 @@
   .add-icon-btn {
     position: fixed;
     top: 50%;
-    right: 0;
-    transform: translateY(calc(-50% - 168px));
-    background: transparent;
-    color: #55565f;
-    border: none;
+    right: 14px;
+    transform: translateY(calc(-50% - 160px));
+    color: #ffffff;
     padding: 0;
-    width: 48px;
-    height: 48px;
+    width: 56px;
+    height: 56px;
     font-size: 26px;
     font-weight: 700;
     cursor: pointer;
@@ -573,20 +583,18 @@
     align-items: center;
     justify-content: center;
     line-height: 1;
-    transition: opacity 0.15s ease;
+    transition: opacity 0.15s ease, background 0.15s ease;
   }
-  .add-icon-btn:active { opacity: 0.6; }
+  .add-icon-btn:active { opacity: 0.85; }
 
   .anim-control-icon {
     position: fixed;
     top: 50%;
-    right: 0;
-    transform: translateY(calc(-50% - 228px));
-    background: transparent;
-    color: #55565f;
-    border: none;
-    width: 48px;
-    height: 48px;
+    right: 14px;
+    transform: translateY(calc(-50% - 224px));
+    color: #ffffff;
+    width: 56px;
+    height: 56px;
     font-size: 20px;
     font-weight: 700;
     cursor: pointer;
@@ -594,9 +602,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: opacity 0.15s ease;
+    transition: opacity 0.15s ease, background 0.15s ease;
   }
-  .anim-control-icon:active { opacity: 0.6; }
+  .anim-control-icon:active { opacity: 0.85; }
 
   .add-field-row { display: flex; }
   .add-field-row input[type="text"] { flex: 1; padding: 13px 14px; border: 1.5px solid #ececf1; background: #f7f8fa; border-radius: 14px; font-size: 17px; font-weight: 600; color: #14151a; transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease; }
@@ -764,7 +772,7 @@
         <div class="settings-field-bold"><label>Bold</label><input type="checkbox" id="title-bold"></div>
       </div>
     </div>
-    <div class="settings-row">
+    <div class="settings-row" id="settingsRow-name">
       <div class="settings-row-label">List Name</div>
       <div class="settings-controls">
         <div class="settings-field"><label>Size</label><input type="number" id="name-size" min="8" max="60"></div>
@@ -773,7 +781,7 @@
         <div class="settings-field-bold"><label>Bold</label><input type="checkbox" id="name-bold"></div>
       </div>
     </div>
-    <div class="settings-row">
+    <div class="settings-row" id="settingsRow-countdown">
       <div class="settings-row-label">Day Left</div>
       <div class="settings-controls">
         <div class="settings-field"><label>Size</label><input type="number" id="countdown-size" min="8" max="60"></div>
@@ -782,7 +790,7 @@
         <div class="settings-field-bold"><label>Bold</label><input type="checkbox" id="countdown-bold"></div>
       </div>
     </div>
-    <div class="settings-row">
+    <div class="settings-row" id="settingsRow-date">
       <div class="settings-row-label">Target Date</div>
       <div class="settings-controls">
         <div class="settings-field"><label>Size</label><input type="number" id="date-size" min="8" max="60"></div>
@@ -1478,7 +1486,7 @@ const DEFAULT_PAGE_SETTINGS = {
   name: { size: 20, color: "#000000", font: "inherit", bold: false },
   countdown: { size: 26, color: "#ff0000", font: "inherit", bold: true },
   date: { size: 15, color: "#000000", font: "inherit", bold: false },
-  background: "#ffffff"
+  background: "#08080f"
 };
 
 function cloneDefaults() { return JSON.parse(JSON.stringify(DEFAULT_PAGE_SETTINGS)); }
@@ -1488,6 +1496,21 @@ cloudSettings.animSpeed = cloudSettings.animSpeed || "normal";
 applyAnimSpeedToPage(cloudSettings.animSpeed);
 cloudSettings.data = cloneDefaults();
 function getSavedFontSettings(page) { return cloudSettings[page] || cloneDefaults(); }
+
+// The Alert page shows the same reminder lines as the List page, so each
+// line's color (name / countdown / date) should always match whatever is
+// set on the List page — no need to set it separately on the Alert page.
+// Only page-specific labels (header date text, "Alert" title) keep their
+// own independent settings.
+function getEffectiveAlertsFontSettings() {
+  const alerts = getSavedFontSettings("alerts");
+  const data = getSavedFontSettings("data");
+  const merged = JSON.parse(JSON.stringify(alerts));
+  ["name", "countdown", "date"].forEach((target) => {
+    merged[target] = data[target] || DEFAULT_PAGE_SETTINGS[target];
+  });
+  return merged;
+}
 
 const DEFAULT_LINE_STYLE = { color: "#e75480", thickness: 2, offset: 0 };
 function getLineStyle() { return cloudSettings.headerLine || DEFAULT_LINE_STYLE; }
@@ -1645,7 +1668,11 @@ function applyFontSettingsToContainer(containerId, settings) {
 
 function applyPageBackground(page) {
   const settings = getSavedFontSettings(page);
-  const bg = settings.background || "#ffffff";
+  // Treat the old plain-white default as "not customized" so pages that
+  // still have the original #ffffff saved automatically pick up the new
+  // dark theme instead of staying stuck on white.
+  const saved = settings.background;
+  const bg = (!saved || saved.toLowerCase() === "#ffffff") ? "#08080f" : saved;
   document.body.style.backgroundColor = bg;
   document.documentElement.style.setProperty("--page-bg", bg);
   // Set it directly on both header bars too (belt-and-braces): the header is
@@ -1665,7 +1692,7 @@ function fillSettingsForm(settings) {
     document.getElementById(`${target}-font`).value = s.font;
     document.getElementById(`${target}-bold`).checked = !!s.bold;
   });
-  document.getElementById("page-bg-color").value = settings.background || "#ffffff";
+  document.getElementById("page-bg-color").value = (!settings.background || settings.background.toLowerCase() === "#ffffff") ? "#08080f" : settings.background;
 }
 
 function readSettingsForm() {
@@ -1697,6 +1724,13 @@ function updateTabUI() {
   // while configuring the List page — nothing Alert-specific should show there.
   const titleRow = document.getElementById("settingsRow-title");
   if (titleRow) titleRow.style.display = (currentConfigTab === "alerts") ? "" : "none";
+  // List Name / Day Left / Target Date colors now always follow the List
+  // page automatically, so there's nothing to configure for them on the
+  // Alert page — hide those rows there.
+  ["settingsRow-name", "settingsRow-countdown", "settingsRow-date"].forEach((id) => {
+    const row = document.getElementById(id);
+    if (row) row.style.display = (currentConfigTab === "alerts") ? "none" : "";
+  });
 }
 
 function switchConfigTab(tab) {
@@ -2433,7 +2467,7 @@ async function applySettings() {
   configDrafts[currentConfigTab] = readSettingsForm();
   cloudSettings.alerts = configDrafts.alerts;
   cloudSettings.data = configDrafts.data;
-  applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
+  applyFontSettingsToContainer("page-alerts", getEffectiveAlertsFontSettings());
   applyFontSettingsToContainer("page-data", cloudSettings.data);
   applyPageBackground(getActivePageName());
   loadAll();
@@ -2475,7 +2509,7 @@ if (settingsRef) {
       }
       cloudSettings.animFavorites = val.animFavorites || [];
       cloudSettings.animHidden = val.animHidden || [];
-      applyFontSettingsToContainer("page-alerts", cloudSettings.alerts);
+      applyFontSettingsToContainer("page-alerts", getEffectiveAlertsFontSettings());
       applyFontSettingsToContainer("page-data", cloudSettings.data);
       applyPageBackground(getActivePageName());
       loadAll();
