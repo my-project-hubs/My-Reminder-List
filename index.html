@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="build-id" content="2026-08-03-17">
+<meta name="build-id" content="2026-08-04-19">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -22,7 +22,7 @@
     margin: 0 auto;
   }
   .header-date { font-size: var(--header-size, 19px); color: var(--header-color, #000000); font-family: var(--header-font, inherit); font-weight: var(--header-weight, 400); margin-bottom: 28px; }
-  .event { margin-bottom: 30px; position: relative; }
+  .event { margin-bottom: 16px; position: relative; background: #ffffff; border-radius: 18px; box-shadow: 0 2px 12px rgba(20,20,30,0.09), 0 0 0 1px rgba(20,20,30,0.04); padding: 16px 18px; }
   .event-name { color: var(--name-color, #000000); font-size: var(--name-size, 20px); font-family: var(--name-font, inherit); font-weight: var(--name-weight, 400); margin-bottom: 10px; line-height: 1.15; }
   .alerts-page-title { text-align: center; color: var(--title-color, #b266b2); font-size: var(--title-size, 26px); font-family: var(--title-font, inherit); font-weight: var(--title-weight, 700); }
   .alerts-page-title-row { display: flex; align-items: center; justify-content: center; gap: 6px; margin: -42px 0 40px; }
@@ -211,15 +211,12 @@
     top: 50%;
     right: 0;
     transform: translateY(calc(-50% - 108px));
-    background: rgba(255,255,255,0.65);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: transparent;
     color: #55565f;
-    border: 1px solid rgba(255,255,255,0.8);
+    border: none;
     padding: 0;
     width: 48px;
     height: 48px;
-    border-radius: 999px 0 0 999px;
     font-size: 24px;
     font-weight: 700;
     cursor: pointer;
@@ -229,10 +226,9 @@
     justify-content: center;
     line-height: 1;
     pointer-events: auto;
-    box-shadow: -3px 4px 14px rgba(20,20,30,0.14);
-    transition: box-shadow 0.15s ease, background 0.15s ease;
+    transition: opacity 0.15s ease;
   }
-  .page-toggle-btn:active { background: rgba(255,255,255,0.9); }
+  .page-toggle-btn:active { opacity: 0.6; }
   .page-toggle-btn .toggle-icon {
     display: inline-block;
     transition: transform 0.4s ease;
@@ -243,24 +239,20 @@
     top: 50%;
     right: 0;
     transform: translateY(calc(-50% - 48px));
-    background: rgba(255,255,255,0.65);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: transparent;
     color: #55565f;
-    border: 1px solid rgba(255,255,255,0.8);
+    border: none;
     width: 48px;
     height: 48px;
-    border-radius: 999px 0 0 999px;
     font-size: 22px;
     cursor: pointer;
     z-index: 20;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: -3px 4px 14px rgba(20,20,30,0.14);
-    transition: box-shadow 0.15s ease, background 0.15s ease;
+    transition: opacity 0.15s ease;
   }
-  .settings-icon:active { background: rgba(255,255,255,0.9); }
+  .settings-icon:active { opacity: 0.6; }
 
   #animationOverlay { align-items: center; }
   #animationOverlay .settings-panel { border-radius: 26px; height: calc(100vh - 2in); max-height: calc(100vh - 2in); width: 94%; max-width: 620px; margin: 0; display: flex; flex-direction: column; background: linear-gradient(180deg, #ffffff 0%, #f7f7fb 100%); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
@@ -282,8 +274,9 @@
   .anim-control-group-title { position: sticky; top: 0; display: inline-block; margin: 10px auto 14px; background: linear-gradient(135deg, #4d94ff, #0052cc); color: #ffffff; font-weight: 800; font-size: 15px; text-transform: uppercase; letter-spacing: 0.8px; padding: 9px 24px; border-radius: 999px; box-shadow: 0 4px 14px rgba(0,82,204,0.35); }
   .anim-control-row { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; background: #ffffff; border: 1px solid #f0f0f4; border-radius: 16px; box-shadow: 0 2px 8px rgba(20,20,30,0.05); cursor: pointer; gap: 10px; margin: 0 0 8px; text-align: left; transition: box-shadow 0.15s ease, transform 0.1s ease; }
   .anim-control-row:active { background: #fafafa; transform: scale(0.99); }
-  .anim-control-row-name { font-size: 17px; font-weight: 600; color: #14151a; }
+  .anim-control-row-name { font-size: 17px; font-weight: 600; color: #14151a; display: flex; align-items: center; }
   .anim-control-row-arrow { color: #c7cad2; font-size: 22px; }
+  .anim-active-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 4px rgba(34,197,94,0.7); margin-right: 8px; flex: none; }
   .anim-pick-hint { text-align: center; color: #9a9ea6; font-size: 12px; font-weight: 600; padding: 8px 6px 4px; }
   .anim-pick-center { display: flex; align-items: center; justify-content: center; width: 100%; }
   .anim-pick-preview { font-size: 44px; font-weight: 700; color: #0052cc; text-align: center; }
@@ -543,15 +536,12 @@
     top: 50%;
     right: 0;
     transform: translateY(calc(-50% - 168px));
-    background: rgba(255,255,255,0.65);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: transparent;
     color: #55565f;
-    border: 1px solid rgba(255,255,255,0.8);
+    border: none;
     padding: 0;
     width: 48px;
     height: 48px;
-    border-radius: 999px 0 0 999px;
     font-size: 26px;
     font-weight: 700;
     cursor: pointer;
@@ -560,24 +550,20 @@
     align-items: center;
     justify-content: center;
     line-height: 1;
-    box-shadow: -3px 4px 14px rgba(20,20,30,0.14);
-    transition: box-shadow 0.15s ease, background 0.15s ease;
+    transition: opacity 0.15s ease;
   }
-  .add-icon-btn:active { background: rgba(255,255,255,0.9); }
+  .add-icon-btn:active { opacity: 0.6; }
 
   .anim-control-icon {
     position: fixed;
     top: 50%;
     right: 0;
     transform: translateY(calc(-50% - 228px));
-    background: rgba(255,255,255,0.65);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: transparent;
     color: #55565f;
-    border: 1px solid rgba(255,255,255,0.8);
+    border: none;
     width: 48px;
     height: 48px;
-    border-radius: 999px 0 0 999px;
     font-size: 20px;
     font-weight: 700;
     cursor: pointer;
@@ -585,10 +571,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: -3px 4px 14px rgba(20,20,30,0.14);
-    transition: box-shadow 0.15s ease, background 0.15s ease;
+    transition: opacity 0.15s ease;
   }
-  .anim-control-icon:active { background: rgba(255,255,255,0.9); }
+  .anim-control-icon:active { opacity: 0.6; }
 
   .add-field-row { display: flex; }
   .add-field-row input[type="text"] { flex: 1; padding: 13px 14px; border: 1.5px solid #ececf1; background: #f7f8fa; border-radius: 14px; font-size: 17px; font-weight: 600; color: #14151a; transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease; }
@@ -1889,7 +1874,12 @@ function renderAnimControlList() {
     row.className = "anim-control-row";
     const nameSpan = document.createElement("span");
     nameSpan.className = "anim-control-row-name";
-    nameSpan.textContent = label;
+    if (animIds && animIds.length > 0) {
+      const dot = document.createElement("span");
+      dot.className = "anim-active-dot";
+      nameSpan.appendChild(dot);
+    }
+    nameSpan.appendChild(document.createTextNode(label));
     const arrowSpan = document.createElement("span");
     arrowSpan.className = "anim-control-row-arrow";
     arrowSpan.textContent = "\u203A";
