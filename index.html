@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="build-id" content="2026-08-04-31">
+<meta name="build-id" content="2026-08-04-33">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -261,7 +261,7 @@
   #animationOverlay .settings-actions { margin-top: 0; justify-content: center; border-top: none; padding-top: 14px; }
   #animationOverlay .settings-actions button { flex: none; width: 60%; }
   .settings-title-actions { display: flex; align-items: center; gap: 20px; }
-  .anim-fav-shortcut-btn { background: none !important; border: none !important; box-shadow: none !important; width: auto !important; height: auto !important; border-radius: 0 !important; font-size: 26px !important; padding: 0 !important; margin-right: 40px !important; color: #ffb400 !important; text-shadow: 0 1px 3px rgba(255,180,0,0.35); }
+  .anim-fav-shortcut-btn { background: none !important; border: none !important; box-shadow: none !important; width: auto !important; height: auto !important; border-radius: 0 !important; font-size: 26px !important; padding: 0 !important; margin-right: 64px !important; color: #ffb400 !important; text-shadow: 0 1px 3px rgba(255,180,0,0.35); }
   .anim-fav-shortcut-btn:active { transform: scale(0.88); background: none !important; }
 
   #animFavoritesOverlay { align-items: center; }
@@ -2087,6 +2087,15 @@ function closeAnimFavoritesBox() {
   renderAnimPickerList();
 }
 
+function removeFromFavorites(id) {
+  if (!confirm("Remove this animation from your Favorites list?")) return;
+  cloudSettings.animFavorites = getAnimFavorites().filter((fid) => fid !== id);
+  renderAnimFavoritesList();
+  saveCloudSettings(cloudSettings).catch(() => {
+    alert("Could not save. Please check your connection and try again.");
+  });
+}
+
 function renderAnimFavoritesList() {
   const listEl = document.getElementById("animFavoritesList");
   const hintEl = document.getElementById("animFavHint");
@@ -2097,7 +2106,7 @@ function renderAnimFavoritesList() {
 
   if (hintEl) {
     hintEl.textContent = favItems.length
-      ? `${currentAnimSelections.length}/${MAX_ANIMATIONS_PER_ITEM} selected — tap to add or remove from this line`
+      ? `Tap to add/remove from this line · Hold to remove from Favorites`
       : "No favorites yet — hold an animation in the main list, then tap ★ Favorite";
   }
   if (!favItems.length) {
@@ -2118,6 +2127,7 @@ function renderAnimFavoritesList() {
     const serialLabel = `<span class="anim-pick-serial">${idx + 1}</span>`;
     row.innerHTML = `<span class="anim-pick-fav-star">★</span>${serialLabel}<span class="anim-pick-center">${orderBadge}<span class="${previewCls}">Aa</span></span>`;
     row.addEventListener("click", () => {
+      if (animLongPressTriggered) { animLongPressTriggered = false; return; }
       if (isSelected) {
         currentAnimSelections = currentAnimSelections.filter((id) => id !== a.id);
       } else {
@@ -2126,6 +2136,25 @@ function renderAnimFavoritesList() {
       }
       renderAnimFavoritesList();
     });
+
+    const startFavLongPress = () => {
+      animLongPressTriggered = false;
+      clearTimeout(animLongPressTimer);
+      animLongPressTimer = setTimeout(() => {
+        animLongPressTriggered = true;
+        if (navigator.vibrate) navigator.vibrate(15);
+        removeFromFavorites(a.id);
+      }, 480);
+    };
+    const cancelFavLongPress = () => clearTimeout(animLongPressTimer);
+    row.addEventListener("mousedown", startFavLongPress);
+    row.addEventListener("mouseup", cancelFavLongPress);
+    row.addEventListener("mouseleave", cancelFavLongPress);
+    row.addEventListener("touchstart", startFavLongPress, { passive: true });
+    row.addEventListener("touchend", cancelFavLongPress);
+    row.addEventListener("touchmove", cancelFavLongPress);
+    row.addEventListener("contextmenu", (e) => e.preventDefault());
+
     listEl.appendChild(row);
   });
 }
