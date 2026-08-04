@@ -17,12 +17,37 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     font-size: 17px;
     line-height: 1.5;
-    padding: 70px 20px 80px;
+    padding: 70px 20px 110px;
     max-width: 640px;
     margin: 0 auto;
   }
   .header-date { font-size: var(--header-size, 19px); color: var(--header-color, #000000); font-family: var(--header-font, inherit); font-weight: var(--header-weight, 400); margin-bottom: 28px; }
-  .event { margin-bottom: 30px; position: relative; }
+  .event {
+    margin-bottom: 18px;
+    position: relative;
+    background: rgba(255,255,255,0.55);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,0.65);
+    border-radius: 20px;
+    padding: 16px 18px;
+    box-shadow: 0 6px 20px rgba(20,20,30,0.08);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .event:active { transform: scale(0.985); }
+  .event-body-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+  .event-text-col { min-width: 0; flex: 1; }
+  .progress-ring-wrap { flex: none; width: 50px; height: 50px; }
+  .progress-ring { width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(var(--ring-color, #0052cc) calc(var(--ring-pct, 0) * 3.6deg), rgba(120,120,140,0.18) 0deg); display: flex; align-items: center; justify-content: center; transition: background 0.4s ease; }
+  .progress-ring-hole { width: 70%; height: 70%; border-radius: 50%; background: rgba(255,255,255,0.92); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 1px 3px rgba(0,0,0,0.08); }
+  .progress-ring-text { font-size: 11px; font-weight: 800; color: #333333; }
+
+  .skeleton-card { background: rgba(255,255,255,0.5); border-radius: 20px; padding: 16px 18px; margin-bottom: 18px; overflow: hidden; }
+  .skel-line { height: 14px; border-radius: 8px; background: linear-gradient(90deg, rgba(0,0,0,0.06) 25%, rgba(0,0,0,0.12) 37%, rgba(0,0,0,0.06) 63%); background-size: 400% 100%; animation: skeletonShimmer 1.4s ease infinite; margin-bottom: 10px; }
+  .skel-name { width: 55%; height: 18px; }
+  .skel-countdown { width: 40%; height: 24px; }
+  .skel-date { width: 35%; margin-bottom: 0; }
+  @keyframes skeletonShimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
   .event-name { color: var(--name-color, #000000); font-size: var(--name-size, 20px); font-family: var(--name-font, inherit); font-weight: var(--name-weight, 400); margin-bottom: 10px; line-height: 1.15; }
   .alerts-page-title { text-align: center; color: var(--title-color, #b266b2); font-size: var(--title-size, 26px); font-family: var(--title-font, inherit); font-weight: var(--title-weight, 700); }
   .alerts-page-title-row { display: flex; align-items: center; justify-content: center; gap: 6px; margin: -42px 0 40px; }
@@ -658,6 +683,45 @@
   .cyl-move-popup.open{ display:flex; }
   .cyl-move-popup button{ width:44px; height:44px; border:none; border-radius:8px; background:#f2f2f2; color:#333333; font-size:20px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
   .cyl-move-popup button:active{ background:#dddddd; }
+
+  /* Animated bottom navigation bar */
+  .bottom-nav {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    max-width: 640px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(255,255,255,0.68);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border-top: 1px solid rgba(255,255,255,0.6);
+    box-shadow: 0 -6px 26px rgba(20,20,30,0.14);
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+    z-index: 18;
+  }
+  .bn-tabs { position: relative; display: flex; background: rgba(238,240,244,0.75); border-radius: 999px; padding: 4px; gap: 2px; }
+  .bn-indicator { position: absolute; top: 4px; left: 4px; width: calc(50% - 4px); height: calc(100% - 8px); border-radius: 999px; background: linear-gradient(135deg, #4d94ff, #0052cc); box-shadow: 0 4px 14px rgba(0,82,204,0.4); transition: transform 0.35s cubic-bezier(.4,1.4,.4,1); z-index: 0; }
+  .bn-tab { position: relative; z-index: 1; border: none; background: transparent; display: flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; color: #6b7280; cursor: pointer; transition: color 0.25s ease; white-space: nowrap; }
+  .bn-tab.active { color: #ffffff; }
+  .bn-tab svg { width: 16px; height: 16px; flex: none; }
+  .bn-icon-btn { display: flex; flex-direction: column; align-items: center; gap: 2px; border: none; background: transparent; color: #6b7280; font-size: 10px; font-weight: 700; padding: 6px 10px; cursor: pointer; }
+  .bn-icon-btn svg { width: 21px; height: 21px; }
+  .bn-anim-letter { font-size: 17px; font-weight: 800; line-height: 1; color: #6b7280; }
+  .bn-icon-btn:active, .bn-tab:active { transform: scale(0.92); }
+
+  .bn-fab {
+    position: fixed; left: 50%; bottom: 44px; transform: translateX(-50%);
+    width: 56px; height: 56px; border-radius: 50%;
+    background: linear-gradient(135deg, #4d94ff, #0052cc);
+    color: #ffffff; font-size: 30px; font-weight: 400; border: none;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 22px rgba(0,82,204,0.45), 0 0 0 6px rgba(77,148,255,0.15);
+    z-index: 19; cursor: pointer;
+    animation: fabPulse 2.6s ease-in-out infinite;
+    transition: transform 0.15s ease;
+  }
+  .bn-fab:active { transform: translateX(-50%) scale(0.9); }
+  @keyframes fabPulse {
+    0%, 100% { box-shadow: 0 8px 22px rgba(0,82,204,0.45), 0 0 0 6px rgba(77,148,255,0.15); }
+    50% { box-shadow: 0 8px 26px rgba(0,82,204,0.55), 0 0 0 10px rgba(77,148,255,0.05); }
+  }
 </style>
 </head>
 <body>
@@ -669,10 +733,28 @@
   <button class="cmp-right" data-dir="right" title="Right">▶</button>
   <button class="cmp-down" data-dir="down" title="Down">▼</button>
 </div>
-<button id="pageToggleBtn" class="page-toggle-btn" onclick="togglePage()" title="Switch page"><span id="toggleIcon" class="toggle-icon">⇄</span></button>
-<button class="settings-icon" onclick="openSettings()" title="Settings">⚙</button>
-<button class="add-icon-btn" onclick="openAddReminder()" title="Add New Reminder">+</button>
-<button class="anim-control-icon" onclick="openAnimControlPanel()" title="Animation Control">A</button>
+<nav class="bottom-nav" id="bottomNav">
+  <div class="bn-tabs" id="bnTabs">
+    <div class="bn-indicator" id="bnIndicator"></div>
+    <button class="bn-tab active" id="bnTabAlerts" onclick="showPage('alerts')" title="Alerts">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+      <span>Alerts</span>
+    </button>
+    <button class="bn-tab" id="bnTabList" onclick="showPage('data')" title="List">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13"></path><path d="M8 12h13"></path><path d="M8 18h13"></path><path d="M3 6h.01"></path><path d="M3 12h.01"></path><path d="M3 18h.01"></path></svg>
+      <span>List</span>
+    </button>
+  </div>
+  <button class="bn-icon-btn" onclick="openAnimControlPanel()" title="Animation Control">
+    <span class="bn-anim-letter">A</span>
+    <span>Anim</span>
+  </button>
+  <button class="bn-icon-btn" onclick="openSettings()" title="Settings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+    <span>Settings</span>
+  </button>
+</nav>
+<button class="bn-fab" onclick="openAddReminder()" title="Add New Reminder">+</button>
 
 <div id="animationOverlay" class="settings-overlay">
   <div class="settings-panel">
@@ -775,13 +857,13 @@
 <div id="page-alerts" class="page active">
   <div id="header-alerts" class="header-date"><div class="header-date-inner line-style-wrap" id="lineStyleWrap-alerts" onclick="toggleLineStylePopup(event,'lineStyleWrap-alerts')"><div class="gradient-separator"><div class="gradient-separator-bar"></div></div><span class="line-wrap" id="lw-header-alerts"><span id="header-alerts-left"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('header','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button class="event-delete-btn" title="Delete" onclick="deleteLabel('header')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button></div></span><span id="header-alerts-right"></span><div class="line-style-popup" onclick="event.stopPropagation()"><button type="button" title="Move Up" onclick="adjustLineOffset(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg></button><button type="button" title="Move Down" onclick="adjustLineOffset(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M19 12l-7 7-7-7"></path></svg></button><div class="line-style-color-wrap" title="Color"><div class="line-style-color-dot" id="lineColorDot-alerts"></div><input type="color" id="lineColorInput-alerts" onclick="event.stopPropagation()" onchange="setLineColor(this.value)"></div><input type="number" class="line-style-thickness-input" id="lineThicknessInput-alerts" min="1" max="10" value="2" onclick="event.stopPropagation()" onchange="setLineThickness(this.value)"></div></div></div>
   <div class="alerts-page-title-row"><span class="line-wrap" id="lw-alert-title"><span class="alerts-page-title" id="alertTitleText">Alert</span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('alertTitle','Alert')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button class="event-delete-btn" title="Delete" onclick="deleteLabel('alertTitle')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button></div></span></div>
-  <div id="list-alerts"><div class="loading">Loading...</div></div>
+  <div id="list-alerts"><div class="skeleton-card"><div class="skel-line skel-name"></div><div class="skel-line skel-countdown"></div><div class="skel-line skel-date"></div></div><div class="skeleton-card"><div class="skel-line skel-name"></div><div class="skel-line skel-countdown"></div><div class="skel-line skel-date"></div></div></div>
 </div>
 
 <!-- PAGE 2: All Data (List) -->
 <div id="page-data" class="page">
   <div id="header-data" class="header-date"><div class="header-date-inner line-style-wrap" id="lineStyleWrap-data" onclick="toggleLineStylePopup(event,'lineStyleWrap-data')"><div class="gradient-separator"><div class="gradient-separator-bar"></div></div><span class="line-wrap" id="lw-header-data"><span id="header-data-left"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('header','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button class="event-delete-btn" title="Delete" onclick="deleteLabel('header')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button></div></span><span class="line-wrap" id="lw-header-count"><span id="header-data-right"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('listCount','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button class="event-delete-btn" title="Delete" onclick="deleteLabel('listCount')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button></div></span><div class="line-style-popup" onclick="event.stopPropagation()"><button type="button" title="Move Up" onclick="adjustLineOffset(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg></button><button type="button" title="Move Down" onclick="adjustLineOffset(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M19 12l-7 7-7-7"></path></svg></button><div class="line-style-color-wrap" title="Color"><div class="line-style-color-dot" id="lineColorDot-data"></div><input type="color" id="lineColorInput-data" onclick="event.stopPropagation()" onchange="setLineColor(this.value)"></div><input type="number" class="line-style-thickness-input" id="lineThicknessInput-data" min="1" max="10" value="2" onclick="event.stopPropagation()" onchange="setLineThickness(this.value)"></div></div></div>
-  <div id="list-data"><div class="loading">Loading...</div></div>
+  <div id="list-data"><div class="skeleton-card"><div class="skel-line skel-name"></div><div class="skel-line skel-countdown"></div><div class="skel-line skel-date"></div></div><div class="skeleton-card"><div class="skel-line skel-name"></div><div class="skel-line skel-countdown"></div><div class="skel-line skel-date"></div></div><div class="skeleton-card"><div class="skel-line skel-name"></div><div class="skel-line skel-countdown"></div><div class="skel-line skel-date"></div></div></div>
 </div>
 
 <div id="addReminderOverlay" class="settings-overlay">
@@ -881,14 +963,67 @@ function showPage(name) {
   document.getElementById("page-data").classList.toggle("active", name === "data");
   sessionStorage.setItem("activePage", name);
   applyPageBackground(name);
+  updateBottomNavIndicator(name);
 }
 
-let toggleIconRotation = 0;
+function updateBottomNavIndicator(name) {
+  const indicator = document.getElementById("bnIndicator");
+  const tabAlerts = document.getElementById("bnTabAlerts");
+  const tabList = document.getElementById("bnTabList");
+  if (!indicator || !tabAlerts || !tabList) return;
+  tabAlerts.classList.toggle("active", name === "alerts");
+  tabList.classList.toggle("active", name === "data");
+  indicator.style.transform = name === "data" ? "translateX(100%)" : "translateX(0%)";
+}
+
+// Lightweight vanilla-JS confetti burst (no external library needed).
+function fireConfetti(originX, originY) {
+  const colors = ["#ff6b6b", "#4d94ff", "#ffd93d", "#6bcb77", "#c774e8", "#30ffe6"];
+  const count = 26;
+  const layer = document.createElement("div");
+  layer.style.cssText = "position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:9999;overflow:hidden;";
+  document.body.appendChild(layer);
+  const ox = originX !== undefined ? originX : window.innerWidth / 2;
+  const oy = originY !== undefined ? originY : window.innerHeight / 2;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("div");
+    const size = 6 + Math.random() * 6;
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 80 + Math.random() * 160;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist - 60;
+    const rot = Math.random() * 720 - 360;
+    p.style.cssText = "position:absolute; left:" + ox + "px; top:" + oy + "px; width:" + size + "px; height:" + (size * 0.4) + "px; background:" + color + "; border-radius:2px; opacity:1; transform:translate(0,0) rotate(0deg); transition: transform 900ms cubic-bezier(.2,.8,.3,1), opacity 900ms ease;";
+    layer.appendChild(p);
+    requestAnimationFrame(() => {
+      p.style.transform = "translate(" + dx + "px, " + (dy + 220) + "px) rotate(" + rot + "deg)";
+      p.style.opacity = "0";
+    });
+  }
+  setTimeout(() => layer.remove(), 1000);
+}
+
+// Celebrates (once per reminder per day) the moment a countdown reaches "today".
+function maybeCelebrateArrivals(events) {
+  try {
+    const todayStr = formatDisplayDate(getTodayMidnight());
+    events.forEach((e) => {
+      if (!e.key) return;
+      if (e.countdown === "0 . Day Left") {
+        const flagKey = "celebrated_" + e.key + "_" + todayStr;
+        if (!localStorage.getItem(flagKey)) {
+          localStorage.setItem(flagKey, "1");
+          fireConfetti();
+        }
+      }
+    });
+  } catch (err) { /* localStorage unavailable — skip celebration silently */ }
+}
+
 function togglePage() {
   const next = getActivePageName() === "alerts" ? "data" : "alerts";
   showPage(next);
-  toggleIconRotation += 180;
-  document.getElementById("toggleIcon").style.transform = "rotate(" + toggleIconRotation + "deg)";
 }
 
 function parseEventDateString(dateStr) {
@@ -959,16 +1094,20 @@ function buildEventDisplay(rawName, rawDate, rawType, rawAlertDays, rawKey, rawA
       if (months > thMonths) isAlert = true;
       else if (months === thMonths) isAlert = days >= thDays;
     }
-    return { name, date: displayDate, countdown, isAlert, key: rawKey, animation, animations };
+    const thresholdDays = alertDays !== null ? alertDays : (getCylinderThresholdParts().months * 30 + getCylinderThresholdParts().days);
+    const elapsedProgressPct = thresholdDays > 0 ? Math.max(0, Math.min(100, Math.round((elapsedDays / thresholdDays) * 100))) : (isAlert ? 100 : 0);
+    return { name, date: displayDate, countdown, isAlert, key: rawKey, animation, animations, progressPct: elapsedProgressPct };
   }
 
   const diffDays = Math.round((eventDate - today) / 86400000);
   if (diffDays < 0) {
-    return { name, date: displayDate, countdown: "Expired", isAlert: true, key: rawKey, animation, animations };
+    return { name, date: displayDate, countdown: "Expired", isAlert: true, key: rawKey, animation, animations, progressPct: 100 };
   }
   const countdown = `${diffDays} . Day Left`;
   const isAlert = diffDays <= (alertDays !== null ? alertDays : ALERT_THRESHOLD_DAYS);
-  return { name, date: displayDate, countdown, isAlert, key: rawKey, animation, animations };
+  const horizon = Math.max((alertDays !== null ? alertDays : ALERT_THRESHOLD_DAYS) * 3, 3);
+  const progressPct = Math.max(0, Math.min(100, Math.round(100 - (diffDays / horizon) * 100)));
+  return { name, date: displayDate, countdown, isAlert, key: rawKey, animation, animations, progressPct };
 }
 
 
@@ -1137,7 +1276,21 @@ function renderEvents(container, events, allowActions) {
         </div>
       `;
     } else {
-      contentHTML = `<div class="event-name">${e.name}</div><div class="event-countdown">${e.countdown}</div><div class="event-date">${e.date}</div>`;
+      const ringColor = e.isAlert ? "#ff3b30" : "#0052cc";
+      const pct = (e.progressPct !== undefined && e.progressPct !== null) ? e.progressPct : 0;
+      contentHTML = `
+        <div class="event-name">${e.name}</div>
+        <div class="event-body-row">
+          <div class="event-text-col">
+            <div class="event-countdown">${e.countdown}</div>
+            <div class="event-date">${e.date}</div>
+          </div>
+          <div class="progress-ring-wrap" style="--ring-pct:${pct}; --ring-color:${ringColor};">
+            <div class="progress-ring">
+              <div class="progress-ring-hole"><span class="progress-ring-text">${pct}%</span></div>
+            </div>
+          </div>
+        </div>`;
     }
 
     if (allowActions && e.key) {
@@ -1271,6 +1424,8 @@ function renderAll() {
   const alerts = events.filter((e) => e.isAlert);
   if (alerts.length === 0) listAlerts.innerHTML = '<div class="refreshing-state">Refreshing <span class="dots-bold">. . .</span></div>';
   else renderEvents(listAlerts, alerts, false);
+
+  maybeCelebrateArrivals(events);
 }
 
 function loadAll() {
@@ -1383,8 +1538,10 @@ function saveNewReminder() {
 
   action
     .then(() => {
+      const wasNew = !editingReminderKey;
       editingReminderKey = null;
       closeAddReminder();
+      if (wasNew) fireConfetti();
     })
     .catch((err) => {
       alert("Save nahi ho paya: " + err.message);
