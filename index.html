@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- build-id is no longer read by the auto-update checker (which now uses the
+     server's ETag/Last-Modified headers instead) — this tag can be left as-is
+     or removed; it's kept only for manual reference if useful. -->
 <meta name="build-id" content="2026-08-04-45">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -2506,19 +2509,33 @@ if (settingsRef) {
   setSyncStatus("Offline");
 }
 
-// Auto-update checker: detects new deployment (or a stale cached page) and reloads automatically
+// Auto-update checker: detects new deployment (or a stale cached page) and reloads
+// automatically. Uses the server's own ETag / Last-Modified response headers as the
+// "version" — those change by themselves on every save/deploy, so there is nothing
+// to hand-edit in the code anymore. Falls back to a content hash if a host strips
+// both headers.
 (function(){
-  const metaTag = document.querySelector('meta[name="build-id"]');
-  const CURRENT_BUILD_ID = metaTag ? metaTag.getAttribute("content") : null;
+  let currentIdentity = null;
   let reloading = false;
+
+  async function getPageIdentity(res){
+    const etag = res.headers.get("etag");
+    const lastMod = res.headers.get("last-modified");
+    if (etag) return "etag:" + etag;
+    if (lastMod) return "lastmod:" + lastMod;
+    const text = await res.text();
+    let hash = 0;
+    for (let i = 0; i < text.length; i++) { hash = (hash * 31 + text.charCodeAt(i)) | 0; }
+    return "hash:" + hash;
+  }
+
   async function checkForUpdate(){
     if (reloading) return;
     try{
       const res = await fetch(location.pathname + "?_=" + Date.now(), { cache: "no-store" });
-      const text = await res.text();
-      const match = text.match(/<meta name="build-id" content="([^"]*)"/);
-      const latestBuildId = match ? match[1] : null;
-      if(latestBuildId && CURRENT_BUILD_ID && latestBuildId !== CURRENT_BUILD_ID){
+      const identity = await getPageIdentity(res);
+      if (currentIdentity === null) { currentIdentity = identity; return; }
+      if (identity !== currentIdentity) {
         reloading = true;
         location.href = location.pathname + "?_=" + Date.now();
       }
