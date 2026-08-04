@@ -2535,24 +2535,6 @@ if (settingsRef) {
   });
   window.addEventListener("focus", checkForUpdate);
 })();
-
-// Feature: हर बार जब आप किसी और टैब/ऐप से वापस इस वेबसाइट के टैब पर आएं, तो
-// तुरंत background में refresh हो जाए — चाहे नया deploy हुआ हो या ना हुआ हो।
-// यह ऊपर वाले build-id वाले mechanism से अलग है और उसे बिल्कुल नहीं छेड़ता।
-(function(){
-  let reloading = false;
-  function refreshOnReturn(){
-    if (reloading || document.hidden) return;
-    reloading = true;
-    location.reload();
-  }
-  document.addEventListener("visibilitychange", function(){
-    if(!document.hidden){
-      refreshOnReturn();
-    }
-  });
-  window.addEventListener("focus", refreshOnReturn);
-})();
 </script>
 </body>
 </html>
