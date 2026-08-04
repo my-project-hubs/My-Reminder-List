@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="build-id" content="2026-08-04-39">
+<meta name="build-id" content="2026-08-04-40">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -23,6 +23,15 @@
   }
   .header-date { font-size: var(--header-size, 19px); color: var(--header-color, #000000); font-family: var(--header-font, inherit); font-weight: var(--header-weight, 400); margin-bottom: 28px; }
   .event { margin-bottom: 16px; position: relative; overflow: hidden; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.3); border-radius: 22px; padding: 16px 18px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); animation: cardBorderGlow 3s ease-in-out infinite; }
+  /* Any animation assigned to a reminder wraps the whole card in a div that
+     carries the animation's own class (see renderEvents in the script below).
+     Several animation classes set display:inline-block, which is fine for a
+     small text label but shrinks a full-width card to fit its content and
+     breaks the box shape. Forcing the wrapper back to a full-width block
+     keeps every card's box the same size no matter which animation (if any)
+     is assigned to it — including any reminders added in the future. */
+  .la-event-wrap { display: block !important; width: 100% !important; margin-bottom: 16px; }
+  .la-event-wrap .event { margin-bottom: 0; }
   @keyframes cardBorderGlow {
     0%, 100% { box-shadow: 0 8px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.15), 0 0 10px rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.3); }
     50% { box-shadow: 0 8px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.22), 0 0 22px rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.5); }
@@ -1210,11 +1219,18 @@ function renderEvents(container, events, allowActions) {
     // can be combined on the same item at once (each wrapper carries one la-<id>
     // class and its own independent "animation" property, so they compose visually
     // instead of overriding each other the way stacking classes on one element would).
+    // NOTE: several la-<id> classes set "display: inline-block" (meant for wrapping
+    // small text spans on labels). When the SAME class wraps a whole full-width
+    // event card, that inline-block shrinks the wrapper to the content's width and
+    // breaks the card's box layout (card looks narrow/misshapen). The la-event-wrap
+    // marker class (added below, defined after all la-N rules) forces the wrapper
+    // back to a full-width block so the card's box always keeps its normal size,
+    // no matter which animation is assigned — now or for any item added later.
     const animIds = normalizeAnimationIds(e.animations, e.animation);
     let mounted = item;
     animIds.forEach((id) => {
       const wrap = document.createElement("div");
-      wrap.className = "la-" + id;
+      wrap.className = "la-" + id + " la-event-wrap";
       wrap.appendChild(mounted);
       mounted = wrap;
     });
