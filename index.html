@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="build-id" content="2026-08-04-22">
+<meta name="build-id" content="2026-08-04-27">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -262,9 +262,10 @@
   #animationOverlay .settings-actions button { flex: none; width: 60%; }
 
   .anim-picker-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding: 4px 2px 10px; gap: 8px; }
-  .anim-pick-row { display: flex; align-items: center; justify-content: center; padding: 18px 16px; background: #ffffff; border: 1px solid #f0f0f4; border-radius: 16px; box-shadow: 0 2px 8px rgba(20,20,30,0.05); cursor: pointer; transition: box-shadow 0.15s ease, border-color 0.15s ease; }
+  .anim-pick-row { display: flex; align-items: center; justify-content: center; padding: 18px 16px; background: #ffffff; border: 1px solid #f0f0f4; border-radius: 16px; box-shadow: 0 2px 8px rgba(20,20,30,0.05); cursor: pointer; transition: box-shadow 0.15s ease, border-color 0.15s ease; position: relative; }
   .anim-pick-row.selected { background: linear-gradient(135deg, #f2f7ff, #ffffff); border-color: #0052cc; box-shadow: 0 4px 14px rgba(0,82,204,0.15); }
   .anim-pick-order { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, #4d94ff, #0052cc); color: #fff; font-size: 12px; font-weight: 700; margin-right: 10px; flex: none; box-shadow: 0 2px 6px rgba(0,82,204,0.35); }
+  .anim-pick-serial { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 27px; font-weight: 700; color: #9a9ea6; flex: none; }
 
   #animControlOverlay { align-items: center; }
   #animControlOverlay .settings-panel { border-radius: 26px; height: calc(100vh - 2in); max-height: calc(100vh - 2in); width: 94%; max-width: 620px; margin: 0; display: flex; flex-direction: column; background: linear-gradient(180deg, #ffffff 0%, #f7f7fb 100%); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
@@ -279,7 +280,7 @@
   .anim-active-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 4px rgba(34,197,94,0.7); margin-right: 8px; flex: none; }
   .anim-pick-hint { text-align: center; color: #9a9ea6; font-size: 12px; font-weight: 600; padding: 8px 6px 4px; }
   .anim-pick-center { display: flex; align-items: center; justify-content: center; width: 100%; }
-  .anim-pick-preview { font-size: 44px; font-weight: 700; color: #0052cc; text-align: center; }
+  .anim-pick-preview { font-size: 47px; font-weight: 700; color: #0052cc; text-align: center; }
   .anim-speed-row { display: flex; gap: 6px; padding: 4px 5px 14px; border-bottom: none; background: #eef0f4; border-radius: 999px; margin: 0 0 14px; }
   .anim-speed-btn { flex: 1; padding: 10px 4px; font-size: 16px; font-weight: 700; border: none; border-radius: 999px; background: transparent; color: #6b7280; cursor: pointer; transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease; margin-top: 4px; }
   .anim-speed-btn.selected { background: linear-gradient(135deg, #4d94ff, #0052cc); color: #fff; box-shadow: 0 4px 14px rgba(0,82,204,0.4); }
@@ -1938,14 +1939,15 @@ function renderAnimPickerList() {
   const displayList = noneItem
     ? [noneItem, ...selectedItems, ...remainingItems]
     : [...selectedItems, ...remainingItems];
-  displayList.forEach((a) => {
+  displayList.forEach((a, listIdx) => {
     const row = document.createElement("div");
     const selectedIndex = currentAnimSelections.indexOf(a.id);
     const isSelected = a.id === "none" ? currentAnimSelections.length === 0 : selectedIndex !== -1;
     row.className = "anim-pick-row" + (isSelected ? " selected" : "");
     const previewCls = a.id === "none" ? "anim-pick-preview" : ("anim-pick-preview la-" + a.id);
     const orderBadge = (a.id !== "none" && selectedIndex !== -1) ? `<span class="anim-pick-order">${selectedIndex + 1}</span>` : "";
-    row.innerHTML = `<span class="anim-pick-center">${orderBadge}<span class="${previewCls}">Aa</span></span>`;
+    const serialLabel = `<span class="anim-pick-serial">${listIdx + 1}</span>`;
+    row.innerHTML = `${serialLabel}<span class="anim-pick-center">${orderBadge}<span class="${previewCls}">Aa</span></span>`;
     row.addEventListener("click", () => {
       if (a.id === "none") {
         currentAnimSelections = [];
