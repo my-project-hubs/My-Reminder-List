@@ -1,0 +1,2540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="build-id" content="2026-08-04-45">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Reminders</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { overflow-x: hidden; }
+  body {
+    background: #08080f;
+    color: #000000;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.5;
+    padding: 70px 20px 80px;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .header-date { font-size: var(--header-size, 19px); color: var(--header-color, #000000); font-family: var(--header-font, inherit); font-weight: var(--header-weight, 400); margin-bottom: 28px; }
+  .event { margin-bottom: 16px; position: relative; overflow: hidden; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.3); border-radius: 22px; padding: 16px 18px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); animation: cardBorderGlow 3s ease-in-out infinite; }
+  /* Any animation assigned to a reminder wraps the whole card in a div that
+     carries the animation's own class (see renderEvents in the script below).
+     Several animation classes set display:inline-block, which is fine for a
+     small text label but shrinks a full-width card to fit its content and
+     breaks the box shape. Forcing the wrapper back to a full-width block
+     keeps every card's box the same size no matter which animation (if any)
+     is assigned to it — including any reminders added in the future. */
+  .la-event-wrap { display: block !important; width: 100% !important; margin-bottom: 16px; }
+  .la-event-wrap .event { margin-bottom: 0; }
+  @keyframes cardBorderGlow {
+    0%, 100% { box-shadow: 0 8px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.15), 0 0 10px rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.3); }
+    50% { box-shadow: 0 8px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.22), 0 0 22px rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.5); }
+  }
+  .event-name { color: var(--name-color, #000000); font-size: var(--name-size, 20px); font-family: var(--name-font, inherit); font-weight: var(--name-weight, 400); margin-bottom: 10px; line-height: 1.15; }
+  .alerts-page-title { text-align: center; color: var(--title-color, #b266b2); font-size: var(--title-size, 26px); font-family: var(--title-font, inherit); font-weight: var(--title-weight, 700); }
+  .alerts-page-title-row { display: flex; align-items: center; justify-content: center; gap: 6px; margin: -42px 0 40px; }
+  .header-line-group { display: inline-flex; align-items: baseline; gap: 4px; }
+  .line-wrap { position: relative; display: inline-flex; align-items: baseline; }
+  .line-wrap.actions-visible .event-actions { opacity: 1; pointer-events: auto; }
+  .line-wrap .event-actions { top: 100%; left: 50%; transform: translate(-50%, 8px); flex-wrap: wrap; justify-content: center; max-width: min(88vw, 320px); row-gap: 10px; }
+  .header-move-btn { color: #555555; margin-left: 4px; padding-left: 12px !important; border-left: 1px solid #e5e5e5; }
+  .event-countdown { color: var(--countdown-color, #ff0000); font-size: var(--countdown-size, 26px); font-family: var(--countdown-font, inherit); font-weight: var(--countdown-weight, 700); margin-bottom: 10px; line-height: 1.1; }
+  .event-date { color: var(--date-color, #000000); font-size: var(--date-size, 15px); font-family: var(--date-font, inherit); font-weight: var(--date-weight, 400); line-height: 1.1; }
+  #list-alerts { display: flex; flex-direction: column; align-items: center; max-width: none; margin: 0 auto; width: 100%; }
+  #list-alerts .event { text-align: left; width: 100%; }
+  #list-alerts .event.event-gas { text-align: left; width: 100%; }
+  #list-data { display: flex; flex-direction: column; align-items: flex-start; width: 100%; }
+  #list-data .event { text-align: left; width: 100%; }
+  .empty-state { color: #555; font-size: 16px; margin-top: 12px; text-align: center; width: 100%; }
+  .alert-empty-center { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #555; font-size: 16px; text-align: center; width: 100%; }
+  .refreshing-state { position: fixed; top: calc(50% - 96px); left: 50%; transform: translate(-50%, -50%); color: #555; font-size: 22px; text-align: center; width: 100%; }
+  .dots-bold { font-weight: bold; color: #000; }
+  .loading { color: #555; text-align: center; width: 100%; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  #page-alerts, #page-data {
+    padding-top: 50px;
+  }
+  #page-data {
+    padding-top: 28px;
+  }
+  #page-alerts .header-date, #page-data .header-date {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: var(--page-bg, #08080f);
+    z-index: 20;
+    padding: 8px 20px 0px 20px;
+    margin: 0 auto;
+    max-width: 640px;
+  }
+  .header-date-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: 8px;
+    position: relative;
+    transform: translate(var(--header-offset-x, 0px), var(--header-offset-y, 0px));
+  }
+  .line-style-popup {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translate(-50%, 8px);
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.28);
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    max-width: min(92vw, 360px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+    z-index: 25;
+  }
+  .line-style-wrap.actions-visible .line-style-popup { opacity: 1; pointer-events: auto; }
+  .line-style-popup button { background: none; border: none; cursor: pointer; padding: 4px; line-height: 1; display: flex; align-items: center; justify-content: center; color: #555555; }
+  .line-style-popup button svg { width: 20px; height: 20px; }
+
+  .settings-overlay { display: none; position: fixed; inset: 0; background: radial-gradient(circle at 50% 20%, rgba(20,35,70,0.5), rgba(8,10,16,0.72)); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 30; align-items: flex-end; justify-content: center; animation: overlayFadeIn 0.2s ease; }
+  @keyframes overlayFadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .settings-overlay.open { display: flex; }
+  #addReminderOverlay { align-items: center; }
+  #settingsOverlay { align-items: center; }
+  #settingsOverlay .settings-panel { border-radius: 28px; max-height: 85vh; }
+  #addReminderOverlay .settings-panel { border-radius: 28px; }
+  .settings-panel {
+    background: linear-gradient(180deg, #ffffff 0%, #f7f7fb 100%);
+    width: 100%;
+    max-width: 640px;
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: 28px 28px 0 0;
+    padding: 22px 20px 24px;
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.6) inset;
+    position: relative;
+    animation: panelSlideUp 0.25s cubic-bezier(.25,.9,.35,1.15);
+  }
+  @keyframes panelSlideUp { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .settings-panel::before {
+    content: "";
+    position: absolute;
+    top: 8px; left: 50%;
+    transform: translateX(-50%);
+    width: 40px; height: 4px;
+    border-radius: 999px;
+    background: #e2e3ea;
+  }
+  .settings-title { display: flex; justify-content: space-between; align-items: center; font-size: 20px; font-weight: 800; margin: 6px 0 18px; color: #14151a; letter-spacing: -0.2px; }
+  .settings-title button { background: #f0f1f5; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 15px; cursor: pointer; color: #555; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(20,20,30,0.08); transition: background 0.15s ease, transform 0.1s ease; }
+  .settings-title button:active { transform: scale(0.9); background: #e4e5ea; }
+  .settings-page-tabs { display: flex; gap: 6px; margin-bottom: 18px; justify-content: center; background: #eef0f4; padding: 5px; border-radius: 999px; }
+  .cfgtab { flex: 0 0 auto; padding: 9px 18px; border-radius: 999px; border: none; background: transparent; color: #6b7280; font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease; }
+  .cfgtab.active { background: linear-gradient(135deg, #4d94ff, #0052cc); color: #ffffff; box-shadow: 0 4px 14px rgba(0,82,204,0.4); }
+  .settings-row { background: #ffffff; border: 1px solid #f0f0f4; border-radius: 18px; padding: 16px 16px; margin-bottom: 12px; box-shadow: 0 2px 10px rgba(20,20,30,0.05); transition: box-shadow 0.2s ease; }
+  .settings-row-label { font-weight: 800; font-size: 15px; letter-spacing: 0.8px; text-transform: uppercase; color: #000000; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .settings-row-label::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: linear-gradient(135deg, #4d94ff, #0052cc); flex: none; }
+  .settings-row-label-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .settings-row-label-flex .settings-row-label { margin-bottom: 0; }
+  .settings-row-close { background: #f0f1f5; border: none; width: 28px; height: 28px; border-radius: 50%; font-size: 15px; font-weight: 700; cursor: pointer; color: #333; padding: 0; line-height: 1; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(20,20,30,0.08); }
+  .settings-controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: center; }
+  .settings-controls label { font-size: 14px; font-weight: 700; color: #000000; display: block; margin-bottom: 7px; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; }
+  .settings-controls label.lbl-sm { font-size: 14px; }
+  .settings-field { display: flex; flex-direction: column; align-items: center; }
+  .settings-field input[type="number"] { width: 64px; padding: 9px; border: 1.5px solid #ececf1; background: #f7f8fa; border-radius: 12px; font-size: 19px; font-weight: 600; color: #14151a; text-align: center; transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease; }
+  .settings-field input[type="number"]:focus { outline: none; border-color: #0052cc; background: #ffffff; box-shadow: 0 0 0 4px rgba(0,82,204,0.1); }
+  .settings-field select { padding: 9px 10px; border: 1.5px solid #ececf1; background: #f7f8fa; border-radius: 12px; max-width: 140px; font-size: 15px; font-weight: 600; color: #14151a; }
+  .color-combo { display: flex; gap: 6px; align-items: center; justify-content: center; }
+  .color-combo input[type="color"] { width: 38px; height: 38px; padding: 0; border: 3px solid #ffffff; border-radius: 50%; box-shadow: 0 0 0 1.5px #ececf1, 0 3px 8px rgba(0,0,0,0.14); cursor: pointer; transition: transform 0.15s ease; }
+  .color-combo input[type="color"]:active { transform: scale(0.92); }
+  .settings-field-bold { display: flex; flex-direction: column; align-items: center; }
+  .settings-field-bold input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 46px;
+    height: 27px;
+    background: #e2e3ea;
+    border-radius: 999px;
+    position: relative;
+    cursor: pointer;
+    outline: none;
+    margin-top: 7px;
+    transition: background 0.25s ease, box-shadow 0.25s ease;
+  }
+  .settings-field-bold input[type="checkbox"]::before {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 21px;
+    height: 21px;
+    background: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+    transition: transform 0.25s cubic-bezier(.4,1.6,.5,1);
+  }
+  .settings-field-bold input[type="checkbox"]:checked { background: linear-gradient(135deg, #4d94ff, #0052cc); box-shadow: 0 2px 8px rgba(0,82,204,0.35); }
+  .settings-field-bold input[type="checkbox"]:checked::before { transform: translateX(19px); }
+  .settings-actions { display: flex; gap: 10px; margin-top: 18px; }
+  .settings-actions button { flex: 1; padding: 15px; border-radius: 16px; border: none; font-size: 17px; font-weight: 800; cursor: pointer; letter-spacing: 0.2px; transition: transform 0.12s ease, box-shadow 0.12s ease; }
+  .settings-actions button:active { transform: scale(0.97); }
+  .settings-apply { background: linear-gradient(135deg, #4d94ff, #0052cc); color: #ffffff; box-shadow: 0 6px 18px rgba(0,82,204,0.4); }
+  .settings-reset { background: #eef0f4; color: #4b5160; }
+  .sync-status { position: fixed; top: 18px; left: 16px; font-size: 11px; color: #ffffff; z-index: 15; opacity: 0.85; }
+
+  .page-toggle-btn, .settings-icon, .add-icon-btn, .anim-control-icon {
+    background: rgba(54,56,68,0.6);
+    border: 1px solid rgba(255,255,255,0.14);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 50%;
+  }
+  .page-toggle-btn:active, .settings-icon:active, .add-icon-btn:active, .anim-control-icon:active {
+    background: rgba(70,72,86,0.7);
+  }
+
+  .page-toggle-btn {
+    position: fixed;
+    top: 50%;
+    right: 14px;
+    transform: translateY(calc(-50% - 96px));
+    color: #ffffff;
+    padding: 0;
+    width: 56px;
+    height: 56px;
+    font-size: 22px;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 15;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    pointer-events: auto;
+    transition: opacity 0.15s ease, background 0.15s ease;
+  }
+  .page-toggle-btn:active { opacity: 0.85; }
+  .page-toggle-btn .toggle-icon {
+    display: inline-block;
+    transition: transform 0.4s ease;
+  }
+
+  .settings-icon {
+    position: fixed;
+    top: 50%;
+    right: 14px;
+    transform: translateY(calc(-50% - 32px));
+    color: #ffffff;
+    width: 56px;
+    height: 56px;
+    font-size: 22px;
+    cursor: pointer;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.15s ease, background 0.15s ease;
+  }
+  .settings-icon:active { opacity: 0.85; }
+
+  #animationOverlay { align-items: center; }
+  #animationOverlay .settings-panel { border-radius: 26px; height: calc(100vh - 2in); max-height: calc(100vh - 2in); width: 94%; max-width: 620px; margin: 0; display: flex; flex-direction: column; background: linear-gradient(180deg, #ffffff 0%, #f7f7fb 100%); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+  #animationOverlay .settings-title span { color: #14151a; font-weight: 800; font-size: 22px; letter-spacing: -0.2px; }
+  #animationOverlay .settings-title button { color: #333; }
+  #animationOverlay .settings-actions { margin-top: 0; justify-content: center; border-top: none; padding-top: 14px; }
+  #animationOverlay .settings-actions button { flex: none; width: 60%; }
+  .settings-title-actions { display: flex; align-items: center; gap: 20px; }
+  .anim-fav-shortcut-btn { background: none !important; border: none !important; box-shadow: none !important; width: auto !important; height: auto !important; border-radius: 0 !important; font-size: 26px !important; padding: 0 !important; margin-right: 64px !important; color: #ffb400 !important; text-shadow: 0 1px 3px rgba(255,180,0,0.35); }
+  .anim-fav-shortcut-btn:active { transform: scale(0.88); background: none !important; }
+
+  #animFavoritesOverlay { align-items: center; }
+  #animFavoritesOverlay .settings-panel { border-radius: 26px; max-height: 70vh; width: 94%; max-width: 620px; margin: 0; display: flex; flex-direction: column; background: linear-gradient(180deg, #ffffff 0%, #f7f7fb 100%); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+  #animFavoritesOverlay .settings-title span { color: #14151a; font-weight: 800; font-size: 21px; letter-spacing: -0.2px; }
+  #animFavoritesOverlay .settings-title button { color: #333; }
+
+  .anim-picker-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding: 4px 2px 10px; gap: 8px; }
+  .anim-pick-row { display: flex; align-items: center; justify-content: center; padding: 18px 16px; background: #ffffff; border: 1px solid #f0f0f4; border-radius: 16px; box-shadow: 0 2px 8px rgba(20,20,30,0.05); cursor: pointer; transition: box-shadow 0.15s ease, border-color 0.15s ease; position: relative; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+  .anim-pick-row.selected { background: linear-gradient(135deg, #f2f7ff, #ffffff); border-color: #0052cc; box-shadow: 0 4px 14px rgba(0,82,204,0.15); }
+  .anim-pick-order { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, #4d94ff, #0052cc); color: #fff; font-size: 12px; font-weight: 700; margin-right: 10px; flex: none; box-shadow: 0 2px 6px rgba(0,82,204,0.35); }
+  .anim-pick-serial { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 27px; font-weight: 700; color: #9a9ea6; flex: none; }
+  .anim-pick-fav-star { position: absolute; top: 6px; left: 8px; font-size: 13px; color: #ffb400; line-height: 1; }
+  .anim-pick-section-label { text-align: center; color: #9a9ea6; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; padding: 6px 4px 0; }
+  .anim-pick-checkmark { position: absolute; top: 8px; right: 10px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid #c7cad2; background: #ffffff; display: none; align-items: center; justify-content: center; font-size: 12px; color: #ffffff; font-weight: 800; flex: none; }
+  .anim-picker-list.manage-active .anim-pick-checkmark { display: flex; }
+  .anim-pick-row.manage-selected { background: linear-gradient(135deg, #fff8e6, #ffffff); border-color: #d99b00; box-shadow: 0 4px 14px rgba(217,155,0,0.2); }
+  .anim-pick-row.manage-selected .anim-pick-checkmark { background: linear-gradient(135deg, #ffcf40, #d99b00); border-color: #d99b00; }
+  .anim-manage-toolbar { position: absolute; left: 50%; bottom: 78px; transform: translate(-50%, 10px); background: #14151a; color: #ffffff; border-radius: 999px; box-shadow: 0 10px 28px rgba(0,0,0,0.4); padding: 6px 8px; display: flex; align-items: center; gap: 4px; opacity: 0; pointer-events: none; transition: opacity 0.18s ease, transform 0.18s ease; z-index: 40; max-width: 92%; }
+  .anim-manage-toolbar.open { opacity: 1; pointer-events: auto; transform: translate(-50%, 0); }
+  .anim-manage-toolbar .amt-count { font-size: 12px; font-weight: 700; padding: 0 8px; color: #babdc4; white-space: nowrap; }
+  .anim-manage-toolbar button { border: none; background: rgba(255,255,255,0.12); color: #ffffff; font-size: 13px; font-weight: 700; padding: 9px 14px; border-radius: 999px; cursor: pointer; white-space: nowrap; transition: background 0.15s ease; }
+  .anim-manage-toolbar button:active { background: rgba(255,255,255,0.24); }
+  .anim-manage-toolbar .amt-fav { color: #ffd23f; }
+  .anim-manage-toolbar .amt-delete { color: #ff6b6b; }
+  .anim-manage-toolbar .amt-cancel { background: none; color: #9a9ea6; padding: 9px 10px; }
+
+  #animControlOverlay { align-items: center; }
+  #animControlOverlay .settings-panel { border-radius: 26px; height: calc(100vh - 2in); max-height: calc(100vh - 2in); width: 94%; max-width: 620px; margin: 0; display: flex; flex-direction: column; background: linear-gradient(180deg, #ffffff 0%, #f7f7fb 100%); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+  #animControlOverlay .settings-title span { color: #14151a; font-weight: 800; font-size: 19px; letter-spacing: -0.2px; }
+  #animControlOverlay .settings-title button { color: #333; }
+  .anim-control-list-wrap { flex: 1; overflow-y: auto; text-align: center; padding: 4px 2px 10px; }
+  .anim-control-group-title { position: sticky; top: 0; display: inline-block; margin: 10px auto 14px; background: linear-gradient(135deg, #4d94ff, #0052cc); color: #ffffff; font-weight: 800; font-size: 15px; text-transform: uppercase; letter-spacing: 0.8px; padding: 9px 24px; border-radius: 999px; box-shadow: 0 4px 14px rgba(0,82,204,0.35); }
+  .anim-control-row { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; background: #ffffff; border: 1px solid #f0f0f4; border-radius: 16px; box-shadow: 0 2px 8px rgba(20,20,30,0.05); cursor: pointer; gap: 10px; margin: 0 0 8px; text-align: left; transition: box-shadow 0.15s ease, transform 0.1s ease; }
+  .anim-control-row:active { background: #fafafa; transform: scale(0.99); }
+  .anim-control-row-name { font-size: 17px; font-weight: 600; color: #14151a; display: flex; align-items: center; }
+  .anim-control-row-arrow { color: #c7cad2; font-size: 22px; }
+  .anim-active-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 4px rgba(34,197,94,0.7); margin-right: 8px; flex: none; }
+  .anim-pick-hint { text-align: center; color: #9a9ea6; font-size: 12px; font-weight: 600; padding: 8px 6px 4px; }
+  .anim-pick-center { display: flex; align-items: center; justify-content: center; width: 100%; }
+  .anim-pick-preview { font-size: 47px; font-weight: 700; color: #0052cc; text-align: center; }
+  .anim-speed-row { display: flex; gap: 6px; padding: 4px 5px 14px; border-bottom: none; background: #eef0f4; border-radius: 999px; margin: 0 0 14px; }
+  .anim-speed-btn { flex: 1; padding: 10px 4px; font-size: 16px; font-weight: 700; border: none; border-radius: 999px; background: transparent; color: #6b7280; cursor: pointer; transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease; margin-top: 4px; }
+  .anim-speed-btn.selected { background: linear-gradient(135deg, #4d94ff, #0052cc); color: #fff; box-shadow: 0 4px 14px rgba(0,82,204,0.4); }
+
+  #header-alerts-left, #header-data-left, #header-data-right, #alertTitleText, .anim-pick-preview { display: inline-block; }
+
+  :root { --la-speed: 1; }
+
+  /* 1-10: Entrance / Reveal (looped so the preview keeps demonstrating) */
+  @keyframes k1 { 0%,40%{transform:scale(1);} 50%{transform:scale(1.3);} 62%{transform:scale(0.9);} 72%{transform:scale(1.08);} 82%,100%{transform:scale(1);} }
+  .la-1 { animation: k1 2.6s ease-in-out infinite; animation-duration: calc(2.6s / var(--la-speed, 1)); }
+  @keyframes k2 { 0%,50%{filter:blur(0);opacity:1;} 55%{filter:blur(6px);opacity:0.3;} 70%{filter:blur(0);opacity:1;} 100%{filter:blur(0);opacity:1;} }
+  .la-2 { animation: k2 3s ease-in-out infinite; animation-duration: calc(3s / var(--la-speed, 1)); }
+  @keyframes k3 { 0%,50%{clip-path:inset(0 0 0 0);} 52%{clip-path:inset(0 100% 0 0);} 75%{clip-path:inset(0 0 0 0);} 100%{clip-path:inset(0 0 0 0);} }
+  .la-3 { animation: k3 3.2s ease-in-out infinite; animation-duration: calc(3.2s / var(--la-speed, 1)); }
+  @keyframes k4 { 0%,45%{letter-spacing:normal;opacity:1;} 55%{letter-spacing:6px;opacity:0.4;} 75%{letter-spacing:normal;opacity:1;} 100%{letter-spacing:normal;opacity:1;} }
+  .la-4 { animation: k4 2.8s ease-in-out infinite; animation-duration: calc(2.8s / var(--la-speed, 1)); }
+  @keyframes k5 { 0%,50%{transform:translateX(0);} 58%{transform:translateX(-18px);} 68%{transform:translateX(6px);} 78%{transform:translateX(-3px);} 88%,100%{transform:translateX(0);} }
+  .la-5 { animation: k5 2.8s ease-in-out infinite; animation-duration: calc(2.8s / var(--la-speed, 1)); }
+  @keyframes k6 { 0%,45%{transform:perspective(400px) rotateY(0deg);} 55%{transform:perspective(400px) rotateY(90deg);} 70%{transform:perspective(400px) rotateY(0deg);} 100%{transform:perspective(400px) rotateY(0deg);} }
+  .la-6 { animation: k6 3s ease-in-out infinite; animation-duration: calc(3s / var(--la-speed, 1)); }
+  @keyframes k7 { 0%,50%{transform:translateX(0);} 56%{transform:translateX(6px);} 62%{transform:translateX(-4px);} 68%{transform:translateX(2px);} 74%,100%{transform:translateX(0);} }
+  .la-7 { animation: k7 2.4s ease-in-out infinite; animation-duration: calc(2.4s / var(--la-speed, 1)); }
+  @keyframes k8 { 0%,45%{clip-path:inset(0 0 0 0);} 50%{clip-path:inset(100% 0 0 0);} 72%{clip-path:inset(0 0 0 0);} 100%{clip-path:inset(0 0 0 0);} }
+  .la-8 { animation: k8 3.2s ease-in-out infinite; animation-duration: calc(3.2s / var(--la-speed, 1)); }
+  @keyframes k9 { 0%,48%{transform:translate(0,0);filter:hue-rotate(0deg);} 50%{transform:translate(-2px,1px);} 52%{transform:translate(2px,-1px);} 54%{transform:translate(-1px,0);filter:hue-rotate(90deg);} 56%,100%{transform:translate(0,0);filter:hue-rotate(0deg);} }
+  .la-9 { animation: k9 2.6s ease-in-out infinite; animation-duration: calc(2.6s / var(--la-speed, 1)); }
+  @keyframes k10 { 0%,50%{transform:skewY(0deg) scale(1);} 58%{transform:skewY(-6deg) scale(1.05);} 68%{transform:skewY(3deg) scale(0.98);} 78%,100%{transform:skewY(0deg) scale(1);} }
+  .la-10 { animation: k10 3s ease-in-out infinite; animation-duration: calc(3s / var(--la-speed, 1)); }
+
+  /* 11-20: Loop / Idle */
+  .la-11 { background: linear-gradient(90deg,#ff3d7f,#ffb347,#fff36b,#6bffb0,#4dd9ff,#b86bff,#ff3d7f); background-size:300% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent; animation: shineSweep50 3.2s linear infinite; animation-duration: calc(3.2s / var(--la-speed, 1)); }
+  @keyframes shineSweep50 { 0%{background-position:0% 50%;} 100%{background-position:300% 50%;} }
+  @keyframes k12 { 0%,100%{text-shadow:0 0 2px rgba(212,0,0,0.2);} 50%{text-shadow:0 0 12px rgba(212,0,0,0.85), 0 0 20px rgba(212,0,0,0.5);} }
+  .la-12 { animation: k12 2.4s ease-in-out infinite; animation-duration: calc(2.4s / var(--la-speed, 1)); }
+  .la-13 { background-image: linear-gradient(90deg,#d40000,#d40000); background-size:200% 3px; background-repeat:no-repeat; background-position:0 100%; animation: k13 2.6s ease-in-out infinite; padding-bottom:3px; animation-duration: calc(2.6s / var(--la-speed, 1)); }
+  @keyframes k13 { 0%{background-position:-100% 100%;} 50%{background-position:0% 100%;} 100%{background-position:100% 100%;} }
+  @keyframes k14 { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-6px);} }
+  .la-14 { animation: k14 2.2s ease-in-out infinite; animation-duration: calc(2.2s / var(--la-speed, 1)); }
+  @keyframes k15 { 0%,19%,21%,55%,58%,100%{opacity:1;} 20%,56%,57%{opacity:0.25;} }
+  .la-15 { animation: k15 2.8s linear infinite; animation-duration: calc(2.8s / var(--la-speed, 1)); }
+  @keyframes k16 { 0%,100%{filter:hue-rotate(0deg) saturate(1);} 50%{filter:hue-rotate(50deg) saturate(1.6);} }
+  .la-16 { animation: k16 3s ease-in-out infinite; animation-duration: calc(3s / var(--la-speed, 1)); }
+  @keyframes k17 { 0%,100%{transform:scale(1) skew(0deg);} 50%{transform:scale(1.06,0.95) skew(-2deg);} }
+  .la-17 { animation: k17 2s ease-in-out infinite; animation-duration: calc(2s / var(--la-speed, 1)); }
+  @keyframes k18 { 0%,100%{text-shadow:6px 0 10px rgba(255,61,127,0.35),-6px 0 10px rgba(77,217,255,0.35);} 50%{text-shadow:-6px 0 10px rgba(255,61,127,0.35),6px 0 10px rgba(77,217,255,0.35);} }
+  .la-18 { animation: k18 3.4s ease-in-out infinite; animation-duration: calc(3.4s / var(--la-speed, 1)); }
+  @keyframes k19 { 0%,100%{text-shadow:2px 0 0 rgba(255,0,60,0.6),-2px 0 0 rgba(0,220,255,0.6);} 50%{text-shadow:-2px 0 0 rgba(255,0,60,0.6),2px 0 0 rgba(0,220,255,0.6);} }
+  .la-19 { animation: k19 1.4s ease-in-out infinite; animation-duration: calc(1.4s / var(--la-speed, 1)); }
+  @keyframes k20 { 0%,100%{transform:skewY(0deg);} 25%{transform:skewY(3deg);} 75%{transform:skewY(-3deg);} }
+  .la-20 { animation: k20 2.2s ease-in-out infinite; animation-duration: calc(2.2s / var(--la-speed, 1)); }
+
+  /* 21-26: Micro-interaction, reinterpreted as gentle repeating loops */
+  .la-21 { position: relative; }
+  .la-21::before { content:""; position:absolute; inset:-6px -10px; border:2px solid #d40000; border-radius:10px; opacity:0; animation: k21 2.2s ease-out infinite; animation-duration: calc(2.2s / var(--la-speed, 1)); }
+  @keyframes k21 { 0%{opacity:0.7; transform:scale(0.9);} 80%{opacity:0;transform:scale(1.3);} 100%{opacity:0;} }
+  @keyframes k22 { 0%,100%{transform:scale(1);} 50%{transform:scale(0.88);} }
+  .la-22 { animation: k22 1.6s ease-in-out infinite; animation-duration: calc(1.6s / var(--la-speed, 1)); }
+  @keyframes k23 { 0%,100%{transform:translateX(0);} 50%{transform:translateX(5px);} }
+  .la-23 { animation: k23 2.4s ease-in-out infinite; animation-duration: calc(2.4s / var(--la-speed, 1)); }
+  @keyframes k24 { 0%,100%{transform:scale(1);filter:saturate(1);} 15%{transform:scale(1.15);filter:saturate(2);} 30%{transform:scale(1);filter:saturate(1);} }
+  .la-24 { animation: k24 2.8s ease-in-out infinite; animation-duration: calc(2.8s / var(--la-speed, 1)); }
+  @keyframes k25 { 0%,100%{transform:translateX(0);} 10%{transform:translateX(-3px);} 20%{transform:translateX(3px);} 30%{transform:translateX(-2px);} 40%{transform:translateX(2px);} 50%{transform:translateX(0);} }
+  .la-25 { animation: k25 2.6s ease-in-out infinite; animation-duration: calc(2.6s / var(--la-speed, 1)); }
+  @keyframes k26 { 0%,100%{transform:scale(1);} 40%{transform:scale(1.18);} 60%{transform:scale(1.18);} }
+  .la-26 { animation: k26 2.8s ease-in-out infinite; animation-duration: calc(2.8s / var(--la-speed, 1)); }
+
+  /* 27-34: Kinetic typography */
+  .la-27 { display:inline-block; overflow:hidden; white-space:nowrap; border-right:2px solid #d40000; animation: k27w 3s steps(14,end) infinite, k27c 0.7s step-end infinite; max-width: 100%; animation-duration: calc(3s / var(--la-speed, 1)), calc(0.7s / var(--la-speed, 1)); }
+  @keyframes k27w { 0%,5%{width:0;} 55%{width:100%;} 100%{width:100%;} }
+  @keyframes k27c { 50% { border-color: transparent; } }
+  @keyframes k28 { 0%,100%{opacity:1;} 45%{opacity:0.15;} 55%{opacity:1;} }
+  .la-28 { animation: k28 2.4s ease-in-out infinite; animation-duration: calc(2.4s / var(--la-speed, 1)); }
+  @keyframes k29 { 0%,100%{letter-spacing:normal;} 50%{letter-spacing:3px;} }
+  .la-29 { animation: k29 2.2s ease-in-out infinite; animation-duration: calc(2.2s / var(--la-speed, 1)); }
+  @keyframes k30 { 0%,100%{font-weight:400;} 50%{font-weight:800;} }
+  .la-30 { animation: k30 2.4s ease-in-out infinite; animation-duration: calc(2.4s / var(--la-speed, 1)); }
+  .la-31 { background-image: linear-gradient(90deg,#000 50%,#bbb 50%); background-size:200% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent; animation: k31 2.4s steps(20,end) infinite; animation-duration: calc(2.4s / var(--la-speed, 1)); }
+  @keyframes k31 { 0%{background-position:100% 0;} 100%{background-position:-100% 0;} }
+  @keyframes k32 { 0%,100%{-webkit-text-stroke:1.4px #d40000; color:transparent; -webkit-text-fill-color:transparent;} 50%{-webkit-text-stroke:0 #d40000; color:#d40000; -webkit-text-fill-color:#d40000;} }
+  .la-32 { animation: k32 2.6s ease-in-out infinite; animation-duration: calc(2.6s / var(--la-speed, 1)); }
+  @keyframes k33 { 0%,100%{filter:blur(0);opacity:1;} 10%{filter:blur(3px);opacity:0.5;} 20%{filter:blur(0);opacity:1;} 30%{filter:blur(2px);opacity:0.6;} 40%{filter:blur(0);opacity:1;} }
+  .la-33 { animation: k33 3s ease-in-out infinite; animation-duration: calc(3s / var(--la-speed, 1)); }
+  @keyframes k34 { 0%,100%{transform:translateY(0);} 25%{transform:translateY(-4px);} 50%{transform:translateY(0);} 75%{transform:translateY(3px);} }
+  .la-34 { animation: k34 1.8s ease-in-out infinite; animation-duration: calc(1.8s / var(--la-speed, 1)); }
+
+  /* 35-38: Glass / Neumorphic */
+  .la-35 { position: relative; overflow: hidden; }
+  .la-35::after { content:""; position:absolute; top:0; left:-60%; width:40%; height:100%; background:linear-gradient(100deg, transparent, rgba(255,255,255,0.85), transparent); animation: k35 2.4s ease-in-out infinite; animation-duration: calc(2.4s / var(--la-speed, 1)); }
+  @keyframes k35 { 0%{left:-60%;} 100%{left:130%;} }
+  @keyframes k36 { 0%,100%{text-shadow:2px 2px 3px rgba(0,0,0,0.25), -2px -2px 3px rgba(255,255,255,0.6);} 50%{text-shadow:-2px -2px 3px rgba(0,0,0,0.25), 2px 2px 3px rgba(255,255,255,0.6);} }
+  .la-36 { animation: k36 2.8s ease-in-out infinite; animation-duration: calc(2.8s / var(--la-speed, 1)); }
+  @keyframes k37 { 0%,100%{filter:blur(0);} 50%{filter:blur(3px);} }
+  .la-37 { animation: k37 3s ease-in-out infinite; animation-duration: calc(3s / var(--la-speed, 1)); }
+  @keyframes k38 { 0%,100%{transform:translateY(0); text-shadow:0 2px 6px rgba(0,0,0,0.15);} 50%{transform:translateY(-3px); text-shadow:0 8px 10px rgba(0,0,0,0.2);} }
+  .la-38 { animation: k38 2.6s ease-in-out infinite; animation-duration: calc(2.6s / var(--la-speed, 1)); }
+
+  /* 39-42: Physics / Spring */
+  @keyframes k39 { 0%,100%{transform:scale(1,1);} 50%{transform:scale(1.2,0.8);} }
+  .la-39 { animation: k39 1.6s cubic-bezier(.4,1.8,.6,1) infinite; animation-duration: calc(1.6s / var(--la-speed, 1)); }
+  @keyframes k40 { 0%,100%{transform:translateY(0);} 30%{transform:translateY(-14px);} 50%{transform:translateY(0);} 65%{transform:translateY(-6px);} 80%{transform:translateY(0);} }
+  .la-40 { animation: k40 2.4s ease-in-out infinite; animation-duration: calc(2.4s / var(--la-speed, 1)); }
+  @keyframes k41 { 0%,100%{transform:skew(0deg,0deg);} 25%{transform:skew(3deg,2deg);} 50%{transform:skew(-2deg,-1deg);} 75%{transform:skew(1deg,1deg);} }
+  .la-41 { animation: k41 2.2s ease-in-out infinite; animation-duration: calc(2.2s / var(--la-speed, 1)); }
+  @keyframes k42 { 0%,100%{transform:rotate(0deg);} 25%{transform:rotate(8deg);} 50%{transform:rotate(0deg);} 75%{transform:rotate(-8deg);} }
+  .la-42 { animation: k42 2.6s ease-in-out infinite; transform-origin: top center; animation-duration: calc(2.6s / var(--la-speed, 1)); }
+
+  /* 43-47: Attention grabbers */
+  .la-43 { position: relative; }
+  .la-43::before { content:""; position:absolute; inset:-8px -12px; border:2px solid #d40000; border-radius:50px; opacity:0.6; animation: k43 1.8s ease-out infinite; animation-duration: calc(1.8s / var(--la-speed, 1)); }
+  @keyframes k43 { 0%{opacity:0.6;transform:scale(0.85);} 100%{opacity:0;transform:scale(1.4);} }
+  @keyframes k44 { 0%,100%{transform:scale(1);} 50%{transform:scale(1.05);} }
+  .la-44 { animation: k44 3.2s ease-in-out infinite; animation-duration: calc(3.2s / var(--la-speed, 1)); }
+  .la-45 { position: relative; }
+  .la-45::after { content:""; position:absolute; inset:-4px -8px; border-radius:8px; border:2px solid transparent; background: linear-gradient(#fff,#fff) padding-box, conic-gradient(from 0deg,#d40000,#ffb347,#4dd9ff,#d40000) border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; animation: k45 2.4s linear infinite; animation-duration: calc(2.4s / var(--la-speed, 1)); }
+  @keyframes k45 { to { transform: rotate(360deg); } }
+  @keyframes k46 { 0%,100%{text-shadow:0 0 0 rgba(212,0,0,0);} 50%{text-shadow:-4px 0 0 rgba(212,0,0,0.25), -8px 0 0 rgba(212,0,0,0.12);} }
+  .la-46 { animation: k46 2s ease-in-out infinite; animation-duration: calc(2s / var(--la-speed, 1)); }
+  @keyframes k47 { 0%,100%{opacity:1;filter:blur(0);} 50%{opacity:0.5;filter:blur(2px);} }
+  .la-47 { animation: k47 2.6s ease-in-out infinite; animation-duration: calc(2.6s / var(--la-speed, 1)); }
+
+  /* 48-50: Color / Gradient motion */
+  @keyframes k48 { 0%,100%{color:#d40000;} 50%{color:#000000;} }
+  .la-48 { animation: k48 2.4s ease-in-out infinite; animation-duration: calc(2.4s / var(--la-speed, 1)); }
+  .la-49 { background: linear-gradient(90deg,#ff3d7f,#ffb347,#4dd9ff,#b86bff,#ff3d7f); background-size:300% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent; animation: k49 5s linear infinite; animation-duration: calc(5s / var(--la-speed, 1)); }
+  @keyframes k49 { 0%{background-position:0% 50%;} 100%{background-position:300% 50%;} }
+  .la-50 { background: linear-gradient(90deg,#ff0080,#ff8c00,#ffdd00,#00e5ff,#7b2ff7,#ff0080); background-size:400% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent; animation: k50 2s linear infinite; animation-duration: calc(2s / var(--la-speed, 1)); }
+  @keyframes k50 { 0%{background-position:0% 50%;} 100%{background-position:400% 50%;} }
+
+  /* 51-60: Trending Text Motion */
+  @keyframes n51 { 0%,100%{box-shadow:0 0 0 rgba(212,0,0,0);} 50%{box-shadow:0 0 14px 4px rgba(212,0,0,0.55);} }
+  .la-51 { animation: n51 2.4s ease-in-out infinite; animation-duration: calc(2.4s / var(--la-speed, 1)); border-radius:6px; }
+  @keyframes n52 { 0%,100%{transform:scale(1) rotate(0deg);} 50%{transform:scale(1.12) rotate(-3deg);} }
+  .la-52 { display:inline-block; animation: n52 2.2s ease-in-out infinite; animation-duration: calc(2.2s / var(--la-speed, 1)); }
+  @keyframes n53 { 0%,100%{text-decoration-color:rgba(212,0,0,0.2);} 50%{text-decoration-color:rgba(212,0,0,1);} }
+  .la-53 { text-decoration:underline; text-decoration-thickness:2px; animation: n53 2.4s ease-in-out infinite; animation-duration: calc(2.4s / var(--la-speed, 1)); }
+  @keyframes n54 { 0%,100%{transform:skewX(0deg) translateY(0);} 30%{transform:skewX(-6deg) translateY(-3px);} 60%{transform:skewX(4deg) translateY(2px);} }
+  .la-54 { display:inline-block; animation: n54 2s ease-in-out infinite; animation-duration: calc(2s / var(--la-speed, 1)); }
+  @keyframes n55 { 0%,100%{opacity:1; transform:translateY(0);} 45%{opacity:0.2; transform:translateY(10px);} 55%{opacity:0.2; transform:translateY(-6px);} }
+  .la-55 { display:inline-block; animation: n55 2.8s ease-in-out infinite; animation-duration: calc(2.8s / var(--la-speed, 1)); }
+  @keyframes n56 { 0%,100%{transform:scale(1); filter:blur(0);} 50%{transform:scale(1.25); filter:blur(2px);} }
+  .la-56 { display:inline-block; animation: n56 2.6s ease-in-out infinite; animation-duration: calc(2.6s / var(--la-speed, 1)); }
+  @keyframes n57 { 0%,100%{transform:perspective(300px) rotateX(0deg);} 50%{transform:perspective(300px) rotateX(35deg);} }
+  .la-57 { display:inline-block; transform-origin:bottom; animation: n57 2.4s ease-in-out infinite; animation-duration: calc(2.4s / var(--la-speed, 1)); }
+  @keyframes n58 { 0%,100%{transform:translateY(0);} 20%{transform:translateY(-8px);} 40%{transform:translateY(0);} 60%{transform:translateY(-4px);} 80%{transform:translateY(0);} }
+  .la-58 { display:inline-block; animation: n58 1.8s ease-in-out infinite; animation-duration: calc(1.8s / var(--la-speed, 1)); }
+  @keyframes n59 { 0%,100%{opacity:1; transform:scale(1);} 50%{opacity:0.55; transform:scale(0.94);} }
+  .la-59 { display:inline-block; animation: n59 3s ease-in-out infinite; animation-duration: calc(3s / var(--la-speed, 1)); }
+  @keyframes n60 { 0%,100%{text-shadow:0 0 0 rgba(0,0,0,0);} 50%{text-shadow:4px 6px 8px rgba(0,0,0,0.3);} }
+  .la-60 { animation: n60 2.6s ease-in-out infinite; animation-duration: calc(2.6s / var(--la-speed, 1)); }
+
+  /* 61-70: Neon & Glow */
+  @keyframes n61 { 0%,3%,6%,9%,100%{opacity:1;} 4%,7%{opacity:0.3;} 5%,8%{opacity:0.7;} }
+  .la-61 { color:#d40000; text-shadow:0 0 8px rgba(212,0,0,0.8); animation: n61 3.2s ease-in-out infinite; animation-duration: calc(3.2s / var(--la-speed, 1)); }
+  .la-62 { position: relative; }
+  .la-62::before { content:""; position:absolute; inset:-8px -14px; border:2px solid #d40000; border-radius:14px; opacity:0; animation: n62 2.6s ease-out infinite; animation-duration: calc(2.6s / var(--la-speed, 1)); }
+  @keyframes n62 { 0%{opacity:0.8;transform:scale(0.8);} 60%{opacity:0;transform:scale(1.5);} 100%{opacity:0;} }
+  @keyframes n63 { 0%,100%{text-shadow:0 0 4px rgba(255,140,0,0.4);} 50%{text-shadow:0 0 18px rgba(255,140,0,0.95), 0 0 28px rgba(255,215,0,0.6);} }
+  .la-63 { animation: n63 2.4s ease-in-out infinite; animation-duration: calc(2.4s / var(--la-speed, 1)); }
+  @keyframes n64 { 0%,100%{text-shadow:0 0 4px rgba(77,217,255,0.3);} 50%{text-shadow:0 0 16px rgba(77,217,255,0.9), 0 0 26px rgba(180,240,255,0.6);} }
+  .la-64 { animation: n64 2.8s ease-in-out infinite; animation-duration: calc(2.8s / var(--la-speed, 1)); }
+  @keyframes n65 { 0%,100%{text-shadow:0 0 5px rgba(255,90,0,0.5);} 30%{text-shadow:0 0 12px rgba(255,140,0,0.9);} 60%{text-shadow:0 0 3px rgba(255,90,0,0.3);} 80%{text-shadow:0 0 15px rgba(255,60,0,0.85);} }
+  .la-65 { animation: n65 2.6s ease-in-out infinite; animation-duration: calc(2.6s / var(--la-speed, 1)); }
+  .la-66 { position: relative; }
+  .la-66::before { content:""; position:absolute; inset:-5px -9px; border-radius:8px; border:2px solid #4dd9ff; opacity:0; animation: n66 1.8s ease-out infinite; animation-duration: calc(1.8s / var(--la-speed, 1)); }
+  @keyframes n66 { 0%{opacity:0.9;transform:scale(0.95);} 100%{opacity:0;transform:scale(1.25);} }
+  @keyframes n67 { 0%,100%{text-shadow:0 0 6px rgba(184,107,255,0.4);} 50%{text-shadow:0 0 20px rgba(184,107,255,0.9), 0 0 32px rgba(123,47,247,0.5);} }
+  .la-67 { animation: n67 3s ease-in-out infinite; animation-duration: calc(3s / var(--la-speed, 1)); }
+  @keyframes n68 { 0%,100%{text-shadow:0 0 3px rgba(255,215,0,0.35);} 50%{text-shadow:0 0 14px rgba(255,215,0,0.95), 0 0 24px rgba(255,235,140,0.6);} }
+  .la-68 { animation: n68 2.4s ease-in-out infinite; animation-duration: calc(2.4s / var(--la-speed, 1)); }
+  @keyframes n69 { 0%,100%{text-shadow:0 0 4px rgba(80,255,120,0.4);} 50%{text-shadow:0 0 16px rgba(80,255,120,0.9), 0 0 26px rgba(160,255,180,0.6);} }
+  .la-69 { animation: n69 2.6s ease-in-out infinite; animation-duration: calc(2.6s / var(--la-speed, 1)); }
+  @keyframes n70 { 0%,100%{text-shadow:0 0 10px rgba(255,0,0,0.6);} 25%{text-shadow:0 0 10px rgba(255,200,0,0.6);} 50%{text-shadow:0 0 10px rgba(0,220,255,0.6);} 75%{text-shadow:0 0 10px rgba(180,0,255,0.6);} }
+  .la-70 { animation: n70 3.6s ease-in-out infinite; animation-duration: calc(3.6s / var(--la-speed, 1)); }
+
+  /* 71-80: 3D & Perspective */
+  @keyframes n71 { 0%,100%{transform:perspective(500px) rotateY(0deg);} 50%{transform:perspective(500px) rotateY(180deg);} }
+  .la-71 { display:inline-block; animation: n71 3.4s ease-in-out infinite; animation-duration: calc(3.4s / var(--la-speed, 1)); }
+  @keyframes n72 { 0%,100%{transform:perspective(500px) rotateX(0deg) rotateY(0deg);} 30%{transform:perspective(500px) rotateX(10deg) rotateY(-12deg);} 60%{transform:perspective(500px) rotateX(-8deg) rotateY(10deg);} }
+  .la-72 { display:inline-block; animation: n72 3s ease-in-out infinite; animation-duration: calc(3s / var(--la-speed, 1)); }
+  @keyframes n73 { 0%,100%{transform:perspective(400px) translateZ(0);} 50%{transform:perspective(400px) translateZ(40px);} }
+  .la-73 { display:inline-block; animation: n73 2.4s ease-in-out infinite; animation-duration: calc(2.4s / var(--la-speed, 1)); }
+  @keyframes n74 { 0%,100%{transform:perspective(400px) rotateZ(0deg);} 25%{transform:perspective(400px) rotateZ(10deg);} 75%{transform:perspective(400px) rotateZ(-10deg);} }
+  .la-74 { display:inline-block; transform-origin:top center; animation: n74 2.8s ease-in-out infinite; animation-duration: calc(2.8s / var(--la-speed, 1)); }
+  @keyframes n75 { 0%,100%{transform:perspective(400px) rotateX(0deg); opacity:1;} 50%{transform:perspective(400px) rotateX(70deg); opacity:0.4;} }
+  .la-75 { display:inline-block; transform-origin:top; animation: n75 2.6s ease-in-out infinite; animation-duration: calc(2.6s / var(--la-speed, 1)); }
+  @keyframes n76 { 0%{transform:rotate(0deg) translateX(3px) rotate(0deg);} 100%{transform:rotate(360deg) translateX(3px) rotate(-360deg);} }
+  .la-76 { display:inline-block; animation: n76 3.2s linear infinite; animation-duration: calc(3.2s / var(--la-speed, 1)); }
+  @keyframes n77 { 0%,100%{transform:perspective(400px) translate3d(0,0,0) rotateY(0);} 50%{transform:perspective(400px) translate3d(8px,-6px,20px) rotateY(-8deg);} }
+  .la-77 { display:inline-block; animation: n77 2.6s ease-in-out infinite; animation-duration: calc(2.6s / var(--la-speed, 1)); }
+  @keyframes n78 { 0%,100%{transform:perspective(400px) rotateY(0deg);} 50%{transform:perspective(400px) rotateY(-25deg);} }
+  .la-78 { display:inline-block; transform-origin:left; animation: n78 2.8s ease-in-out infinite; animation-duration: calc(2.8s / var(--la-speed, 1)); }
+  @keyframes n79 { 0%,100%{transform:perspective(400px) translateY(0) rotateX(0);} 50%{transform:perspective(400px) translateY(-6px) rotateX(6deg);} }
+  .la-79 { display:inline-block; animation: n79 3s ease-in-out infinite; animation-duration: calc(3s / var(--la-speed, 1)); }
+  @keyframes n80 { 0%,100%{transform:rotate(0deg) scale(1);} 50%{transform:rotate(180deg) scale(1.15);} }
+  .la-80 { display:inline-block; animation: n80 3.4s ease-in-out infinite; animation-duration: calc(3.4s / var(--la-speed, 1)); }
+
+  /* 81-90: Glitch & Digital */
+  @keyframes n81 { 0%,100%{text-shadow:0 0 0 transparent;} 48%{text-shadow:-3px 0 red, 3px 0 cyan;} 50%{text-shadow:3px 0 red, -3px 0 cyan;} 52%{text-shadow:0 0 0 transparent;} }
+  .la-81 { animation: n81 2.4s steps(1,end) infinite; animation-duration: calc(2.4s / var(--la-speed, 1)); }
+  .la-82 { position:relative; overflow:hidden; display:inline-block; }
+  .la-82::after { content:""; position:absolute; left:0; top:-100%; width:100%; height:40%; background:linear-gradient(180deg, transparent, rgba(77,217,255,0.5), transparent); animation: n82 2s linear infinite; animation-duration: calc(2s / var(--la-speed, 1)); }
+  @keyframes n82 { 0%{top:-100%;} 100%{top:150%;} }
+  @keyframes n83 { 0%,90%,100%{opacity:1;} 92%{opacity:0.3;} 94%{opacity:1;} 96%{opacity:0.5;} 98%{opacity:1;} }
+  .la-83 { animation: n83 2.8s steps(2,end) infinite; animation-duration: calc(2.8s / var(--la-speed, 1)); }
+  @keyframes n84 { 0%,100%{transform:translate(0,0);} 20%{transform:translate(-1px,1px);} 40%{transform:translate(1px,-1px);} 60%{transform:translate(-1px,-1px);} 80%{transform:translate(1px,1px);} }
+  .la-84 { display:inline-block; animation: n84 0.6s steps(4,end) infinite; animation-duration: calc(0.6s / var(--la-speed, 1)); }
+  @keyframes n85 { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
+  .la-85 { font-family:monospace; animation: n85 0.9s steps(1,end) infinite; animation-duration: calc(0.9s / var(--la-speed, 1)); }
+  @keyframes n86 { 0%,100%{transform:translateX(0) skewX(0deg);} 25%{transform:translateX(-2px) skewX(-3deg);} 50%{transform:translateX(2px) skewX(2deg);} 75%{transform:translateX(-1px) skewX(-1deg);} }
+  .la-86 { display:inline-block; animation: n86 1.2s steps(3,end) infinite; animation-duration: calc(1.2s / var(--la-speed, 1)); }
+  @keyframes n87 { 0%,100%{color:#000; background:transparent;} 50%{color:#fff; background:#000;} }
+  .la-87 { padding:0 2px; animation: n87 1.1s steps(1,end) infinite; animation-duration: calc(1.1s / var(--la-speed, 1)); }
+  @keyframes n88 { 0%,100%{transform:translateY(0) skewX(0deg);} 20%{transform:translateY(1px) skewX(1deg);} 40%{transform:translateY(-1px) skewX(-1deg);} 60%{transform:translateY(1px) skewX(0.5deg);} 80%{transform:translateY(-1px) skewX(-0.5deg);} }
+  .la-88 { display:inline-block; animation: n88 1.6s ease-in-out infinite; animation-duration: calc(1.6s / var(--la-speed, 1)); }
+  @keyframes n89 { 0%,100%{filter:blur(0); opacity:1;} 15%{filter:blur(2px); opacity:0.6;} 30%{filter:blur(0); opacity:1;} }
+  .la-89 { animation: n89 2.2s ease-in-out infinite; animation-duration: calc(2.2s / var(--la-speed, 1)); }
+  @keyframes n90 { 0%,100%{color:#000; text-shadow:0 0 0 rgba(0,255,120,0);} 50%{color:#00ff7a; text-shadow:0 0 10px rgba(0,255,120,0.8);} }
+  .la-90 { animation: n90 2.4s ease-in-out infinite; animation-duration: calc(2.4s / var(--la-speed, 1)); }
+
+  /* 91-100: Gradient & Color Flow */
+  .la-91 { background:linear-gradient(90deg,#ff5f6d,#ffc371,#ff5f6d); background-size:300% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent; animation: n91 3.2s linear infinite; animation-duration: calc(3.2s / var(--la-speed, 1)); }
+  @keyframes n91 { 0%{background-position:0% 50%;} 100%{background-position:300% 50%;} }
+  .la-92 { background:linear-gradient(90deg,#00c6ff,#0072ff,#00c6ff); background-size:300% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent; animation: n92 3.4s linear infinite; animation-duration: calc(3.4s / var(--la-speed, 1)); }
+  @keyframes n92 { 0%{background-position:0% 50%;} 100%{background-position:300% 50%;} }
+  .la-93 { background:linear-gradient(90deg,#ff0000,#ff8c00,#ffd700,#ff8c00,#ff0000); background-size:400% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent; animation: n93 2.2s linear infinite; animation-duration: calc(2.2s / var(--la-speed, 1)); }
+  @keyframes n93 { 0%{background-position:0% 50%;} 100%{background-position:400% 50%;} }
+  .la-94 { background:linear-gradient(90deg,#ff9ecd,#a0c4ff,#caffbf,#ff9ecd); background-size:300% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent; animation: n94 4s linear infinite; animation-duration: calc(4s / var(--la-speed, 1)); }
+  @keyframes n94 { 0%{background-position:0% 50%;} 100%{background-position:300% 50%;} }
+  .la-95 { background:linear-gradient(100deg,#8e8e8e 20%,#fff 40%,#8e8e8e 60%); background-size:250% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent; animation: n95 2.6s linear infinite; animation-duration: calc(2.6s / var(--la-speed, 1)); }
+  @keyframes n95 { 0%{background-position:0% 50%;} 100%{background-position:250% 50%;} }
+  .la-96 { background:linear-gradient(90deg,#4b0082,#9400d3,#00bfff,#4b0082); background-size:300% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent; animation: n96 4.5s linear infinite; animation-duration: calc(4.5s / var(--la-speed, 1)); }
+  @keyframes n96 { 0%{background-position:0% 50%;} 100%{background-position:300% 50%;} }
+  .la-97 { background:linear-gradient(90deg,#00b09b,#96c93d,#00b09b); background-size:300% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent; animation: n97 3s linear infinite; animation-duration: calc(3s / var(--la-speed, 1)); }
+  @keyframes n97 { 0%{background-position:0% 50%;} 100%{background-position:300% 50%;} }
+  @keyframes n98 { 0%,100%{color:#ff3d7f;} 25%{color:#ffb347;} 50%{color:#4dd9ff;} 75%{color:#b86bff;} }
+  .la-98 { animation: n98 3.6s ease-in-out infinite; animation-duration: calc(3.6s / var(--la-speed, 1)); }
+  @keyframes n99 { 0%,100%{color:#d40000; text-shadow:2px 0 0 rgba(0,0,0,0.15);} 50%{color:#000; text-shadow:-2px 0 0 rgba(212,0,0,0.4);} }
+  .la-99 { animation: n99 2.6s ease-in-out infinite; animation-duration: calc(2.6s / var(--la-speed, 1)); }
+  .la-100 { position: relative; }
+  .la-100::after { content:""; position:absolute; inset:-4px -8px; border-radius:8px; border:2px solid transparent; background: linear-gradient(#fff,#fff) padding-box, conic-gradient(from 90deg,#ff5f6d,#ffc371,#00c6ff,#a367fc,#ff5f6d) border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; animation: n100 3s linear infinite; animation-duration: calc(3s / var(--la-speed, 1)); }
+  @keyframes n100 { to { transform: rotate(360deg); } }
+
+  /* 101-103: newly requested styles */
+  @keyframes k101 { 0%{transform:perspective(500px) rotateY(0deg);} 100%{transform:perspective(500px) rotateY(360deg);} }
+  .la-101 { display:inline-block; animation: k101 2.4s linear infinite; animation-duration: calc(2.4s / var(--la-speed, 1)); }
+  @keyframes k102 { 0%,100%{transform:translateY(0);} 25%{transform:translateY(-6px);} 50%{transform:translateY(0);} 75%{transform:translateY(6px);} }
+  .la-102 { display:inline-block; animation: k102 1.8s ease-in-out infinite; animation-duration: calc(1.8s / var(--la-speed, 1)); }
+  @keyframes k103 { 0%,45%{clip-path:inset(0 50% 0 50%); opacity:0;} 55%{clip-path:inset(0 0 0 0); opacity:1;} 100%{clip-path:inset(0 0 0 0); opacity:1;} }
+  .la-103 { display:inline-block; animation: k103 2.6s ease-in-out infinite; animation-duration: calc(2.6s / var(--la-speed, 1)); }
+
+  .add-icon-btn {
+    position: fixed;
+    top: 50%;
+    right: 14px;
+    transform: translateY(calc(-50% - 160px));
+    color: #ffffff;
+    padding: 0;
+    width: 56px;
+    height: 56px;
+    font-size: 26px;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: opacity 0.15s ease, background 0.15s ease;
+  }
+  .add-icon-btn:active { opacity: 0.85; }
+
+  .anim-control-icon {
+    position: fixed;
+    top: 50%;
+    right: 14px;
+    transform: translateY(calc(-50% - 224px));
+    color: #ffffff;
+    width: 56px;
+    height: 56px;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.15s ease, background 0.15s ease;
+  }
+  .anim-control-icon:active { opacity: 0.85; }
+
+  .add-field-row { display: flex; }
+  .add-field-row input[type="text"] { flex: 1; padding: 13px 14px; border: 1.5px solid #ececf1; background: #f7f8fa; border-radius: 14px; font-size: 17px; font-weight: 600; color: #14151a; transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease; }
+  .add-field-row input[type="text"]:focus { outline: none; border-color: #0052cc; background: #ffffff; box-shadow: 0 0 0 4px rgba(0,82,204,0.1); }
+  .add-field-row input[type="number"] { width: 100px; padding: 13px; border: 1.5px solid #ececf1; background: #f7f8fa; border-radius: 14px; font-size: 17px; font-weight: 600; color: #14151a; }
+  .add-alert-type-row { align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
+  .add-date-counter-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .date-input-small { width: 165px; padding: 13px; border: 1.5px solid #ececf1; background: #f7f8fa; border-radius: 14px; font-size: 16px; font-weight: 600; color: #14151a; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+  .date-input-small:focus { outline: none; border-color: #0052cc; background: #ffffff; box-shadow: 0 0 0 4px rgba(0,82,204,0.1); }
+  .date-col { display: flex; flex-direction: column; }
+  .alert-col { display: flex; flex-direction: column; }
+  .alert-col input[type="number"] { width: 70px; padding: 13px; border: 1.5px solid #ececf1; background: #f7f8fa; border-radius: 14px; font-size: 17px; font-weight: 600; color: #14151a; text-align: center; }
+  .counter-col { display: flex; flex-direction: column; align-items: flex-start; }
+  .add-type-group { display: flex; align-items: center; gap: 8px; background: #eef0f4; padding: 4px; border-radius: 999px; }
+  .add-type-group-vertical { flex-direction: column; align-items: stretch; gap: 4px; }
+  .add-type-row { gap: 20px; align-items: center; }
+  .add-type-group label, .add-alert-type-row label { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: #6b7280; padding: 8px 14px; border-radius: 999px; cursor: pointer; transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease; white-space: nowrap; }
+  .add-type-group label:has(input:checked) { background: linear-gradient(135deg, #4d94ff, #0052cc); color: #ffffff; box-shadow: 0 3px 10px rgba(0,82,204,0.35); }
+  .add-type-row input[type="radio"], .add-alert-type-row input[type="radio"], .add-type-group input[type="radio"] { width: 0; height: 0; opacity: 0; position: absolute; }
+  .event-actions { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: row; align-items: center; gap: 16px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.28); padding: 10px 16px; opacity: 0; pointer-events: none; transition: opacity 0.15s ease; z-index: 12; }
+  .event.actions-visible .event-actions { opacity: 1; pointer-events: auto; }
+  .event-actions button { background: none; border: none; cursor: pointer; padding: 4px; line-height: 1; display: flex; align-items: center; justify-content: center; }
+  .event-actions button svg { width: 20px; height: 20px; }
+  .event-edit-btn { color: #555555; }
+  .event-delete-btn { color: #555555; }
+  .event-anim-btn { color: #555555; }
+  .event-move-up-btn, .event-move-down-btn { color: #555555; }
+  .event-action-disabled { opacity: 0.25; cursor: default; pointer-events: none; }
+  .settings-controls:has(#header-size), .settings-controls:has(#title-size), .settings-controls:has(#name-size), .settings-controls:has(#countdown-size), .settings-controls:has(#date-size) { justify-content: space-between; }
+  .settings-controls:has(#page-bg-color) { justify-content: flex-start; }
+  .settings-controls:has(#page-bg-color) .settings-field { align-items: flex-start; }
+  .settings-controls:has(#page-bg-color) label { text-align: left; }
+
+  /* Gas Cylinder graphic */
+  .gas-row{ display:flex; align-items:center; justify-content:space-between; gap:14px; width:100%; }
+  .gas-left{ display:flex; flex-direction:column; gap:0px; min-width:0; flex:1; }
+  .cylinder-wrap-side{ flex-shrink:0; display:flex; align-items:center; margin-top:14px; transform: translate(-0.5in, -0.5cm); }
+  #list-data .cylinder-wrap-side{ margin-top:0px; margin-left:-256px; transform: translate(calc(-0.5in + var(--cyl-dx, 0px)), calc(-0.5cm + 34px - 2mm + var(--cyl-dy, 0px))); }
+  #list-alerts .cylinder-wrap-side{ transform: translate(calc(-40px + var(--cyl-dx, 0px)), calc(-0.5cm + 3mm + var(--cyl-dy, 0px))); }
+  @keyframes wiggle{
+    0%, 100%{ transform:rotate(0deg) translateX(0); }
+    20%{ transform:rotate(-4deg) translateX(-1px); }
+    40%{ transform:rotate(4deg) translateX(1px); }
+    60%{ transform:rotate(-3deg) translateX(-1px); }
+    80%{ transform:rotate(3deg) translateX(1px); }
+  }
+  .cylinder{ position:relative; width:50px; height:92px; transform-origin:bottom center; animation:wiggle 3.2s ease-in-out infinite; }
+  .cylinder .cyl-top-collar { position:absolute; top:0; left:50%; transform:translateX(-50%); width:31px; height:10px; border:2.5px solid #c81e1e; border-radius:50%; box-shadow:inset 0 2px 3px rgba(0,0,0,0.5); }
+  .cylinder .cyl-support-pillars { position:absolute; top:7px; left:50%; transform:translateX(-50%); width:29px; height:14px; }
+  .cylinder .cyl-support-pillars::before, .cylinder .cyl-support-pillars::after, .cylinder .cyl-pillar-center { content:''; position:absolute; top:0; width:2.5px; height:14px; background:linear-gradient(180deg, #d32020, #961111); border-radius:1px; }
+  .cylinder .cyl-support-pillars::before { left:2px; }
+  .cylinder .cyl-support-pillars::after { right:2px; }
+  .cylinder .cyl-pillar-center { left:50%; transform:translateX(-50%); width:2.5px; }
+  .cylinder .cyl-valve-tag { position:absolute; top:9px; left:50%; transform:translateX(-50%); width:8px; height:10px; background:#e0d8b0; border:1px solid #a89f78; border-radius:1px; z-index:2; }
+  .cylinder .cyl-valve-tag::after { content:''; position:absolute; top:3px; left:50%; transform:translateX(-50%); width:4px; height:4px; background:#e63939; border-radius:50%; }
+  .cylinder .cyl-dome{ position:absolute; top:19px; left:50%; transform:translateX(-50%); width:46px; height:20px; background:radial-gradient(ellipse at top, #f03232 0%, #c81e1e 60%, #820e0e 100%); border-radius:50% 50% 0 0 / 100% 100% 0 0; box-shadow:inset 0 3px 5px rgba(255,255,255,0.3); }
+  .cylinder .cyl-dome-text { position:absolute; top:25px; left:50%; transform:translateX(-50%); font-size:5.5px; font-weight:700; color:rgba(0,0,0,0.6); letter-spacing:0.4px; white-space:nowrap; }
+  .cylinder .cyl-body{ position:absolute; top:38px; left:50%; transform:translateX(-50%); width:48px; height:44px; background:linear-gradient(90deg, #7a0c0c 0%, #e62828 20%, #ff5252 45%, #c81e1e 75%, #520606 100%); border-radius:2px; box-shadow:inset 0 0 8px rgba(0,0,0,0.5), inset 4px 0 5px rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; }
+  .cylinder .cyl-weld-line { position:absolute; top:60px; left:50%; transform:translateX(-50%); width:48px; height:2px; background:rgba(0,0,0,0.35); box-shadow:0 1px 1px rgba(255,255,255,0.15); z-index:3; }
+  .cylinder .indian-gas-container { position:absolute; top:44px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:4; width:100%; }
+  .cylinder .indian-text { font-family:'Inter', sans-serif; font-weight:700; font-size:9px; letter-spacing:0.4px; color:#ffffff; line-height:1; text-shadow:0 1px 2px rgba(0,0,0,0.8); }
+  .cylinder .cyl-foot{ position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:42px; height:10px; background:linear-gradient(180deg, #d32020, #a81616); border-radius:0 0 6px 6px; border-top:1.5px solid #820e0e; display:flex; justify-content:space-around; align-items:flex-end; padding-bottom:2px; }
+  .cylinder .cyl-foot-hole { width:7px; height:3px; background:#f8f9fa; border-radius:2px 2px 0 0; }
+
+  /* Gas Cylinder move popup */
+  .cyl-move-popup{ position:fixed; z-index:60; background:#ffffff; border-radius:26px; padding:10px 14px; display:none; flex-direction:row; align-items:center; gap:10px; box-shadow:0 4px 18px rgba(0,0,0,0.28); }
+  .cyl-move-popup.open{ display:flex; }
+  .cyl-move-popup button{ width:44px; height:44px; border:none; border-radius:8px; background:#f2f2f2; color:#333333; font-size:20px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .cyl-move-popup button:active{ background:#dddddd; }
+</style>
+</head>
+<body>
+
+<div id="syncStatus" class="sync-status"></div>
+<div id="cylMovePopup" class="cyl-move-popup">
+  <button class="cmp-up" data-dir="up" title="Up">▲</button>
+  <button class="cmp-left" data-dir="left" title="Left">◀</button>
+  <button class="cmp-right" data-dir="right" title="Right">▶</button>
+  <button class="cmp-down" data-dir="down" title="Down">▼</button>
+</div>
+<button id="pageToggleBtn" class="page-toggle-btn" onclick="togglePage()" title="Switch page"><span id="toggleIcon" class="toggle-icon">⇄</span></button>
+<button class="settings-icon" onclick="openSettings()" title="Settings">⚙</button>
+<button class="add-icon-btn" onclick="openAddReminder()" title="Add New Reminder">+</button>
+<button class="anim-control-icon" onclick="openAnimControlPanel()" title="Animation Control">A</button>
+
+<div id="animationOverlay" class="settings-overlay">
+  <div class="settings-panel">
+    <div class="settings-title"><span>Choose Animation</span><div class="settings-title-actions"><button class="anim-fav-shortcut-btn" onclick="openAnimFavoritesBox()" title="Favorites">⭐</button><button onclick="closeAnimationPage()" title="Close">✕</button></div></div>
+    <div class="anim-speed-row" id="animSpeedRow">
+      <button class="anim-speed-btn" data-speed="slow" onclick="setAnimSpeedChoice('slow')">Slow</button>
+      <button class="anim-speed-btn" data-speed="normal" onclick="setAnimSpeedChoice('normal')">Normal</button>
+      <button class="anim-speed-btn" data-speed="medium" onclick="setAnimSpeedChoice('medium')">Medium</button>
+      <button class="anim-speed-btn" data-speed="high" onclick="setAnimSpeedChoice('high')">High</button>
+    </div>
+    <div class="anim-pick-hint" id="animPickHint"></div>
+    <div class="anim-picker-list" id="animPickerList"></div>
+    <div class="anim-manage-toolbar" id="animManageToolbar">
+      <span class="amt-count" id="animManageCount">0 selected</span>
+      <button class="amt-fav" onclick="favoriteManagedAnimations()">★ Favorite</button>
+      <button class="amt-delete" onclick="deleteManagedAnimations()">🗑 Delete</button>
+      <button class="amt-cancel" onclick="exitAnimManagementMode()" title="Cancel">✕</button>
+    </div>
+    <div class="settings-actions">
+      <button class="settings-apply" id="animApplyBtn" onclick="applyAnimationChoice()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<div id="animFavoritesOverlay" class="settings-overlay">
+  <div class="settings-panel">
+    <div class="settings-title"><span>⭐ Favorites</span><button onclick="closeAnimFavoritesBox()" title="Close">✕</button></div>
+    <div class="anim-pick-hint" id="animFavHint"></div>
+    <div class="anim-picker-list" id="animFavoritesList"></div>
+    <div class="anim-manage-toolbar" id="favManageToolbar">
+      <span class="amt-count" id="favManageCount">0 selected</span>
+      <button class="amt-delete" onclick="removeManagedFavorites()">🗑 Remove</button>
+      <button class="amt-cancel" onclick="exitFavManagementMode()" title="Cancel">✕</button>
+    </div>
+  </div>
+</div>
+
+<div id="animControlOverlay" class="settings-overlay">
+  <div class="settings-panel">
+    <div class="settings-title"><span>Animation Control</span><button onclick="closeAnimControlPanel()" title="Close">✕</button></div>
+    <div class="anim-control-list-wrap">
+      <div class="anim-control-group-title" id="animControlAlertsTitle">Alert Page</div>
+      <div id="animControlAlertsList"></div>
+      <div class="anim-control-group-title" id="animControlDataTitle">List Page</div>
+      <div id="animControlDataList"></div>
+    </div>
+  </div>
+</div>
+
+<div id="settingsOverlay" class="settings-overlay">
+  <div class="settings-panel">
+    <div class="settings-title"><span>Settings</span></div>
+    <div class="settings-page-tabs">
+      <button id="cfgtab-alerts" class="cfgtab active" onclick="switchConfigTab('alerts')">Alerts Page</button>
+      <button id="cfgtab-data" class="cfgtab" onclick="switchConfigTab('data')">List Page</button>
+    </div>
+    <div class="settings-row">
+      <div class="settings-row-label-flex">
+        <div class="settings-row-label">Page Background</div>
+        <button class="settings-row-close" onclick="closeSettings()" title="Close">✕</button>
+      </div>
+      <div class="settings-controls">
+        <div class="settings-field"><label>Color</label><div class="color-combo"><input type="color" id="page-bg-color"></div></div>
+      </div>
+    </div>
+    <div class="settings-row">
+      <div class="settings-row-label">Today Date</div>
+      <div class="settings-controls">
+        <div class="settings-field"><label>Size</label><input type="number" id="header-size" min="8" max="60"></div>
+        <div class="settings-field"><label class="lbl-sm">Color</label><div class="color-combo"><input type="color" id="header-color"></div></div>
+        <div class="settings-field"><label class="lbl-sm">Font Style</label><select id="header-font"></select></div>
+        <div class="settings-field-bold"><label>Bold</label><input type="checkbox" id="header-bold"></div>
+      </div>
+    </div>
+    <div class="settings-row" id="settingsRow-title">
+      <div class="settings-row-label">Alert Title</div>
+      <div class="settings-controls">
+        <div class="settings-field"><label>Size</label><input type="number" id="title-size" min="8" max="60"></div>
+        <div class="settings-field"><label class="lbl-sm">Color</label><div class="color-combo"><input type="color" id="title-color"></div></div>
+        <div class="settings-field"><label class="lbl-sm">Font Style</label><select id="title-font"></select></div>
+        <div class="settings-field-bold"><label>Bold</label><input type="checkbox" id="title-bold"></div>
+      </div>
+    </div>
+    <div class="settings-row" id="settingsRow-name">
+      <div class="settings-row-label">List Name</div>
+      <div class="settings-controls">
+        <div class="settings-field"><label>Size</label><input type="number" id="name-size" min="8" max="60"></div>
+        <div class="settings-field"><label class="lbl-sm">Color</label><div class="color-combo"><input type="color" id="name-color"></div></div>
+        <div class="settings-field"><label class="lbl-sm">Font Style</label><select id="name-font"></select></div>
+        <div class="settings-field-bold"><label>Bold</label><input type="checkbox" id="name-bold"></div>
+      </div>
+    </div>
+    <div class="settings-row" id="settingsRow-countdown">
+      <div class="settings-row-label">Day Left</div>
+      <div class="settings-controls">
+        <div class="settings-field"><label>Size</label><input type="number" id="countdown-size" min="8" max="60"></div>
+        <div class="settings-field"><label class="lbl-sm">Color</label><div class="color-combo"><input type="color" id="countdown-color"></div></div>
+        <div class="settings-field"><label class="lbl-sm">Font Style</label><select id="countdown-font"></select></div>
+        <div class="settings-field-bold"><label>Bold</label><input type="checkbox" id="countdown-bold"></div>
+      </div>
+    </div>
+    <div class="settings-row" id="settingsRow-date">
+      <div class="settings-row-label">Target Date</div>
+      <div class="settings-controls">
+        <div class="settings-field"><label>Size</label><input type="number" id="date-size" min="8" max="60"></div>
+        <div class="settings-field"><label class="lbl-sm">Color</label><div class="color-combo"><input type="color" id="date-color"></div></div>
+        <div class="settings-field"><label class="lbl-sm">Font Style</label><select id="date-font"></select></div>
+        <div class="settings-field-bold"><label>Bold</label><input type="checkbox" id="date-bold"></div>
+      </div>
+    </div>
+    <div class="settings-actions">
+      <button class="settings-reset" onclick="resetSettings()">Reset (this page)</button>
+      <button class="settings-apply" onclick="applySettings()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 1: Alerts -->
+<div id="page-alerts" class="page active">
+  <div id="header-alerts" class="header-date"><div class="header-date-inner" id="lineStyleWrap-alerts"><span class="line-wrap" id="lw-header-alerts"><span id="header-alerts-left"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('header','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="header-move-btn" title="Move Up" onclick="event.stopPropagation();adjustHeaderOffset(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg></button><button type="button" class="header-move-btn" title="Move Down" onclick="event.stopPropagation();adjustHeaderOffset(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M19 12l-7 7-7-7"></path></svg></button><button type="button" class="header-move-btn" title="Move Left" onclick="event.stopPropagation();adjustHeaderOffsetX(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg></button><button type="button" class="header-move-btn" title="Move Right" onclick="event.stopPropagation();adjustHeaderOffsetX(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg></button></div></span><span id="header-alerts-right"></span></div></div>
+  <div class="alerts-page-title-row"><span class="line-wrap" id="lw-alert-title"><span class="alerts-page-title" id="alertTitleText">Alert</span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('alertTitle','Alert')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button class="event-delete-btn" title="Delete" onclick="deleteLabel('alertTitle')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button></div></span></div>
+  <div id="list-alerts"><div class="refreshing-state">Refreshing <span class="dots-bold">. . .</span></div></div>
+</div>
+
+<!-- PAGE 2: All Data (List) -->
+<div id="page-data" class="page">
+  <div id="header-data" class="header-date"><div class="header-date-inner" id="lineStyleWrap-data"><span class="line-wrap" id="lw-header-data"><span id="header-data-left"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('header','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="header-move-btn" title="Move Up" onclick="event.stopPropagation();adjustHeaderOffset(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg></button><button type="button" class="header-move-btn" title="Move Down" onclick="event.stopPropagation();adjustHeaderOffset(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M19 12l-7 7-7-7"></path></svg></button><button type="button" class="header-move-btn" title="Move Left" onclick="event.stopPropagation();adjustHeaderOffsetX(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg></button><button type="button" class="header-move-btn" title="Move Right" onclick="event.stopPropagation();adjustHeaderOffsetX(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg></button></div></span><span class="line-wrap" id="lw-header-count"><span id="header-data-right"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('listCount','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="header-move-btn" title="Move Up" onclick="event.stopPropagation();adjustHeaderOffset(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg></button><button type="button" class="header-move-btn" title="Move Down" onclick="event.stopPropagation();adjustHeaderOffset(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M19 12l-7 7-7-7"></path></svg></button><button type="button" class="header-move-btn" title="Move Left" onclick="event.stopPropagation();adjustHeaderOffsetX(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg></button><button type="button" class="header-move-btn" title="Move Right" onclick="event.stopPropagation();adjustHeaderOffsetX(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg></button></div></span></div></div>
+  <div id="list-data"><div class="loading">Loading...</div></div>
+</div>
+
+<div id="addReminderOverlay" class="settings-overlay">
+  <div class="settings-panel">
+    <div class="settings-title"><span id="addReminderTitle">Add New List</span><button onclick="closeAddReminder()">✕</button></div>
+    <div class="settings-row">
+      <div class="settings-row-label">List Name</div>
+      <div class="add-field-row"><input type="text" id="new-list-name"></div>
+    </div>
+    <div class="settings-row">
+      <div class="add-date-counter-row">
+        <div class="date-col">
+          <div class="settings-row-label">Target Date</div>
+          <input type="text" id="new-target-date" class="date-input-small" placeholder="DD/MM/YYYY">
+        </div>
+        <div class="alert-col">
+          <div class="settings-row-label">Alert Day</div>
+          <input type="number" id="new-alert-day" min="0" max="365" placeholder="e.g. 15">
+        </div>
+        <div class="counter-col">
+          <div class="settings-row-label">Counter</div>
+          <div class="add-type-group add-type-group-vertical">
+            <label><input type="radio" name="new-type" value="countdown" checked> Countdown</label>
+            <label><input type="radio" name="new-type" value="elapsed"> Count</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="settings-actions">
+      <button class="settings-apply" id="addReminderSaveBtn" onclick="saveNewReminder()" style="flex:1;">Save New List</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+let cloudSettings = { alerts: {}, data: {}, labels: { header: { text: null, hidden: false }, listCount: { text: null, hidden: false }, alertTitle: { text: null, hidden: false } }, animFavorites: [], animHidden: [] };
+const ANIM_SPEED_MULTIPLIERS = { slow: 0.6, normal: 1, medium: 1.5, high: 2.2 };
+let ALERT_THRESHOLD_DAYS = 15;
+let CYLINDER_THRESHOLD_VALUE = 3.00;
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAynuPWAbwu6etjBTqBejpppw4S4umoKPM",
+  authDomain: "my-tracker-d4776.firebaseapp.com",
+  databaseURL: "https://my-tracker-d4776-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "my-tracker-d4776",
+  storageBucket: "my-tracker-d4776.firebasestorage.app",
+  messagingSenderId: "207196018290",
+  appId: "1:207196018290:web:e544ccd2eac3e84150d4eb",
+  measurementId: "G-HPDX62VBWK"
+};
+
+let settingsRef = null;
+let eventsRef = null;
+try {
+  firebase.initializeApp(firebaseConfig);
+  settingsRef = firebase.database().ref("settings");
+  eventsRef = firebase.database().ref("remindersData/events");
+} catch (e) {
+  console.error("Firebase init failed:", e);
+}
+
+function saveCloudSettings(data) {
+  if (!settingsRef) return Promise.reject(new Error("Firebase not available"));
+  // Firebase's client SDK throws synchronously if ANY nested property anywhere
+  // in the object is undefined (not null — undefined specifically), which
+  // would abort the whole save regardless of connection quality. Round-tripping
+  // through JSON strips every undefined value automatically, so a save can
+  // never fail for this reason again.
+  let clean;
+  try {
+    clean = JSON.parse(JSON.stringify(data));
+  } catch (e) {
+    return Promise.reject(e);
+  }
+  // update() instead of set(): set() replaces the ENTIRE /settings node, so if
+  // cloudSettings in memory hadn't yet received e.g. the saved alertTitle label
+  // from the server (still loading) at the moment some other setting was saved,
+  // set() would silently erase it from Firebase for good -- which looked like
+  // "it never comes back after a refresh". update() only touches the keys
+  // actually present in `clean`, leaving everything else on the server untouched.
+  return settingsRef.update(clean);
+}
+
+function setSyncStatus(text) {
+  const el = document.getElementById("syncStatus");
+  if (el) el.textContent = text;
+}
+
+function getActivePageName() {
+  return document.getElementById("page-alerts").classList.contains("active") ? "alerts" : "data";
+}
+
+function showPage(name) {
+  document.getElementById("page-alerts").classList.toggle("active", name === "alerts");
+  document.getElementById("page-data").classList.toggle("active", name === "data");
+  sessionStorage.setItem("activePage", name);
+  applyPageBackground(name);
+}
+
+let toggleIconRotation = 0;
+function togglePage() {
+  const next = getActivePageName() === "alerts" ? "data" : "alerts";
+  showPage(next);
+  toggleIconRotation += 180;
+  document.getElementById("toggleIcon").style.transform = "rotate(" + toggleIconRotation + "deg)";
+}
+
+function parseEventDateString(dateStr) {
+  const parts = String(dateStr).trim().split(/[-.\/]/).map((p) => parseInt(p, 10));
+  if (parts.length !== 3 || parts.some((p) => isNaN(p))) return null;
+  const [d, m, y] = parts;
+  const dt = new Date(y, m - 1, d);
+  dt.setHours(0, 0, 0, 0);
+  return dt;
+}
+
+function formatDisplayDate(dt) {
+  const d = String(dt.getDate()).padStart(2, "0");
+  const m = String(dt.getMonth() + 1).padStart(2, "0");
+  const y = dt.getFullYear();
+  return `${d}/${m}/${y}`;
+}
+
+function getTodayMidnight() {
+  const t = new Date();
+  t.setHours(0, 0, 0, 0);
+  return t;
+}
+
+function getCylinderThresholdParts() {
+  const months = Math.floor(CYLINDER_THRESHOLD_VALUE);
+  const days = Math.round((CYLINDER_THRESHOLD_VALUE - months) * 100);
+  return { months, days };
+}
+
+function getHeaderText() {
+  const today = getTodayMidnight();
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  return `Today - ${formatDisplayDate(today)} (${dayNames[today.getDay()]})`;
+}
+
+// Normalizes an item's animation data to an array of animation ids, up to 3.
+// Supports both the new "animations" array field and the old single "animation" field
+// (from before multi-animation support was added) so nothing already saved breaks.
+function normalizeAnimationIds(animationsField, legacyAnimationField) {
+  let ids = [];
+  if (Array.isArray(animationsField)) ids = animationsField.slice();
+  else if (legacyAnimationField) ids = [legacyAnimationField];
+  return ids.filter((id) => id && id !== "none").slice(0, 3);
+}
+
+function buildEventDisplay(rawName, rawDate, rawType, rawAlertDays, rawKey, rawAnimation, rawAnimations) {
+  const eventDate = parseEventDateString(rawDate);
+  if (!eventDate) return null;
+  const today = getTodayMidnight();
+  const name = rawName || "";
+  const displayDate = formatDisplayDate(eventDate);
+  const type = (rawType || "countdown").toLowerCase();
+  const alertDays = (rawAlertDays !== undefined && rawAlertDays !== null && !isNaN(rawAlertDays)) ? Number(rawAlertDays) : null;
+  const animation = rawAnimation || null;
+  const animations = normalizeAnimationIds(rawAnimations, rawAnimation);
+
+  if (type === "elapsed") {
+    const elapsedDays = Math.max(0, Math.round((today - eventDate) / 86400000));
+    const months = Math.floor(elapsedDays / 30);
+    const days = elapsedDays % 30;
+    const countdown = months === 0 ? `${days} . Days` : `${months} . Months - ${days} . Days`;
+    let isAlert = false;
+    if (alertDays !== null) {
+      isAlert = elapsedDays >= alertDays;
+    } else {
+      const { months: thMonths, days: thDays } = getCylinderThresholdParts();
+      if (months > thMonths) isAlert = true;
+      else if (months === thMonths) isAlert = days >= thDays;
+    }
+    return { name, date: displayDate, countdown, isAlert, key: rawKey, animation, animations };
+  }
+
+  const diffDays = Math.round((eventDate - today) / 86400000);
+  if (diffDays < 0) {
+    return { name, date: displayDate, countdown: "Expired", isAlert: true, key: rawKey, animation, animations };
+  }
+  const countdown = `${diffDays} . Day Left`;
+  const isAlert = diffDays <= (alertDays !== null ? alertDays : ALERT_THRESHOLD_DAYS);
+  return { name, date: displayDate, countdown, isAlert, key: rawKey, animation, animations };
+}
+
+
+let activeActionKey = null;
+let actionsHideTimer = null;
+
+function hideAllActions() {
+  document.querySelectorAll('.event.actions-visible, .line-wrap.actions-visible, .line-style-wrap.actions-visible').forEach((el) => el.classList.remove('actions-visible'));
+  activeActionKey = null;
+  if (actionsHideTimer) { clearTimeout(actionsHideTimer); actionsHideTimer = null; }
+  clearLineStyleTimer();
+}
+
+function toggleItemActions(itemEl, key, timeoutMs) {
+  if (actionsHideTimer) { clearTimeout(actionsHideTimer); actionsHideTimer = null; }
+  const wasOpen = itemEl.classList.contains('actions-visible');
+  hideAllActions();
+  if (!wasOpen) {
+    itemEl.classList.add('actions-visible');
+    activeActionKey = key;
+    actionsHideTimer = setTimeout(() => {
+      itemEl.classList.remove('actions-visible');
+      activeActionKey = null;
+    }, timeoutMs || 4000);
+  }
+}
+
+document.addEventListener('click', (e) => {
+  if (!activeActionKey) return;
+  const openItem = document.querySelector('.event.actions-visible, .line-wrap.actions-visible, .line-style-wrap.actions-visible');
+  if (openItem && !openItem.contains(e.target)) hideAllActions();
+});
+
+(function () {
+  const STEP = 3;
+  const popup = document.getElementById("cylMovePopup");
+  if (!popup) return;
+  let activeEl = null;
+  let activeKey = null;
+  let hideTimer = null;
+
+  function loadOffset(key) {
+    try { return JSON.parse(localStorage.getItem("cylOffset_" + key)) || { x: 0, y: 0 }; }
+    catch (e) { return { x: 0, y: 0 }; }
+  }
+  function saveOffset(key, off) {
+    try { localStorage.setItem("cylOffset_" + key, JSON.stringify(off)); } catch (e) {}
+  }
+  function applyOffset(el, off) {
+    el.style.setProperty("--cyl-dx", off.x + "px");
+    el.style.setProperty("--cyl-dy", off.y + "px");
+  }
+  function scheduleHide() {
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(closePopup, 3000);
+  }
+  function closePopup() {
+    clearTimeout(hideTimer);
+    popup.classList.remove("open");
+    activeEl = null;
+    activeKey = null;
+  }
+  function openPopupFor(el, key) {
+    activeEl = el;
+    activeKey = key;
+    const rect = el.getBoundingClientRect();
+    popup.classList.add("open");
+    const POPUP_W = popup.offsetWidth;
+    const POPUP_H = popup.offsetHeight;
+    const GAP = 1.5 * 96; // 1.5 inch gap to the left of the cylinder
+    let left = rect.left - GAP - POPUP_W;
+    let top = rect.top + rect.height / 2 - POPUP_H / 2;
+    if (left < 8) left = 8;
+    if (top < 8) top = 8;
+    if (top + POPUP_H > window.innerHeight - 8) top = window.innerHeight - POPUP_H - 8;
+    popup.style.top = top + "px";
+    popup.style.left = left + "px";
+    scheduleHide();
+  }
+
+  popup.querySelectorAll("button").forEach((btn) => {
+    btn.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      if (!activeEl || !activeKey) return;
+      const off = loadOffset(activeKey);
+      const dir = btn.dataset.dir;
+      if (dir === "up") off.y -= STEP;
+      if (dir === "down") off.y += STEP;
+      if (dir === "left") off.x -= STEP;
+      if (dir === "right") off.x += STEP;
+      saveOffset(activeKey, off);
+      applyOffset(activeEl, off);
+      scheduleHide();
+    });
+  });
+
+  document.addEventListener("click", (ev) => {
+    if (popup.classList.contains("open") && !popup.contains(ev.target) && (!activeEl || !activeEl.contains(ev.target))) closePopup();
+  });
+
+  window.attachCylinderMovePopup = function (wrapEl, containerKey) {
+    applyOffset(wrapEl, loadOffset(containerKey));
+    wrapEl.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      openPopupFor(wrapEl, containerKey);
+    });
+  };
+})();
+
+function attachLongPress(item, onLongPress) {
+  let timer = null;
+  const clear = () => { if (timer) { clearTimeout(timer); timer = null; } };
+  const start = () => { clear(); timer = setTimeout(onLongPress, 500); };
+  item.addEventListener('touchstart', start, { passive: true });
+  item.addEventListener('touchend', clear);
+  item.addEventListener('touchmove', clear, { passive: true });
+  item.addEventListener('touchcancel', clear);
+  item.addEventListener('mousedown', start);
+  item.addEventListener('mouseup', clear);
+  item.addEventListener('mouseleave', clear);
+}
+
+["lw-header-alerts", "lw-header-data", "lw-header-count", "lw-alert-title"].forEach((id) => {
+  const el = document.getElementById(id);
+  if (el) {
+    const actionsEl = el.querySelector(".event-actions");
+    if (actionsEl) actionsEl.addEventListener("click", (ev) => ev.stopPropagation());
+    el.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      toggleItemActions(el, id, 3000);
+    });
+  }
+});
+
+function renderEvents(container, events, allowActions) {
+  container.innerHTML = "";
+  events.forEach((e, idx) => {
+    const item = document.createElement("div");
+    const isGasCylinder = e.name.trim().toLowerCase() === "gas cylinder";
+    item.className = "event" + (isGasCylinder ? " event-gas" : "");
+
+    let contentHTML;
+    if (isGasCylinder) {
+      contentHTML = `
+        <div class="gas-row">
+          <div class="gas-left">
+            <div class="event-name">${e.name}</div>
+            <div class="event-countdown">${e.countdown}</div>
+            <div class="event-date">${e.date}</div>
+          </div>
+          <div class="cylinder-wrap-side">
+            <div class="cylinder">
+              <div class="cyl-top-collar"></div>
+              <div class="cyl-support-pillars"><div class="cyl-pillar-center"></div></div>
+              <div class="cyl-valve-tag"></div>
+              <div class="cyl-dome"></div>
+              <div class="cyl-dome-text">14.2 kg</div>
+              <div class="cyl-body"></div>
+              <div class="cyl-weld-line"></div>
+              <div class="indian-gas-container"><div class="indian-text">INDIAN</div></div>
+              <div class="cyl-foot">
+                <div class="cyl-foot-hole"></div><div class="cyl-foot-hole"></div><div class="cyl-foot-hole"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    } else {
+      contentHTML = `<div class="event-name">${e.name}</div><div class="event-countdown">${e.countdown}</div><div class="event-date">${e.date}</div>`;
+    }
+
+    if (allowActions && e.key) {
+      contentHTML += `
+        <div class="event-actions">
+          <button class="event-move-up-btn" title="Move Up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg></button>
+          <button class="event-move-down-btn" title="Move Down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M19 12l-7 7-7-7"></path></svg></button>
+          <button class="event-edit-btn" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button>
+          <button class="event-delete-btn" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button>
+        </div>`;
+    }
+
+    item.innerHTML = contentHTML;
+
+    if (isGasCylinder) {
+      const cylWrap = item.querySelector(".cylinder-wrap-side");
+      if (cylWrap && window.attachCylinderMovePopup) attachCylinderMovePopup(cylWrap, container.id);
+    }
+
+    if (allowActions && e.key) {
+      const actionsEl = item.querySelector(".event-actions");
+      actionsEl.addEventListener("click", (ev) => ev.stopPropagation());
+      const upBtn = item.querySelector(".event-move-up-btn");
+      const downBtn = item.querySelector(".event-move-down-btn");
+      if (idx === 0) { upBtn.disabled = true; upBtn.classList.add("event-action-disabled"); }
+      if (idx === events.length - 1) { downBtn.disabled = true; downBtn.classList.add("event-action-disabled"); }
+      upBtn.addEventListener("click", () => moveReminder(e.key, -1));
+      downBtn.addEventListener("click", () => moveReminder(e.key, 1));
+      item.querySelector(".event-edit-btn").addEventListener("click", () => openEditReminder(e.key));
+      item.querySelector(".event-delete-btn").addEventListener("click", () => deleteReminder(e.key, e.name));
+      item.addEventListener("click", () => toggleItemActions(item, e.key));
+    }
+
+    // Wrap the card in nested animation wrapper elements so up to 3 animations
+    // can be combined on the same item at once (each wrapper carries one la-<id>
+    // class and its own independent "animation" property, so they compose visually
+    // instead of overriding each other the way stacking classes on one element would).
+    // NOTE: several la-<id> classes set "display: inline-block" (meant for wrapping
+    // small text spans on labels). When the SAME class wraps a whole full-width
+    // event card, that inline-block shrinks the wrapper to the content's width and
+    // breaks the card's box layout (card looks narrow/misshapen). The la-event-wrap
+    // marker class (added below, defined after all la-N rules) forces the wrapper
+    // back to a full-width block so the card's box always keeps its normal size,
+    // no matter which animation is assigned — now or for any item added later.
+    const animIds = normalizeAnimationIds(e.animations, e.animation);
+    let mounted = item;
+    animIds.forEach((id) => {
+      const wrap = document.createElement("div");
+      wrap.className = "la-" + id + " la-event-wrap";
+      wrap.appendChild(mounted);
+      mounted = wrap;
+    });
+
+    container.appendChild(mounted);
+  });
+}
+
+let latestRawEvents = [];
+
+function getSortedEvents() {
+  return latestRawEvents
+    .map((ev, idx) => ({ ...ev, order: (ev.order !== undefined && ev.order !== null) ? ev.order : idx }))
+    .sort((a, b) => a.order - b.order);
+}
+
+function moveReminder(key, direction) {
+  const sorted = getSortedEvents();
+  const idx = sorted.findIndex((ev) => ev.key === key);
+  if (idx === -1) return;
+  const targetIdx = idx + direction;
+  if (targetIdx < 0 || targetIdx >= sorted.length) return;
+  const temp = sorted[idx];
+  sorted[idx] = sorted[targetIdx];
+  sorted[targetIdx] = temp;
+  const updates = {};
+  sorted.forEach((ev, i) => { updates[ev.key + "/order"] = i; });
+  eventsRef.update(updates);
+}
+
+function applyLabelAnimClass(el, animIds) {
+  if (!el) return;
+  const ids = normalizeAnimationIds(animIds, null);
+  const text = el.textContent;
+  el.className = el.className.split(" ").filter((c) => !c.startsWith("la-")).join(" ");
+  el.textContent = "";
+  if (ids.length === 0) {
+    el.textContent = text;
+    return;
+  }
+  // Same nested-wrapper technique as events: each id gets its own element
+  // and its own independent animation, so multiple animations combine cleanly.
+  let mounted = document.createElement("span");
+  mounted.textContent = text;
+  ids.forEach((id) => {
+    const wrap = document.createElement("span");
+    wrap.className = "la-" + id;
+    wrap.style.display = "inline-block";
+    wrap.appendChild(mounted);
+    mounted = wrap;
+  });
+  el.appendChild(mounted);
+}
+
+function renderAll() {
+  const listAlerts = document.getElementById("list-alerts");
+  const listData = document.getElementById("list-data");
+  const headerText = getHeaderText();
+  // The header must ALWAYS be the live "Today - date" — it should never get
+  // permanently frozen by a saved custom label (that was the real bug: if the
+  // pencil/edit icon on the header was ever tapped and saved, it stored a fixed
+  // text that silently overrode the live date forever, so the date looked "stuck").
+  const headerLabelRaw = cloudSettings.labels && cloudSettings.labels.header;
+  const headerLabel = (headerLabelRaw && headerLabelRaw.hidden) ? "" : headerText;
+
+  document.getElementById("header-alerts-left").textContent = headerLabel;
+  document.getElementById("header-data-left").textContent = headerLabel;
+  applyLabelAnimClass(document.getElementById("header-alerts-left"), getLabelAnimations("header"));
+  applyLabelAnimClass(document.getElementById("header-data-left"), getLabelAnimations("header"));
+
+  const events = getSortedEvents()
+    .map((ev) => buildEventDisplay(ev.name, ev.date, ev.type, ev.alertDays, ev.key, ev.animation, ev.animations))
+    .filter(Boolean);
+
+  document.getElementById("header-data-right").textContent = getLabelValue("listCount", events.length + ".Reminder List");
+  applyLabelAnimClass(document.getElementById("header-data-right"), getLabelAnimations("listCount"));
+  const alertTitleEl = document.getElementById("alertTitleText");
+  if (alertTitleEl) {
+    alertTitleEl.textContent = getLabelValue("alertTitle", "Alert");
+    applyLabelAnimClass(alertTitleEl, getLabelAnimations("alertTitle"));
+  }
+
+  if (events.length === 0) {
+    listData.innerHTML = '<div class="refreshing-state">Refreshing <span class="dots-bold">. . .</span></div>';
+  } else {
+    renderEvents(listData, events, true);
+  }
+
+  const alerts = events.filter((e) => e.isAlert);
+  if (alerts.length === 0) listAlerts.innerHTML = '<div class="alert-empty-center">Empty Is Page</div>';
+  else renderEvents(listAlerts, alerts, false);
+}
+
+function loadAll() {
+  renderAll();
+}
+
+if (eventsRef) {
+  eventsRef.on("value", (snapshot) => {
+    const val = snapshot.val();
+    const raw = [];
+    if (val) {
+      Object.keys(val).forEach((key) => {
+        const ev = val[key];
+        if (!ev || !ev.name || !ev.date) return;
+        raw.push({ name: ev.name, date: ev.date, type: ev.type, alertDays: ev.alertDays, key: key, order: ev.order, animation: ev.animation, animations: ev.animations });
+      });
+    }
+    latestRawEvents = raw;
+    renderAll();
+  }, (error) => {
+    const msg = '<div class="empty-state">Could not load data. Please try again later.</div>';
+    document.getElementById("list-alerts").innerHTML = msg;
+    document.getElementById("list-data").innerHTML = msg;
+  });
+} else {
+  const msg = '<div class="empty-state">Could not load data. Please try again later.</div>';
+  document.getElementById("list-alerts").innerHTML = msg;
+  document.getElementById("list-data").innerHTML = msg;
+}
+
+let editingReminderKey = null;
+
+function openAddReminder() {
+  editingReminderKey = null;
+  document.getElementById("addReminderTitle").textContent = "Add New List";
+  document.getElementById("addReminderSaveBtn").textContent = "Save New List";
+  document.getElementById("new-list-name").value = "";
+  document.getElementById("new-target-date").value = "";
+  document.getElementById("new-alert-day").value = ALERT_THRESHOLD_DAYS;
+  document.querySelector('input[name="new-type"][value="countdown"]').checked = true;
+  document.getElementById("addReminderOverlay").classList.add("open");
+}
+
+function openEditReminder(key) {
+  const ev = latestRawEvents.find((it) => it.key === key);
+  if (!ev) return;
+  hideAllActions();
+  editingReminderKey = key;
+  document.getElementById("addReminderTitle").textContent = "Edit List";
+  document.getElementById("addReminderSaveBtn").textContent = "Update List";
+  document.getElementById("new-list-name").value = ev.name;
+  document.getElementById("new-target-date").value = ev.date || "";
+  document.getElementById("new-alert-day").value = (ev.alertDays !== undefined && ev.alertDays !== null) ? ev.alertDays : ALERT_THRESHOLD_DAYS;
+  const type = (ev.type || "countdown").toLowerCase();
+  const typeInput = document.querySelector(`input[name="new-type"][value="${type}"]`);
+  if (typeInput) typeInput.checked = true;
+  document.getElementById("addReminderOverlay").classList.add("open");
+}
+
+function deleteReminder(key, name) {
+  hideAllActions();
+  if (!eventsRef) {
+    alert("Firebase connect nahi hai, delete nahi ho payega.");
+    return;
+  }
+  if (!confirm(`Delete "${name}"?`)) return;
+  eventsRef.child(key).remove().catch((err) => {
+    alert("Delete nahi ho paya: " + err.message);
+  });
+}
+
+function closeAddReminder() {
+  document.getElementById("addReminderOverlay").classList.remove("open");
+}
+
+function saveNewReminder() {
+  const name = document.getElementById("new-list-name").value.trim();
+  const dateVal = document.getElementById("new-target-date").value.trim();
+  const alertDayRaw = document.getElementById("new-alert-day").value;
+  const alertDay = parseInt(alertDayRaw, 10);
+  const type = document.querySelector('input[name="new-type"]:checked').value;
+
+  if (!name || !dateVal) {
+    alert("Please fill in the List Name and Target Date.");
+    return;
+  }
+  if (!parseEventDateString(dateVal)) {
+    alert("Please enter the Target Date in the correct format: DD/MM/YYYY (e.g. 15/08/2026)");
+    return;
+  }
+  if (!eventsRef) {
+    alert("Firebase connect nahi hai, list save nahi ho payegi.");
+    return;
+  }
+
+  const newEvent = {
+    name: name,
+    date: dateVal,
+    type: type,
+    alertDays: isNaN(alertDay) ? ALERT_THRESHOLD_DAYS : alertDay
+  };
+
+  let action;
+  if (editingReminderKey) {
+    action = eventsRef.child(editingReminderKey).update(newEvent);
+  } else {
+    newEvent.order = getSortedEvents().length;
+    action = eventsRef.push(newEvent);
+  }
+
+  action
+    .then(() => {
+      editingReminderKey = null;
+      closeAddReminder();
+    })
+    .catch((err) => {
+      alert("Save nahi ho paya: " + err.message);
+    });
+}
+
+renderAll();
+setInterval(renderAll, 60000);
+
+// BUG FIX: mobile Chrome throttles/pauses setInterval when the tab is in background
+// (phone locked, app minimized, switched to another tab). So if you open the app at
+// night and come back after midnight without a fresh reload, the 60s timer alone may
+// not have fired yet and the date stays stuck on the old day. Force an immediate
+// re-render the moment the tab becomes visible/focused again, so the date is always
+// correct the instant you look at the screen.
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") renderAll();
+});
+window.addEventListener("focus", renderAll);
+window.addEventListener("pageshow", renderAll);
+
+const FONT_OPTIONS = [
+  { label: "Default", value: "inherit" },
+  { label: "Arial", value: "Arial, sans-serif" },
+  { label: "Helvetica", value: "Helvetica, Arial, sans-serif" },
+  { label: "Verdana", value: "Verdana, sans-serif" },
+  { label: "Tahoma", value: "Tahoma, sans-serif" },
+  { label: "Trebuchet MS", value: "'Trebuchet MS', sans-serif" },
+  { label: "Segoe UI", value: "'Segoe UI', sans-serif" },
+  { label: "Calibri", value: "Calibri, sans-serif" },
+  { label: "Century Gothic", value: "'Century Gothic', sans-serif" },
+  { label: "Franklin Gothic", value: "'Franklin Gothic Medium', sans-serif" },
+  { label: "Arial Black", value: "'Arial Black', sans-serif" },
+  { label: "Georgia", value: "Georgia, serif" },
+  { label: "Times New Roman", value: "'Times New Roman', serif" },
+  { label: "Garamond", value: "Garamond, serif" },
+  { label: "Palatino", value: "'Palatino Linotype', serif" },
+  { label: "Book Antiqua", value: "'Book Antiqua', serif" },
+  { label: "Cambria", value: "Cambria, serif" },
+  { label: "Courier New", value: "'Courier New', monospace" },
+  { label: "Lucida Console", value: "'Lucida Console', monospace" },
+  { label: "Consolas", value: "Consolas, monospace" }
+];
+
+function populateFontSelects() {
+  ["header-font", "title-font", "name-font", "countdown-font", "date-font"].forEach((id) => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = "";
+    FONT_OPTIONS.forEach((opt) => {
+      const o = document.createElement("option");
+      o.value = opt.value;
+      o.textContent = opt.label;
+      o.style.fontFamily = opt.value;
+      sel.appendChild(o);
+    });
+  });
+}
+populateFontSelects();
+
+const FONT_TARGETS = ["header", "title", "name", "countdown", "date"];
+const DEFAULT_PAGE_SETTINGS = {
+  header: { size: 19, color: "#000000", font: "inherit", bold: false },
+  title: { size: 26, color: "#b266b2", font: "inherit", bold: true },
+  name: { size: 20, color: "#000000", font: "inherit", bold: false },
+  countdown: { size: 26, color: "#ff0000", font: "inherit", bold: true },
+  date: { size: 15, color: "#000000", font: "inherit", bold: false },
+  background: "#08080f"
+};
+
+function cloneDefaults() { return JSON.parse(JSON.stringify(DEFAULT_PAGE_SETTINGS)); }
+function defaultLabels() { return { header: { text: null, hidden: false }, listCount: { text: null, hidden: false }, alertTitle: { text: null, hidden: false } }; }
+cloudSettings.alerts = cloneDefaults();
+cloudSettings.animSpeed = cloudSettings.animSpeed || "normal";
+applyAnimSpeedToPage(cloudSettings.animSpeed);
+cloudSettings.data = cloneDefaults();
+function getSavedFontSettings(page) { return cloudSettings[page] || cloneDefaults(); }
+
+// The Alert page shows the same reminder lines as the List page, so each
+// line's color (name / countdown / date) should always match whatever is
+// set on the List page — no need to set it separately on the Alert page.
+// Only page-specific labels (header date text, "Alert" title) keep their
+// own independent settings.
+function getEffectiveAlertsFontSettings() {
+  const alerts = getSavedFontSettings("alerts");
+  const data = getSavedFontSettings("data");
+  const merged = JSON.parse(JSON.stringify(alerts));
+  ["name", "countdown", "date"].forEach((target) => {
+    merged[target] = data[target] || DEFAULT_PAGE_SETTINGS[target];
+  });
+  return merged;
+}
+
+const DEFAULT_HEADER_OFFSET = { x: 0, y: 0 };
+function getHeaderOffset() { return cloudSettings.headerOffset || DEFAULT_HEADER_OFFSET; }
+
+function applyHeaderOffsetToPage() {
+  const s = getHeaderOffset();
+  document.documentElement.style.setProperty("--header-offset-x", (s.x || 0) + "px");
+  document.documentElement.style.setProperty("--header-offset-y", (s.y || 0) + "px");
+}
+
+function syncLineStyleUI() {
+  applyHeaderOffsetToPage();
+}
+
+let lineStyleSaveTimer = null;
+function saveHeaderOffset(partial) {
+  cloudSettings.headerOffset = Object.assign({}, getHeaderOffset(), partial);
+  syncLineStyleUI();
+  if (lineStyleSaveTimer) clearTimeout(lineStyleSaveTimer);
+  lineStyleSaveTimer = setTimeout(() => saveCloudSettings(cloudSettings), 400);
+}
+
+function adjustHeaderOffset(delta) {
+  const s = getHeaderOffset();
+  saveHeaderOffset({ y: (s.y || 0) + delta });
+}
+
+function adjustHeaderOffsetX(delta) {
+  const s = getHeaderOffset();
+  saveHeaderOffset({ x: (s.x || 0) + delta });
+}
+
+let lineStyleHideTimer = null;
+
+function clearLineStyleTimer() {
+  if (lineStyleHideTimer) { clearTimeout(lineStyleHideTimer); lineStyleHideTimer = null; }
+}
+
+function scheduleLineStyleHide(wrapEl) {
+  clearLineStyleTimer();
+  lineStyleHideTimer = setTimeout(() => {
+    wrapEl.classList.remove('actions-visible');
+    if (activeActionKey === wrapEl.id) activeActionKey = null;
+    lineStyleHideTimer = null;
+  }, 3000);
+}
+
+function toggleLineStylePopup(ev, wrapId) {
+  ev.stopPropagation();
+  const wrapEl = document.getElementById(wrapId);
+  if (!wrapEl) return;
+  const wasOpen = wrapEl.classList.contains('actions-visible');
+  hideAllActions();
+  if (!wasOpen) {
+    wrapEl.classList.add('actions-visible');
+    activeActionKey = wrapId;
+    scheduleLineStyleHide(wrapEl);
+  }
+}
+
+function setupLineStylePopupAutoExtend(wrapId) {
+  const wrapEl = document.getElementById(wrapId);
+  if (!wrapEl) return;
+  const popupEl = wrapEl.querySelector('.line-style-popup');
+  if (!popupEl) return;
+  ["pointerdown", "input", "click"].forEach((evtName) => {
+    popupEl.addEventListener(evtName, () => {
+      if (wrapEl.classList.contains('actions-visible')) scheduleLineStyleHide(wrapEl);
+    });
+  });
+}
+setupLineStylePopupAutoExtend('lineStyleWrap-alerts');
+setupLineStylePopupAutoExtend('lineStyleWrap-data');
+
+syncLineStyleUI();
+
+function getLabelValue(key, defaultText) {
+  const label = (cloudSettings.labels && cloudSettings.labels[key]) || { text: null, hidden: false };
+  if (label.hidden) return "";
+  return (label.text !== null && label.text !== undefined && label.text !== "") ? label.text : defaultText;
+}
+
+function getLabelAnimations(key) {
+  const label = cloudSettings.labels && cloudSettings.labels[key];
+  if (!label) return [];
+  return normalizeAnimationIds(label.animations, label.animation);
+}
+
+function setLabelAnimations(key, animIds) {
+  if (!cloudSettings.labels) cloudSettings.labels = defaultLabels();
+  const existing = cloudSettings.labels[key] || { text: null, hidden: false };
+  // animation:null clears out the old single-id field so a stale legacy value
+  // can never re-appear once a label has been re-saved with the new format.
+  cloudSettings.labels[key] = { text: existing.text, hidden: existing.hidden, animations: animIds, animation: null };
+  return saveCloudSettings(cloudSettings);
+}
+
+function editLabel(key, defaultText) {
+  const label = (cloudSettings.labels && cloudSettings.labels[key]) || { text: null, hidden: false };
+  const current = label.hidden ? "" : ((label.text !== null && label.text !== undefined) ? label.text : defaultText);
+  const val = prompt("Edit text:", current);
+  if (val === null) return;
+  if (!cloudSettings.labels) cloudSettings.labels = defaultLabels();
+  cloudSettings.labels[key] = { text: val, hidden: false, animations: normalizeAnimationIds(label.animations, label.animation) };
+  renderAll();
+  setSyncStatus("Saving...");
+  saveCloudSettings(cloudSettings).then(() => setSyncStatus("Synced")).catch(() => {
+    setSyncStatus("Sync failed");
+    alert("Could not save. Please check your internet connection and try again.");
+  });
+  hideAllActions();
+}
+
+function deleteLabel(key) {
+  if (!confirm("Delete this line?")) return;
+  if (!cloudSettings.labels) cloudSettings.labels = defaultLabels();
+  const label = cloudSettings.labels[key] || {};
+  cloudSettings.labels[key] = { text: "", hidden: true, animations: normalizeAnimationIds(label.animations, label.animation) };
+  renderAll();
+  setSyncStatus("Saving...");
+  saveCloudSettings(cloudSettings).then(() => setSyncStatus("Synced")).catch(() => {
+    setSyncStatus("Sync failed");
+    alert("Could not save. Please check your internet connection and try again.");
+  });
+  hideAllActions();
+}
+
+const savedPage = sessionStorage.getItem("activePage");
+showPage(savedPage === "data" ? "data" : "alerts");
+
+function applyFontSettingsToContainer(containerId, settings) {
+  const container = document.getElementById(containerId);
+  FONT_TARGETS.forEach((target) => {
+    const s = settings[target] || DEFAULT_PAGE_SETTINGS[target];
+    container.style.setProperty(`--${target}-size`, s.size + "px");
+    container.style.setProperty(`--${target}-color`, s.color);
+    container.style.setProperty(`--${target}-font`, s.font);
+    container.style.setProperty(`--${target}-weight`, s.bold ? "700" : "400");
+  });
+}
+
+function applyPageBackground(page) {
+  const settings = getSavedFontSettings(page);
+  // Treat the old plain-white default as "not customized" so pages that
+  // still have the original #ffffff saved automatically pick up the new
+  // dark theme instead of staying stuck on white.
+  const saved = settings.background;
+  const bg = (!saved || saved.toLowerCase() === "#ffffff") ? "#08080f" : saved;
+  document.body.style.backgroundColor = bg;
+  document.documentElement.style.setProperty("--page-bg", bg);
+  // Set it directly on both header bars too (belt-and-braces): the header is
+  // position:fixed and was relying only on the --page-bg CSS variable, which
+  // left it showing white in some cases even after the page background changed.
+  const headerAlerts = document.getElementById("header-alerts");
+  const headerData = document.getElementById("header-data");
+  if (headerAlerts) headerAlerts.style.backgroundColor = bg;
+  if (headerData) headerData.style.backgroundColor = bg;
+}
+
+function fillSettingsForm(settings) {
+  FONT_TARGETS.forEach((target) => {
+    const s = settings[target] || DEFAULT_PAGE_SETTINGS[target];
+    document.getElementById(`${target}-size`).value = s.size;
+    document.getElementById(`${target}-color`).value = s.color;
+    document.getElementById(`${target}-font`).value = s.font;
+    document.getElementById(`${target}-bold`).checked = !!s.bold;
+  });
+  document.getElementById("page-bg-color").value = (!settings.background || settings.background.toLowerCase() === "#ffffff") ? "#08080f" : settings.background;
+}
+
+function readSettingsForm() {
+  const settings = {};
+  FONT_TARGETS.forEach((target) => {
+    settings[target] = {
+      size: parseInt(document.getElementById(`${target}-size`).value, 10) || DEFAULT_PAGE_SETTINGS[target].size,
+      color: document.getElementById(`${target}-color`).value,
+      font: document.getElementById(`${target}-font`).value,
+      bold: document.getElementById(`${target}-bold`).checked
+    };
+  });
+  settings.background = document.getElementById("page-bg-color").value;
+  return settings;
+}
+
+let configDrafts = null;
+let currentConfigTab = "alerts";
+
+function updateTabUI() {
+  document.getElementById("cfgtab-alerts").classList.toggle("active", currentConfigTab === "alerts");
+  document.getElementById("cfgtab-data").classList.toggle("active", currentConfigTab === "data");
+  // Only the tab for the page you're currently on should be visible/usable —
+  // same rule as the Animation Control panel: Alert page shows Alert-only,
+  // List page shows List-only, with no way to peek at or switch to the other.
+  document.getElementById("cfgtab-alerts").style.display = (currentConfigTab === "alerts") ? "" : "none";
+  document.getElementById("cfgtab-data").style.display = (currentConfigTab === "data") ? "" : "none";
+  // "Alert Title" only exists on the Alert page, so hide that row completely
+  // while configuring the List page — nothing Alert-specific should show there.
+  const titleRow = document.getElementById("settingsRow-title");
+  if (titleRow) titleRow.style.display = (currentConfigTab === "alerts") ? "" : "none";
+  // List Name / Day Left / Target Date colors now always follow the List
+  // page automatically, so there's nothing to configure for them on the
+  // Alert page — hide those rows there.
+  ["settingsRow-name", "settingsRow-countdown", "settingsRow-date"].forEach((id) => {
+    const row = document.getElementById(id);
+    if (row) row.style.display = (currentConfigTab === "alerts") ? "none" : "";
+  });
+}
+
+function switchConfigTab(tab) {
+  configDrafts[currentConfigTab] = readSettingsForm();
+  currentConfigTab = tab;
+  updateTabUI();
+  fillSettingsForm(configDrafts[currentConfigTab]);
+}
+
+function openSettings() {
+  configDrafts = {
+    alerts: JSON.parse(JSON.stringify(getSavedFontSettings("alerts"))),
+    data: JSON.parse(JSON.stringify(getSavedFontSettings("data")))
+  };
+  currentConfigTab = getActivePageName();
+  updateTabUI();
+  fillSettingsForm(configDrafts[currentConfigTab]);
+  document.getElementById("settingsOverlay").classList.add("open");
+}
+
+function closeSettings() {
+  document.getElementById("settingsOverlay").classList.remove("open");
+}
+
+const ANIMATIONS = [
+  { id: "none", name: "None" },
+  { id: 1, name: "Spring Pop-In" },
+  { id: 2, name: "Blur-to-Focus" },
+  { id: 3, name: "Clip-Path Reveal" },
+  { id: 4, name: "Split-Letter Stagger" },
+  { id: 5, name: "Elastic Slide" },
+  { id: 6, name: "3D Flip-In" },
+  { id: 7, name: "Magnetic Snap" },
+  { id: 8, name: "Curtain Reveal" },
+  { id: 9, name: "Glitch-In" },
+  { id: 10, name: "Liquid Morph-In" },
+  { id: 11, name: "Gradient Shimmer Text" },
+  { id: 12, name: "Soft Breathing Glow" },
+  { id: 13, name: "Kinetic Underline Wave" },
+  { id: 14, name: "Floating Bob" },
+  { id: 15, name: "Neon Flicker" },
+  { id: 16, name: "Holographic Shine" },
+  { id: 17, name: "Gooey Pulse" },
+  { id: 18, name: "Aurora Background Shift" },
+  { id: 19, name: "Chromatic Aberration Pulse" },
+  { id: 20, name: "Wavy Text" },
+  { id: 21, name: "Tap Ripple Burst" },
+  { id: 22, name: "Elastic Press" },
+  { id: 23, name: "Magnetic Hover Pull" },
+  { id: 24, name: "Confetti Burst" },
+  { id: 25, name: "Haptic Shake" },
+  { id: 26, name: "Long-Press Grow" },
+  { id: 27, name: "Typewriter with Cursor Blink" },
+  { id: 28, name: "Word-by-Word Fade Cascade" },
+  { id: 29, name: "Letter Spacing Expand" },
+  { id: 30, name: "Bold-Weight Morph" },
+  { id: 31, name: "Color Wipe Left-to-Right" },
+  { id: 32, name: "Outline-to-Fill Text" },
+  { id: 33, name: "Scramble/Decode Text" },
+  { id: 34, name: "Rolling Digits" },
+  { id: 35, name: "Glassmorphism Shine Sweep" },
+  { id: 36, name: "Neumorphic Press Depth" },
+  { id: 37, name: "Frosted Blur Reveal" },
+  { id: 38, name: "Soft Shadow Lift on Load" },
+  { id: 39, name: "Rubber Band Snap" },
+  { id: 40, name: "Overshoot Bounce" },
+  { id: 41, name: "Jelly Wobble" },
+  { id: 42, name: "Pendulum Swing-In" },
+  { id: 43, name: "Pulse Ring" },
+  { id: 44, name: "Soft Scale Breathe" },
+  { id: 45, name: "Edge Glow Sweep" },
+  { id: 46, name: "Particle Trail Follow" },
+  { id: 47, name: "Skeleton-to-Content Morph" },
+  { id: 48, name: "Duotone Color Cycle" },
+  { id: 49, name: "Aurora Gradient Border" },
+  { id: 50, name: "Iridescent Sweep" },
+  { id: 51, name: "Neon Border Glow" },
+  { id: 52, name: "Text Pop Rotate" },
+  { id: 53, name: "Underline Ignite" },
+  { id: 54, name: "Skew Wobble Bounce" },
+  { id: 55, name: "Fade Slide Loop" },
+  { id: 56, name: "Zoom Blur Pop" },
+  { id: 57, name: "Corner Flip Peek" },
+  { id: 58, name: "Bounce Wave" },
+  { id: 59, name: "Soft Zoom Fade" },
+  { id: 60, name: "Shadow Drift Loop" },
+  { id: 61, name: "Neon Flicker Fast" },
+  { id: 62, name: "Glow Ring Double Pulse" },
+  { id: 63, name: "Halo Amber Glow" },
+  { id: 64, name: "Icy Glow Shimmer" },
+  { id: 65, name: "Ember Flicker Glow" },
+  { id: 66, name: "Electric Pulse Border" },
+  { id: 67, name: "Violet Aura Breathe" },
+  { id: 68, name: "Gold Shine Glow" },
+  { id: 69, name: "Toxic Green Pulse" },
+  { id: 70, name: "Rainbow Glow Cycle" },
+  { id: 71, name: "3D Cube Rotate" },
+  { id: 72, name: "3D Tilt Card" },
+  { id: 73, name: "Depth Pop Zoom" },
+  { id: 74, name: "Pendulum Swing 3D" },
+  { id: 75, name: "Fold Reveal 3D" },
+  { id: 76, name: "Orbit Spin" },
+  { id: 77, name: "Diagonal Float 3D" },
+  { id: 78, name: "Page Curl" },
+  { id: 79, name: "Perspective Drift" },
+  { id: 80, name: "Spiral Zoom In" },
+  { id: 81, name: "RGB Split Glitch" },
+  { id: 82, name: "Digital Scanline" },
+  { id: 83, name: "Pixel Flicker" },
+  { id: 84, name: "Static Noise Jitter" },
+  { id: 85, name: "Binary Blink" },
+  { id: 86, name: "Corrupted Shake" },
+  { id: 87, name: "Hacker Invert" },
+  { id: 88, name: "VHS Tracking Wave" },
+  { id: 89, name: "Data Stream Blur" },
+  { id: 90, name: "Matrix Color Drop" },
+  { id: 91, name: "Sunset Gradient Flow" },
+  { id: 92, name: "Ocean Wave Gradient" },
+  { id: 93, name: "Fire Gradient Flicker" },
+  { id: 94, name: "Cotton Candy Sweep" },
+  { id: 95, name: "Metallic Chrome Shine" },
+  { id: 96, name: "Galaxy Nebula Drift" },
+  { id: 97, name: "Emerald Flow Text" },
+  { id: 98, name: "Candy Pop Color Cycle" },
+  { id: 99, name: "Duotone Wave Shift" },
+  { id: 100, name: "Iridescent Border Sweep" },
+  { id: 101, name: "3D Spin" },
+  { id: 102, name: "Wavy" },
+  { id: 103, name: "Split Text" }
+];
+
+let currentAnimTarget = null;
+// Array of up to 3 animation ids, so any line/label/reminder can combine several
+// animations at once (e.g. Zoom Out + Zoom In together) instead of just one.
+let currentAnimSelections = [];
+const MAX_ANIMATIONS_PER_ITEM = 3;
+let animControlReturnFlag = false;
+
+let currentAnimSpeedChoice = "normal";
+
+function applyAnimSpeedToPage(speedKey) {
+  const mult = ANIM_SPEED_MULTIPLIERS[speedKey] || 1;
+  document.documentElement.style.setProperty("--la-speed", mult);
+}
+
+function updateAnimSpeedUI() {
+  const row = document.getElementById("animSpeedRow");
+  if (!row) return;
+  row.querySelectorAll(".anim-speed-btn").forEach((btn) => {
+    btn.classList.toggle("selected", btn.getAttribute("data-speed") === currentAnimSpeedChoice);
+  });
+}
+
+function setAnimSpeedChoice(speedKey) {
+  currentAnimSpeedChoice = speedKey;
+  applyAnimSpeedToPage(speedKey);
+  updateAnimSpeedUI();
+}
+
+function openAnimationPage(type, key, currentAnimIds) {
+  currentAnimTarget = type ? { type, key } : null;
+  if (type === "label") {
+    currentAnimSelections = getLabelAnimations(key);
+  } else if (type === "event") {
+    currentAnimSelections = normalizeAnimationIds(currentAnimIds, null);
+  } else {
+    currentAnimSelections = [];
+  }
+  currentAnimSpeedChoice = (cloudSettings.animSpeed) || "normal";
+  updateAnimSpeedUI();
+  exitAnimManagementMode();
+  renderAnimPickerList();
+  document.getElementById("animationOverlay").classList.add("open");
+  hideAllActions();
+}
+
+function closeAnimationPage() {
+  exitAnimManagementMode();
+  document.getElementById("animationOverlay").classList.remove("open");
+  if (animControlReturnFlag) {
+    animControlReturnFlag = false;
+    openAnimControlPanel();
+  }
+}
+
+function openAnimControlPanel() {
+  renderAnimControlList();
+  document.getElementById("animControlOverlay").classList.add("open");
+}
+
+function closeAnimControlPanel() {
+  document.getElementById("animControlOverlay").classList.remove("open");
+}
+
+function pickAnimControlItem(type, key, animIds) {
+  animControlReturnFlag = true;
+  document.getElementById("animControlOverlay").classList.remove("open");
+  openAnimationPage(type, key, animIds);
+}
+
+function renderAnimControlList() {
+  const alertsListEl = document.getElementById("animControlAlertsList");
+  const dataListEl = document.getElementById("animControlDataList");
+  const alertsTitleEl = document.getElementById("animControlAlertsTitle");
+  const dataTitleEl = document.getElementById("animControlDataTitle");
+  if (!alertsListEl || !dataListEl) return;
+  alertsListEl.innerHTML = "";
+  dataListEl.innerHTML = "";
+
+  const activePage = getActivePageName();
+  const showAlerts = activePage === "alerts";
+  alertsTitleEl.style.display = showAlerts ? "" : "none";
+  alertsListEl.style.display = showAlerts ? "" : "none";
+  dataTitleEl.style.display = showAlerts ? "none" : "";
+  dataListEl.style.display = showAlerts ? "none" : "";
+
+  const makeRow = (label, type, key, animIds) => {
+    const row = document.createElement("div");
+    row.className = "anim-control-row";
+    const nameSpan = document.createElement("span");
+    nameSpan.className = "anim-control-row-name";
+    if (animIds && animIds.length > 0) {
+      const dot = document.createElement("span");
+      dot.className = "anim-active-dot";
+      nameSpan.appendChild(dot);
+    }
+    nameSpan.appendChild(document.createTextNode(label));
+    const arrowSpan = document.createElement("span");
+    arrowSpan.className = "anim-control-row-arrow";
+    arrowSpan.textContent = "\u203A";
+    row.appendChild(nameSpan);
+    row.appendChild(arrowSpan);
+    row.addEventListener("click", () => pickAnimControlItem(type, key, animIds));
+    return row;
+  };
+
+  const events = getSortedEvents()
+    .map((ev) => buildEventDisplay(ev.name, ev.date, ev.type, ev.alertDays, ev.key, ev.animation, ev.animations))
+    .filter(Boolean);
+
+  if (showAlerts) {
+    alertsListEl.appendChild(makeRow("Today Date", "label", "header", getLabelAnimations("header")));
+    alertsListEl.appendChild(makeRow("Alert Title", "label", "alertTitle", getLabelAnimations("alertTitle")));
+    events.filter((e) => e.isAlert).forEach((e) => {
+      alertsListEl.appendChild(makeRow(e.name, "event", e.key, e.animations));
+    });
+  } else {
+    dataListEl.appendChild(makeRow("Today Date", "label", "header", getLabelAnimations("header")));
+    dataListEl.appendChild(makeRow("Reminder List", "label", "listCount", getLabelAnimations("listCount")));
+    events.forEach((e) => {
+      dataListEl.appendChild(makeRow(e.name, "event", e.key, e.animations));
+    });
+  }
+}
+
+function replayPreview(el) {
+  const cls = el.className;
+  el.className = "anim-pick-preview";
+  void el.offsetWidth;
+  el.className = cls;
+}
+
+// --- Favorite / hide (delete-from-list) management for animations ---
+// Long-pressing any animation row (except "None") enters a multi-select
+// "manage mode": a checkmark appears on every row, tapping other rows adds
+// them to the same selection, and a floating toolbar offers Favorite /
+// Delete for everything currently checked. If the person doesn't tap
+// anything in that toolbar (or another row) for a few seconds, manage mode
+// closes itself automatically — nothing is changed unless they explicitly
+// hit Favorite or Delete.
+let animManageMode = false;
+let animManageSelections = new Set();
+let animManageInactivityTimer = null;
+const ANIM_MANAGE_INACTIVITY_MS = 3000;
+let animLongPressTimer = null;
+let animLongPressTriggered = false;
+
+function getAnimFavorites() { return cloudSettings.animFavorites || []; }
+function getAnimHidden() { return cloudSettings.animHidden || []; }
+
+function resetAnimManageInactivityTimer() {
+  if (animManageInactivityTimer) clearTimeout(animManageInactivityTimer);
+  animManageInactivityTimer = setTimeout(() => {
+    exitAnimManagementMode();
+  }, ANIM_MANAGE_INACTIVITY_MS);
+}
+
+function enterAnimManagementMode(firstId) {
+  animManageMode = true;
+  animManageSelections = new Set();
+  if (firstId !== undefined && firstId !== "none") animManageSelections.add(firstId);
+  if (navigator.vibrate) navigator.vibrate(15);
+  renderAnimPickerList();
+  resetAnimManageInactivityTimer();
+}
+
+function exitAnimManagementMode() {
+  if (animManageInactivityTimer) { clearTimeout(animManageInactivityTimer); animManageInactivityTimer = null; }
+  const wasActive = animManageMode;
+  animManageMode = false;
+  animManageSelections = new Set();
+  if (wasActive) renderAnimPickerList();
+  updateAnimManageToolbar();
+}
+
+function toggleAnimManageSelection(id) {
+  if (id === "none") return;
+  if (animManageSelections.has(id)) animManageSelections.delete(id);
+  else animManageSelections.add(id);
+  if (animManageSelections.size === 0) {
+    exitAnimManagementMode();
+    return;
+  }
+  renderAnimPickerList();
+  resetAnimManageInactivityTimer();
+}
+
+function updateAnimManageToolbar() {
+  const toolbar = document.getElementById("animManageToolbar");
+  const countEl = document.getElementById("animManageCount");
+  if (!toolbar) return;
+  toolbar.classList.toggle("open", animManageMode && animManageSelections.size > 0);
+  if (countEl) countEl.textContent = animManageSelections.size + (animManageSelections.size === 1 ? " selected" : " selected");
+}
+
+async function favoriteManagedAnimations() {
+  const ids = Array.from(animManageSelections);
+  if (!ids.length) return;
+  const favs = new Set(getAnimFavorites());
+  ids.forEach((id) => favs.add(id));
+  cloudSettings.animFavorites = Array.from(favs);
+  exitAnimManagementMode();
+  try {
+    await saveCloudSettings(cloudSettings);
+  } catch (err) {
+    alert("Favorites could not be saved. Please check your connection and try again.");
+  }
+}
+
+async function deleteManagedAnimations() {
+  const ids = Array.from(animManageSelections);
+  if (!ids.length) return;
+  if (!confirm(`Remove ${ids.length} animation${ids.length > 1 ? "s" : ""} from this list?\n\nThey'll be hidden from the picker. Any line already using one keeps working until you change it.`)) return;
+  const hidden = new Set(getAnimHidden());
+  ids.forEach((id) => hidden.add(id));
+  cloudSettings.animHidden = Array.from(hidden);
+  cloudSettings.animFavorites = getAnimFavorites().filter((id) => !ids.includes(id));
+  currentAnimSelections = currentAnimSelections.filter((id) => !ids.includes(id));
+  exitAnimManagementMode();
+  try {
+    await saveCloudSettings(cloudSettings);
+  } catch (err) {
+    alert("Deletion could not be saved. Please check your connection and try again.");
+  }
+}
+
+// The inactivity timer above only reset on an actual tap. That meant
+// scrolling through the list to find another animation to check off (no
+// tap yet, just a drag) — or simply pausing to decide which button to
+// press — let the clock run out and closed the toolbar mid-task. These
+// listeners are attached once, not per render (the list/overlay elements
+// themselves are never recreated), and simply keep the timer alive on any
+// touch/scroll while manage mode is active, without changing what counts
+// as a real edit (only Favorite/Delete/Cancel actually close it early).
+(function attachAnimManageActivityGuards() {
+  const overlayEl = document.getElementById("animationOverlay");
+  const listEl = document.getElementById("animPickerList");
+  const toolbarEl = document.getElementById("animManageToolbar");
+  const keepAlive = () => { if (animManageMode) resetAnimManageInactivityTimer(); };
+  if (overlayEl) {
+    overlayEl.addEventListener("touchstart", keepAlive, { passive: true });
+    overlayEl.addEventListener("mousedown", keepAlive);
+  }
+  if (listEl) {
+    listEl.addEventListener("scroll", keepAlive, { passive: true });
+    listEl.addEventListener("touchmove", keepAlive, { passive: true });
+  }
+  if (toolbarEl) {
+    toolbarEl.addEventListener("touchstart", keepAlive, { passive: true });
+    toolbarEl.addEventListener("mousedown", keepAlive);
+  }
+})();
+
+// --- Multi-select management mode for the Favorites box itself, mirroring
+// the main list's manage mode: long-press one row to start, tap others to
+// add them to the same batch, then remove them all in one go instead of
+// one confirm per item.
+let favManageMode = false;
+let favManageSelections = new Set();
+let favManageInactivityTimer = null;
+
+function resetFavManageInactivityTimer() {
+  if (favManageInactivityTimer) clearTimeout(favManageInactivityTimer);
+  favManageInactivityTimer = setTimeout(() => {
+    exitFavManagementMode();
+  }, ANIM_MANAGE_INACTIVITY_MS);
+}
+
+function enterFavManagementMode(firstId) {
+  favManageMode = true;
+  favManageSelections = new Set();
+  if (firstId !== undefined) favManageSelections.add(firstId);
+  if (navigator.vibrate) navigator.vibrate(15);
+  renderAnimFavoritesList();
+  resetFavManageInactivityTimer();
+}
+
+function exitFavManagementMode() {
+  if (favManageInactivityTimer) { clearTimeout(favManageInactivityTimer); favManageInactivityTimer = null; }
+  const wasActive = favManageMode;
+  favManageMode = false;
+  favManageSelections = new Set();
+  if (wasActive) renderAnimFavoritesList();
+  updateFavManageToolbar();
+}
+
+function toggleFavManageSelection(id) {
+  if (favManageSelections.has(id)) favManageSelections.delete(id);
+  else favManageSelections.add(id);
+  if (favManageSelections.size === 0) {
+    exitFavManagementMode();
+    return;
+  }
+  renderAnimFavoritesList();
+  resetFavManageInactivityTimer();
+}
+
+function updateFavManageToolbar() {
+  const toolbar = document.getElementById("favManageToolbar");
+  const countEl = document.getElementById("favManageCount");
+  if (!toolbar) return;
+  toolbar.classList.toggle("open", favManageMode && favManageSelections.size > 0);
+  if (countEl) countEl.textContent = favManageSelections.size + " selected";
+}
+
+async function removeManagedFavorites() {
+  const ids = Array.from(favManageSelections);
+  if (!ids.length) return;
+  if (!confirm(`Remove ${ids.length} animation${ids.length > 1 ? "s" : ""} from your Favorites list?`)) return;
+  cloudSettings.animFavorites = getAnimFavorites().filter((id) => !ids.includes(id));
+  exitFavManagementMode();
+  renderAnimFavoritesList();
+  try {
+    await saveCloudSettings(cloudSettings);
+  } catch (err) {
+    alert("Could not save. Please check your connection and try again.");
+  }
+}
+
+// Same activity guard as the main list: any touch/scroll inside the
+// Favorites box while managing keeps the toolbar alive, so it only
+// auto-closes after real inactivity, not while the person is still
+// scrolling or picking more items.
+(function attachFavManageActivityGuards() {
+  const overlayEl = document.getElementById("animFavoritesOverlay");
+  const listEl = document.getElementById("animFavoritesList");
+  const toolbarEl = document.getElementById("favManageToolbar");
+  const keepAlive = () => { if (favManageMode) resetFavManageInactivityTimer(); };
+  if (overlayEl) {
+    overlayEl.addEventListener("touchstart", keepAlive, { passive: true });
+    overlayEl.addEventListener("mousedown", keepAlive);
+  }
+  if (listEl) {
+    listEl.addEventListener("scroll", keepAlive, { passive: true });
+    listEl.addEventListener("touchmove", keepAlive, { passive: true });
+  }
+  if (toolbarEl) {
+    toolbarEl.addEventListener("touchstart", keepAlive, { passive: true });
+    toolbarEl.addEventListener("mousedown", keepAlive);
+  }
+})();
+
+function openAnimFavoritesBox() {
+  exitFavManagementMode();
+  renderAnimFavoritesList();
+  document.getElementById("animFavoritesOverlay").classList.add("open");
+}
+
+function closeAnimFavoritesBox() {
+  exitFavManagementMode();
+  document.getElementById("animFavoritesOverlay").classList.remove("open");
+  // Selections made from the Favorites box apply to the same line, so make
+  // sure the main picker reflects them when the person goes back to it.
+  renderAnimPickerList();
+}
+
+function renderAnimFavoritesList() {
+  const listEl = document.getElementById("animFavoritesList");
+  const hintEl = document.getElementById("animFavHint");
+  if (!listEl) return;
+  listEl.innerHTML = "";
+  listEl.classList.toggle("manage-active", favManageMode);
+  updateFavManageToolbar();
+  const favIds = getAnimFavorites();
+  const favItems = favIds.map((id) => ANIMATIONS.find((a) => a.id === id)).filter(Boolean);
+
+  if (hintEl) {
+    if (favManageMode) {
+      hintEl.textContent = "Tap more to select, then tap Remove below";
+    } else {
+      hintEl.textContent = favItems.length
+        ? `Tap to add/remove from this line · Hold to select & remove from Favorites`
+        : "No favorites yet — hold an animation in the main list, then tap ★ Favorite";
+    }
+  }
+  if (!favItems.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "No favorites yet";
+    listEl.appendChild(empty);
+    return;
+  }
+
+  favItems.forEach((a, idx) => {
+    const row = document.createElement("div");
+    const selectedIndex = currentAnimSelections.indexOf(a.id);
+    const isSelected = selectedIndex !== -1;
+    const isManageSelected = favManageSelections.has(a.id);
+    row.className = "anim-pick-row" + (isSelected ? " selected" : "") + (isManageSelected ? " manage-selected" : "");
+    const previewCls = "anim-pick-preview la-" + a.id;
+    const orderBadge = selectedIndex !== -1 ? `<span class="anim-pick-order">${selectedIndex + 1}</span>` : "";
+    const serialLabel = `<span class="anim-pick-serial">${idx + 1}</span>`;
+    const checkmark = `<span class="anim-pick-checkmark">${isManageSelected ? "✓" : ""}</span>`;
+    row.innerHTML = `<span class="anim-pick-fav-star">★</span>${serialLabel}<span class="anim-pick-center">${orderBadge}<span class="${previewCls}">Aa</span></span>${checkmark}`;
+    row.addEventListener("click", () => {
+      if (animLongPressTriggered) { animLongPressTriggered = false; return; }
+      if (favManageMode) {
+        toggleFavManageSelection(a.id);
+        return;
+      }
+      if (isSelected) {
+        currentAnimSelections = currentAnimSelections.filter((id) => id !== a.id);
+      } else {
+        if (currentAnimSelections.length >= MAX_ANIMATIONS_PER_ITEM) currentAnimSelections.shift();
+        currentAnimSelections.push(a.id);
+      }
+      renderAnimFavoritesList();
+    });
+
+    const startFavLongPress = () => {
+      animLongPressTriggered = false;
+      clearTimeout(animLongPressTimer);
+      animLongPressTimer = setTimeout(() => {
+        animLongPressTriggered = true;
+        if (!favManageMode) {
+          enterFavManagementMode(a.id);
+        } else {
+          toggleFavManageSelection(a.id);
+        }
+      }, 480);
+    };
+    const cancelFavLongPress = () => clearTimeout(animLongPressTimer);
+    row.addEventListener("mousedown", startFavLongPress);
+    row.addEventListener("mouseup", cancelFavLongPress);
+    row.addEventListener("mouseleave", cancelFavLongPress);
+    row.addEventListener("touchstart", startFavLongPress, { passive: true });
+    row.addEventListener("touchend", cancelFavLongPress);
+    row.addEventListener("touchmove", cancelFavLongPress);
+    row.addEventListener("contextmenu", (e) => e.preventDefault());
+
+    listEl.appendChild(row);
+  });
+}
+
+function renderAnimPickerList() {
+  const hintEl = document.getElementById("animPickHint");
+  if (hintEl) {
+    if (animManageMode) {
+      hintEl.textContent = "Tap more to select, then choose Favorite or Delete below";
+    } else {
+      hintEl.textContent = currentAnimSelections.length
+        ? `${currentAnimSelections.length}/${MAX_ANIMATIONS_PER_ITEM} selected — tap a number to pick its order, tap again to remove`
+        : `Pick up to ${MAX_ANIMATIONS_PER_ITEM} animations to combine on this line · Hold one to favorite or delete`;
+    }
+  }
+  const listEl = document.getElementById("animPickerList");
+  listEl.innerHTML = "";
+  listEl.classList.toggle("manage-active", animManageMode);
+  updateAnimManageToolbar();
+
+  const favIds = getAnimFavorites();
+  const hiddenIds = getAnimHidden();
+
+  // Show whichever animations are already applied to this line first (right
+  // after "None"), in the order they were picked, so the user doesn't have
+  // to hunt through the whole list to see what's currently set. Favorited
+  // animations come next as their own group, then everything else — with
+  // anything the person deleted from the list filtered out (unless it's
+  // still applied to this line, so they can always find and remove it).
+  const noneItem = ANIMATIONS.find((a) => a.id === "none");
+  const selectedItems = currentAnimSelections
+    .map((id) => ANIMATIONS.find((a) => a.id === id))
+    .filter(Boolean);
+  const favItems = ANIMATIONS.filter(
+    (a) => a.id !== "none" && favIds.includes(a.id) && !currentAnimSelections.includes(a.id)
+  );
+  const remainingItems = ANIMATIONS.filter(
+    (a) => a.id !== "none" && !currentAnimSelections.includes(a.id) && !favIds.includes(a.id) && !hiddenIds.includes(a.id)
+  );
+
+  const sections = [];
+  if (noneItem) sections.push({ items: [noneItem] });
+  if (selectedItems.length) sections.push({ items: selectedItems });
+  if (favItems.length) sections.push({ label: "★ Favorites", items: favItems });
+  sections.push({ items: remainingItems });
+
+  let listIdx = 0;
+  sections.forEach((section) => {
+    if (!section.items.length) return;
+    if (section.label) {
+      const labelEl = document.createElement("div");
+      labelEl.className = "anim-pick-section-label";
+      labelEl.textContent = section.label;
+      listEl.appendChild(labelEl);
+    }
+    section.items.forEach((a) => {
+      listIdx += 1;
+      const row = document.createElement("div");
+      const selectedIndex = currentAnimSelections.indexOf(a.id);
+      const isSelected = a.id === "none" ? currentAnimSelections.length === 0 : selectedIndex !== -1;
+      const isManageSelected = animManageSelections.has(a.id);
+      row.className = "anim-pick-row" + (isSelected ? " selected" : "") + (isManageSelected ? " manage-selected" : "");
+      const previewCls = a.id === "none" ? "anim-pick-preview" : ("anim-pick-preview la-" + a.id);
+      const orderBadge = (a.id !== "none" && selectedIndex !== -1) ? `<span class="anim-pick-order">${selectedIndex + 1}</span>` : "";
+      const serialLabel = `<span class="anim-pick-serial">${listIdx}</span>`;
+      const favStar = (a.id !== "none" && favIds.includes(a.id)) ? `<span class="anim-pick-fav-star">★</span>` : "";
+      const checkmark = a.id !== "none" ? `<span class="anim-pick-checkmark">${isManageSelected ? "✓" : ""}</span>` : "";
+      row.innerHTML = `${favStar}${serialLabel}<span class="anim-pick-center">${orderBadge}<span class="${previewCls}">Aa</span></span>${checkmark}`;
+
+      row.addEventListener("click", () => {
+        if (animLongPressTriggered) { animLongPressTriggered = false; return; }
+        if (animManageMode) {
+          if (a.id === "none") { exitAnimManagementMode(); return; }
+          toggleAnimManageSelection(a.id);
+          return;
+        }
+        if (a.id === "none") {
+          currentAnimSelections = [];
+        } else if (currentAnimSelections.includes(a.id)) {
+          currentAnimSelections = currentAnimSelections.filter((id) => id !== a.id);
+        } else {
+          if (currentAnimSelections.length >= MAX_ANIMATIONS_PER_ITEM) currentAnimSelections.shift();
+          currentAnimSelections.push(a.id);
+        }
+        renderAnimPickerList();
+      });
+
+      if (a.id !== "none") {
+        const startLongPress = () => {
+          animLongPressTriggered = false;
+          clearTimeout(animLongPressTimer);
+          animLongPressTimer = setTimeout(() => {
+            animLongPressTriggered = true;
+            if (!animManageMode) {
+              enterAnimManagementMode(a.id);
+            } else {
+              toggleAnimManageSelection(a.id);
+            }
+          }, 480);
+        };
+        const cancelLongPress = () => clearTimeout(animLongPressTimer);
+        row.addEventListener("mousedown", startLongPress);
+        row.addEventListener("mouseup", cancelLongPress);
+        row.addEventListener("mouseleave", cancelLongPress);
+        row.addEventListener("touchstart", startLongPress, { passive: true });
+        row.addEventListener("touchend", cancelLongPress);
+        row.addEventListener("touchmove", cancelLongPress);
+        row.addEventListener("contextmenu", (e) => e.preventDefault());
+      }
+
+      listEl.appendChild(row);
+    });
+  });
+}
+
+// Rewritten to fix two real bugs:
+// 1) The old version fired TWO separate, un-awaited writes to the same Firebase
+//    location back to back (one before the animation change was even applied
+//    locally, one after) with no error handling — if either write failed
+//    (offline, slow connection, etc.) it failed silently, which is exactly why
+//    a newly-set animation could vanish again after a refresh.
+// 2) For reminders on the List page, the screen only ever updated after
+//    Firebase echoed the write back, so if that round trip was slow or failed,
+//    tapping Apply looked like it did nothing at all.
+// Now there is exactly one save per Apply tap, the screen updates immediately
+// (optimistic update) instead of waiting on the network, and any real failure
+// is shown to you instead of failing silently.
+async function applyAnimationChoice() {
+  const animIds = currentAnimSelections.slice();
+  cloudSettings.animSpeed = currentAnimSpeedChoice;
+  applyAnimSpeedToPage(currentAnimSpeedChoice);
+
+  const applyBtn = document.getElementById("animApplyBtn");
+  if (applyBtn) { applyBtn.disabled = true; applyBtn.textContent = "Saving..."; }
+  setSyncStatus("Saving...");
+
+  if (!settingsRef || (currentAnimTarget && currentAnimTarget.type === "event" && !eventsRef)) {
+    setSyncStatus("Offline");
+    if (applyBtn) { applyBtn.disabled = false; applyBtn.textContent = "Apply"; }
+    alert("Not connected to the database right now, so this can't be saved.\n\nThis usually means the page was opened as a local/downloaded file instead of your real website address (the address bar shows something other than https://). Please open the site at its actual https:// link and try again.");
+    return;
+  }
+
+  try {
+    if (currentAnimTarget && currentAnimTarget.type === "event" && eventsRef && currentAnimTarget.key) {
+      const idx = latestRawEvents.findIndex((ev) => ev.key === currentAnimTarget.key);
+      if (idx !== -1) {
+        latestRawEvents[idx] = { ...latestRawEvents[idx], animations: animIds, animation: null };
+        renderAll();
+      }
+      await eventsRef.child(currentAnimTarget.key).update({ animations: animIds, animation: null });
+      await saveCloudSettings(cloudSettings);
+    } else if (currentAnimTarget && currentAnimTarget.type === "label") {
+      if (!cloudSettings.labels) cloudSettings.labels = defaultLabels();
+      const existing = cloudSettings.labels[currentAnimTarget.key] || { text: null, hidden: false };
+      cloudSettings.labels[currentAnimTarget.key] = { text: existing.text, hidden: existing.hidden, animations: animIds, animation: null };
+      renderAll();
+      await saveCloudSettings(cloudSettings);
+    } else {
+      await saveCloudSettings(cloudSettings);
+    }
+    setSyncStatus("Synced");
+    closeAnimationPage();
+  } catch (err) {
+    setSyncStatus("Sync failed");
+    const reason = (err && err.message) ? err.message : "unknown error";
+    alert("Animation could not be saved.\n\nReason: " + reason + "\n\nIf this keeps happening, check that this page is opened at your real website address (https://...), not a local/downloaded file — Firebase often can't connect from a locally opened file regardless of internet speed.");
+  } finally {
+    if (applyBtn) { applyBtn.disabled = false; applyBtn.textContent = "Apply"; }
+  }
+}
+
+async function applySettings() {
+  configDrafts[currentConfigTab] = readSettingsForm();
+  cloudSettings.alerts = configDrafts.alerts;
+  cloudSettings.data = configDrafts.data;
+  applyFontSettingsToContainer("page-alerts", getEffectiveAlertsFontSettings());
+  applyFontSettingsToContainer("page-data", cloudSettings.data);
+  applyPageBackground(getActivePageName());
+  loadAll();
+  setSyncStatus("Saving...");
+  try {
+    await saveCloudSettings(cloudSettings);
+    setSyncStatus("Synced");
+  } catch (err) {
+    setSyncStatus("Sync failed");
+  }
+  closeSettings();
+}
+
+function resetSettings() {
+  const defaults = cloneDefaults();
+  configDrafts[currentConfigTab] = defaults;
+  fillSettingsForm(defaults);
+}
+
+if (settingsRef) {
+  settingsRef.on("value", (snapshot) => {
+    const val = snapshot.val();
+    if (val) {
+      if (val.alerts) cloudSettings.alerts = val.alerts;
+      if (val.data) cloudSettings.data = val.data;
+      if (val.labels) cloudSettings.labels = val.labels;
+      if (val.thresholds) {
+        cloudSettings.thresholds = val.thresholds;
+        ALERT_THRESHOLD_DAYS = val.thresholds.days || ALERT_THRESHOLD_DAYS;
+        CYLINDER_THRESHOLD_VALUE = (val.thresholds.cylinder !== undefined) ? val.thresholds.cylinder : CYLINDER_THRESHOLD_VALUE;
+      }
+      if (val.animSpeed) {
+        cloudSettings.animSpeed = val.animSpeed;
+        applyAnimSpeedToPage(val.animSpeed);
+      }
+      if (val.headerOffset) {
+        cloudSettings.headerOffset = val.headerOffset;
+        syncLineStyleUI();
+      }
+      cloudSettings.animFavorites = val.animFavorites || [];
+      cloudSettings.animHidden = val.animHidden || [];
+      applyFontSettingsToContainer("page-alerts", getEffectiveAlertsFontSettings());
+      applyFontSettingsToContainer("page-data", cloudSettings.data);
+      applyPageBackground(getActivePageName());
+      loadAll();
+      if (document.getElementById("animationOverlay").classList.contains("open")) {
+        renderAnimPickerList();
+      }
+      setSyncStatus("Synced");
+    } else {
+      setSyncStatus("");
+    }
+  }, (error) => {
+    setSyncStatus("Sync error");
+    console.error("Settings sync error:", error);
+  });
+} else {
+  setSyncStatus("Offline");
+}
+
+// Auto-update checker: detects new deployment (or a stale cached page) and reloads automatically
+(function(){
+  const metaTag = document.querySelector('meta[name="build-id"]');
+  const CURRENT_BUILD_ID = metaTag ? metaTag.getAttribute("content") : null;
+  let reloading = false;
+  async function checkForUpdate(){
+    if (reloading) return;
+    try{
+      const res = await fetch(location.pathname + "?_=" + Date.now(), { cache: "no-store" });
+      const text = await res.text();
+      const match = text.match(/<meta name="build-id" content="([^"]*)"/);
+      const latestBuildId = match ? match[1] : null;
+      if(latestBuildId && CURRENT_BUILD_ID && latestBuildId !== CURRENT_BUILD_ID){
+        reloading = true;
+        location.href = location.pathname + "?_=" + Date.now();
+      }
+    }catch(e){}
+  }
+  // Run immediately: this also catches the case where the browser served
+  // an old cached copy of this page on manual refresh, not just future deployments.
+  checkForUpdate();
+  setInterval(checkForUpdate, 500);
+  document.addEventListener("visibilitychange", function(){
+    if(!document.hidden){
+      checkForUpdate();
+    }
+  });
+  window.addEventListener("focus", checkForUpdate);
+})();
+</script>
+</body>
+</html>
