@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="build-id" content="2026-08-04-46">
+<meta name="build-id" content="2026-08-05-1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1325,11 +1325,16 @@ function renderAll() {
     setLabelIfChanged(alertTitleEl, getLabelValue("alertTitle", "Alert"), getLabelAnimations("alertTitle"));
   }
 
-  if (events.length === 0) {
-    listData.innerHTML = '<div class="refreshing-state">Refreshing <span class="dots-bold">. . .</span></div>';
-  } else {
-    renderEvents(listData, getAutoSortedForList(events), true);
-  }
+  // TEMPORARY DIAGNOSTIC: reminder list rendering disabled on the List page
+  // (only the "Today - date" header stays visible) — to isolate whether the
+  // header still shifts even with zero list DOM activity happening below it.
+  // Re-enable by restoring the two lines below.
+  listData.innerHTML = "";
+  // if (events.length === 0) {
+  //   listData.innerHTML = '<div class="refreshing-state">Refreshing <span class="dots-bold">. . .</span></div>';
+  // } else {
+  //   renderEvents(listData, getAutoSortedForList(events), true);
+  // }
 
   const alerts = events.filter((e) => e.isAlert);
   if (alerts.length === 0) listAlerts.innerHTML = '<div class="alert-empty-center">Empty Is Page</div>';
