@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="build-id" content="2026-08-05-17v">
+<meta name="build-id" content="2026-08-05-21v">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -75,15 +75,20 @@
     min-height: 36px;
   }
   .history-page-title {
-    color: var(--title-color, #b266b2);
-    font-size: var(--title-size, 24px);
+    color: var(--title-color, #c77dff) !important;
+    font-size: var(--title-size, 24px) !important;
     font-family: var(--title-font, inherit);
-    font-weight: var(--title-weight, 700);
-    /* Always readable on dark page background */
-    text-shadow: 0 1px 3px rgba(0,0,0,0.55), 0 0 1px rgba(255,255,255,0.25);
+    font-weight: var(--title-weight, 700) !important;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.55), 0 0 2px rgba(255,255,255,0.35);
     opacity: 1 !important;
     visibility: visible !important;
     display: inline-block !important;
+    min-height: 1.2em;
+  }
+  .history-page-title-row {
+    min-height: 40px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
   }
   #lw-history-title {
     display: inline-flex;
@@ -137,6 +142,7 @@
   .history-entry-arrow { color: #888; font-size: 24px; }
   .history-entry-new { color: #d97706; font-weight: 700; }
   .history-entry-days { color: #0052cc; font-size: 22px; font-weight: 700; margin-top: 14px; line-height: 1.35; }
+  .history-entry-price { color: #059669; font-size: 20px; font-weight: 700; margin-top: 10px; line-height: 1.35; }
   .history-entry-time { color: #6b7280; font-size: 17px; margin-top: 12px; }
   #page-alerts .header-date, #page-data .header-date, #page-history .header-date {
     position: fixed;
@@ -1200,7 +1206,7 @@ function openHistoryDetail(key, name) {
       const matches = v.key ? v.key === key : v.name === name;
       if (matches) items.push(Object.assign({ _fbKey: child.key }, v));
     });
-    renderHistoryDetailItems(items, name);
+    renderHistoryDetailItems(items, name, key);
   }, () => {
     body.innerHTML = '<div class="empty-state">History load nahi ho payi.</div>';
   });
@@ -1211,13 +1217,26 @@ function openHistoryDetail(key, name) {
 // alone and it closes itself after 3 seconds (same pattern as the rest of
 // the app's tap-to-reveal popups).
 let historyEntryHideTimer = null;
-function renderHistoryDetailItems(items, name) {
+function renderHistoryDetailItems(items, name, reminderKey) {
   const body = document.getElementById("historyDetailBody");
   if (items.length === 0) {
     body.innerHTML = '<div class="empty-state">No History</div>';
     return;
   }
   const isGasCylinder = (name || "").trim().toLowerCase() === "gas cylinder";
+  // Price always comes from the live List page data (same source for every
+  // reminder — VI Recharge, Gas Cylinder, or any list added today or later).
+  let priceText = "";
+  try {
+    const live = (typeof latestRawEvents !== "undefined" && Array.isArray(latestRawEvents))
+      ? latestRawEvents.find((ev) => (reminderKey && ev.key === reminderKey) || (name && ev.name === name))
+      : null;
+    const rawPrice = live && live.price !== undefined && live.price !== null ? String(live.price).trim() : "";
+    if (rawPrice !== "") {
+      // Show as "₹ 298" — if user already typed ₹ keep their text as-is
+      priceText = /₹|rs\.?|inr/i.test(rawPrice) ? rawPrice : ("₹ " + rawPrice);
+    }
+  } catch (ePrice) {}
   items.sort((a, b) => (b.changedAt || 0) - (a.changedAt || 0));
   body.innerHTML = items.map((e) => {
     const when = e.changedAt ? new Date(e.changedAt).toLocaleString() : "";
@@ -1242,6 +1261,10 @@ function renderHistoryDetailItems(items, name) {
         : "The recharge will last " + n + " days.";
       daysLine = `<div class="history-entry-days">${msg}</div>`;
     }
+    // Price line from List page — after the days line, for every reminder
+    const priceLine = priceText
+      ? `<div class="history-entry-price">${escapeHtml(priceText)}</div>`
+      : "";
     return `<div class="history-entry" data-fbkey="${escapeHtml(e._fbKey || "")}">
       <div class="history-entry-dates">
         <span class="history-entry-old">${escapeHtml(e.oldDate || "")}</span>
@@ -1249,6 +1272,7 @@ function renderHistoryDetailItems(items, name) {
         <span class="history-entry-new">${escapeHtml(e.newDate || "")}</span>
       </div>
       ${daysLine}
+      ${priceLine}
       <div class="history-entry-time">${when}</div>
       <div class="history-entry-delete-popup">
         <button type="button" onclick="event.stopPropagation();deleteHistoryEntry(this)">Delete</button>
@@ -1789,30 +1813,32 @@ function renderAll() {
   setLabelIfChanged(document.getElementById("header-data-left"), headerLabel, getLabelAnimations("header"));
   setLabelIfChanged(document.getElementById("header-history-left"), headerLabel, getLabelAnimations("header"));
 
-  const historyTitleEl = document.getElementById("historyTitleText");
-  if (historyTitleEl) {
-    // History title must ALWAYS stay visible. Never allow hidden/blank from Firebase.
-    if (!cloudSettings.labels) cloudSettings.labels = defaultLabels();
-    const ht = cloudSettings.labels.historyTitle || { text: null, hidden: false };
-    let needSave = false;
-    if (ht.hidden) { ht.hidden = false; needSave = true; }
-    if (ht.text === "") { ht.text = null; needSave = true; }
-    cloudSettings.labels.historyTitle = ht;
-    if (needSave) { try { saveCloudSettings(cloudSettings); } catch (e) {} }
-    // Reset absurd drag offset that would push title off-screen
-    const off = cloudSettings.historyTitleOffset || { x: 0, y: 0 };
-    if (Math.abs(off.x || 0) > 400 || Math.abs(off.y || 0) > 400) {
-      cloudSettings.historyTitleOffset = { x: 0, y: 0 };
-      applyHistoryTitleOffsetToPage();
-      try { saveCloudSettings(cloudSettings); } catch (e) {}
+  // History title — keep visible, never block the rest of renderAll
+  try {
+    const historyTitleEl = document.getElementById("historyTitleText");
+    if (historyTitleEl) {
+      if (!cloudSettings.labels) cloudSettings.labels = defaultLabels();
+      if (!cloudSettings.labels.historyTitle || typeof cloudSettings.labels.historyTitle !== "object") {
+        cloudSettings.labels.historyTitle = { text: null, hidden: false };
+      }
+      cloudSettings.labels.historyTitle.hidden = false;
+      if (cloudSettings.labels.historyTitle.text === "") cloudSettings.labels.historyTitle.text = null;
+      // Reset only extreme off-screen drag
+      try {
+        const off = cloudSettings.historyTitleOffset || { x: 0, y: 0 };
+        if (Math.abs(Number(off.x) || 0) > 120 || Math.abs(Number(off.y) || 0) > 120) {
+          cloudSettings.historyTitleOffset = { x: 0, y: 0 };
+          if (typeof applyHistoryTitleOffsetToPage === "function") applyHistoryTitleOffsetToPage();
+        }
+      } catch (eOff) {}
+      const titleText = getLabelValue("historyTitle", "History") || "History";
+      setLabelIfChanged(historyTitleEl, titleText, getLabelAnimations("historyTitle"));
+      if (!(historyTitleEl.textContent || "").trim()) {
+        historyTitleEl.textContent = "History";
+        try { historyTitleEl.dataset.laCache = ""; } catch (e2) {}
+      }
     }
-    setLabelIfChanged(historyTitleEl, getLabelValue("historyTitle", "History"), getLabelAnimations("historyTitle"));
-    // Belt-and-braces: if still empty after setLabel, force the word "History"
-    if (!historyTitleEl.textContent || !historyTitleEl.textContent.trim()) {
-      historyTitleEl.textContent = "History";
-      historyTitleEl.dataset.laCache = "";
-    }
-  }
+  } catch (eHist) { console.warn("history title render skipped", eHist); }
 
   const events = getSortedEvents()
     .map((ev) => buildEventDisplay(ev.name, ev.date, ev.type, ev.alertDays, ev.key, ev.animation, ev.animations))
@@ -3521,14 +3547,22 @@ if (settingsRef) {
         cloudSettings.history.header = JSON.parse(JSON.stringify(shared));
       })();
       if (val.labels) cloudSettings.labels = val.labels;
-      // History title must never stay hidden/blank after a Firebase sync
-      if (!cloudSettings.labels) cloudSettings.labels = defaultLabels();
-      if (!cloudSettings.labels.historyTitle) cloudSettings.labels.historyTitle = { text: null, hidden: false };
-      if (cloudSettings.labels.historyTitle.hidden || cloudSettings.labels.historyTitle.text === "") {
+      // History title: keep visible in memory only (do NOT write back here — avoids Firebase loops)
+      try {
+        if (!cloudSettings.labels) cloudSettings.labels = defaultLabels();
+        if (!cloudSettings.labels.historyTitle || typeof cloudSettings.labels.historyTitle !== "object") {
+          cloudSettings.labels.historyTitle = { text: null, hidden: false };
+        }
         cloudSettings.labels.historyTitle.hidden = false;
         if (cloudSettings.labels.historyTitle.text === "") cloudSettings.labels.historyTitle.text = null;
-        try { saveCloudSettings(cloudSettings); } catch (e) {}
-      }
+        if (cloudSettings.historyTitleOffset) {
+          const o = cloudSettings.historyTitleOffset;
+          if (Math.abs(o.x || 0) > 120 || Math.abs(o.y || 0) > 120) {
+            cloudSettings.historyTitleOffset = { x: 0, y: 0 };
+            try { localStorage.setItem("historyTitleOffset", JSON.stringify({ x: 0, y: 0 })); } catch (e) {}
+          }
+        }
+      } catch (eLab) {}
       if (val.listCountStyle) cloudSettings.listCountStyle = val.listCountStyle;
       applyListCountStyle();
       if (val.thresholds) {
