@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="build-id" content="2026-08-05-3">
+<meta name="build-id" content="2026-08-05-4">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -97,6 +97,11 @@
     display: flex;
     justify-content: flex-end;
     transform: translate(var(--listcount-offset-x, 0px), var(--listcount-offset-y, 0px));
+  }
+  /* Always match the "Today - date" line's font size exactly — no separate
+     size control exists (or should exist) for this label. */
+  #header-data-right {
+    font-size: var(--header-size, 19px) !important;
   }
   .line-style-popup {
     position: absolute;
@@ -1129,7 +1134,20 @@ function attachLongPress(item, onLongPress) {
   const el = document.getElementById(id);
   if (el) {
     const actionsEl = el.querySelector(".event-actions");
-    if (actionsEl) actionsEl.addEventListener("click", (ev) => ev.stopPropagation());
+    if (actionsEl) {
+      actionsEl.addEventListener("click", (ev) => ev.stopPropagation());
+      // Capture phase runs before the individual button's own onclick (which
+      // calls stopPropagation), so this reliably restarts the 3s auto-hide
+      // timer on every tap inside — Edit, or any of the 4 move arrows —
+      // instead of closing out from under the person mid-edit.
+      actionsEl.addEventListener("click", () => {
+        if (actionsHideTimer) { clearTimeout(actionsHideTimer); }
+        actionsHideTimer = setTimeout(() => {
+          el.classList.remove('actions-visible');
+          activeActionKey = null;
+        }, 3000);
+      }, true);
+    }
     el.addEventListener("click", (ev) => {
       ev.stopPropagation();
       toggleItemActions(el, id, 3000);
