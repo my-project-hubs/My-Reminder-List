@@ -1277,6 +1277,24 @@ function applyLabelAnimClass(el, animIds) {
   el.appendChild(mounted);
 }
 
+// renderAll() re-runs on every single Firebase change (including reordering
+// a reminder, which only touches that reminder's own "order" field). Without
+// this guard, every such change was blowing away and rebuilding the header's
+// animated text from scratch, which restarted its animation — so the "Today
+// - date" line would visibly jump/move any time a reminder was moved, even
+// though nothing about the header itself had changed. Now the header (and
+// other labels) only get rebuilt when their own text or animation actually
+// changed, so unrelated list changes never touch them.
+function setLabelIfChanged(el, text, animIds) {
+  if (!el) return;
+  const idsKey = normalizeAnimationIds(animIds, null).join(",");
+  const cacheKey = text + "||" + idsKey;
+  if (el.dataset.laCache === cacheKey) return;
+  el.dataset.laCache = cacheKey;
+  el.textContent = text;
+  applyLabelAnimClass(el, animIds);
+}
+
 function renderAll() {
   const listAlerts = document.getElementById("list-alerts");
   const listData = document.getElementById("list-data");
@@ -1288,21 +1306,17 @@ function renderAll() {
   const headerLabelRaw = cloudSettings.labels && cloudSettings.labels.header;
   const headerLabel = (headerLabelRaw && headerLabelRaw.hidden) ? "" : headerText;
 
-  document.getElementById("header-alerts-left").textContent = headerLabel;
-  document.getElementById("header-data-left").textContent = headerLabel;
-  applyLabelAnimClass(document.getElementById("header-alerts-left"), getLabelAnimations("header"));
-  applyLabelAnimClass(document.getElementById("header-data-left"), getLabelAnimations("header"));
+  setLabelIfChanged(document.getElementById("header-alerts-left"), headerLabel, getLabelAnimations("header"));
+  setLabelIfChanged(document.getElementById("header-data-left"), headerLabel, getLabelAnimations("header"));
 
   const events = getSortedEvents()
     .map((ev) => buildEventDisplay(ev.name, ev.date, ev.type, ev.alertDays, ev.key, ev.animation, ev.animations))
     .filter(Boolean);
 
-  document.getElementById("header-data-right").textContent = getLabelValue("listCount", events.length + ".Reminder List");
-  applyLabelAnimClass(document.getElementById("header-data-right"), getLabelAnimations("listCount"));
+  setLabelIfChanged(document.getElementById("header-data-right"), getLabelValue("listCount", events.length + ".Reminder List"), getLabelAnimations("listCount"));
   const alertTitleEl = document.getElementById("alertTitleText");
   if (alertTitleEl) {
-    alertTitleEl.textContent = getLabelValue("alertTitle", "Alert");
-    applyLabelAnimClass(alertTitleEl, getLabelAnimations("alertTitle"));
+    setLabelIfChanged(alertTitleEl, getLabelValue("alertTitle", "Alert"), getLabelAnimations("alertTitle"));
   }
 
   if (events.length === 0) {
