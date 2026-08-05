@@ -43,7 +43,6 @@
   .line-wrap { position: relative; display: inline-flex; align-items: baseline; }
   .line-wrap.actions-visible .event-actions { opacity: 1; pointer-events: auto; }
   .line-wrap .event-actions { top: 100%; left: 50%; transform: translate(-50%, 8px); flex-wrap: wrap; justify-content: center; max-width: min(88vw, 320px); row-gap: 10px; }
-  .header-move-btn { color: #555555; margin-left: 4px; padding-left: 12px !important; border-left: 1px solid #e5e5e5; }
   .event-countdown { color: var(--countdown-color, #ff0000); font-size: var(--countdown-size, 26px); font-family: var(--countdown-font, inherit); font-weight: var(--countdown-weight, 700); margin-bottom: 10px; line-height: 1.1; }
   .event-date { color: var(--date-color, #000000); font-size: var(--date-size, 15px); font-family: var(--date-font, inherit); font-weight: var(--date-weight, 400); line-height: 1.1; }
   #list-alerts { display: flex; flex-direction: column; align-items: center; max-width: none; margin: 0 auto; width: 100%; }
@@ -214,31 +213,44 @@
   .settings-reset { background: #eef0f4; color: #4b5160; }
   .sync-status { position: fixed; top: 18px; left: 16px; font-size: 11px; color: #ffffff; z-index: 15; opacity: 0.85; }
 
-  .page-toggle-btn, .settings-icon, .add-icon-btn, .anim-control-icon {
+  .top-icon-bar {
+    position: fixed;
+    top: 8px;
+    right: 14px;
+    z-index: 25;
+    display: flex;
+    align-items: center;
+    gap: 4px;
     background: rgba(54,56,68,0.6);
     border: 1px solid rgba(255,255,255,0.14);
     box-shadow: 0 4px 14px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-radius: 50%;
+    border-radius: 999px;
+    padding: 4px;
+  }
+
+  .page-toggle-btn, .settings-icon, .add-icon-btn, .anim-control-icon {
+    background: none;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
   .page-toggle-btn:active, .settings-icon:active, .add-icon-btn:active, .anim-control-icon:active {
-    background: rgba(70,72,86,0.7);
+    background: rgba(255,255,255,0.12);
   }
 
   .page-toggle-btn {
-    position: fixed;
-    top: 50%;
-    right: 14px;
-    transform: translateY(calc(-50% - 96px));
+    position: relative;
     color: #ffffff;
     padding: 0;
-    width: 56px;
-    height: 56px;
-    font-size: 22px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 26px;
     font-weight: 700;
     cursor: pointer;
-    z-index: 15;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -253,16 +265,13 @@
   }
 
   .settings-icon {
-    position: fixed;
-    top: 50%;
-    right: 14px;
-    transform: translateY(calc(-50% - 32px));
+    position: relative;
     color: #ffffff;
-    width: 56px;
-    height: 56px;
-    font-size: 22px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 26px;
     cursor: pointer;
-    z-index: 20;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -571,18 +580,15 @@
   .la-103 { display:inline-block; animation: k103 2.6s ease-in-out infinite; animation-duration: calc(2.6s / var(--la-speed, 1)); }
 
   .add-icon-btn {
-    position: fixed;
-    top: 50%;
-    right: 14px;
-    transform: translateY(calc(-50% - 160px));
+    position: relative;
     color: #ffffff;
     padding: 0;
-    width: 56px;
-    height: 56px;
-    font-size: 26px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 30px;
     font-weight: 700;
     cursor: pointer;
-    z-index: 20;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -592,17 +598,14 @@
   .add-icon-btn:active { opacity: 0.85; }
 
   .anim-control-icon {
-    position: fixed;
-    top: 50%;
-    right: 14px;
-    transform: translateY(calc(-50% - 224px));
+    position: relative;
     color: #ffffff;
-    width: 56px;
-    height: 56px;
-    font-size: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 24px;
     font-weight: 700;
     cursor: pointer;
-    z-index: 20;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -634,6 +637,8 @@
   .event-actions button svg { width: 20px; height: 20px; }
   .event-edit-btn { color: #555555; }
   .event-delete-btn { color: #555555; }
+  .event-pin-btn { color: #555555; margin-left: 4px; padding: 4px 10px !important; border-left: 1px solid #e5e5e5; border-radius: 8px; font-size: 13px; font-weight: 700; white-space: nowrap; }
+  .event-pin-btn.pinned { color: #0052cc; background: #e6f0ff; }
   .event-anim-btn { color: #555555; }
   .event-move-up-btn, .event-move-down-btn { color: #555555; }
   .event-action-disabled { opacity: 0.25; cursor: default; pointer-events: none; }
@@ -689,10 +694,12 @@
   <button class="cmp-right" data-dir="right" title="Right">▶</button>
   <button class="cmp-down" data-dir="down" title="Down">▼</button>
 </div>
-<button id="pageToggleBtn" class="page-toggle-btn" onclick="togglePage()" title="Switch page"><span id="toggleIcon" class="toggle-icon">⇄</span></button>
-<button class="settings-icon" onclick="openSettings()" title="Settings">⚙</button>
-<button class="add-icon-btn" onclick="openAddReminder()" title="Add New Reminder">+</button>
-<button class="anim-control-icon" onclick="openAnimControlPanel()" title="Animation Control">A</button>
+<div id="topIconBar" class="top-icon-bar">
+  <button class="settings-icon" onclick="openSettings()" title="Settings">⚙</button>
+  <button class="anim-control-icon" onclick="openAnimControlPanel()" title="Animation Control">A</button>
+  <button class="add-icon-btn" onclick="openAddReminder()" title="Add New Reminder">+</button>
+  <button id="pageToggleBtn" class="page-toggle-btn" onclick="togglePage()" title="Switch page"><span id="toggleIcon" class="toggle-icon">⇄</span></button>
+</div>
 
 <div id="animationOverlay" class="settings-overlay">
   <div class="settings-panel">
@@ -812,14 +819,14 @@
 
 <!-- PAGE 1: Alerts -->
 <div id="page-alerts" class="page active">
-  <div id="header-alerts" class="header-date"><div class="header-date-inner" id="lineStyleWrap-alerts"><span class="line-wrap" id="lw-header-alerts"><span id="header-alerts-left"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('header','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="header-move-btn" title="Move Up" onclick="event.stopPropagation();adjustHeaderOffset(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg></button><button type="button" class="header-move-btn" title="Move Down" onclick="event.stopPropagation();adjustHeaderOffset(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M19 12l-7 7-7-7"></path></svg></button><button type="button" class="header-move-btn" title="Move Left" onclick="event.stopPropagation();adjustHeaderOffsetX(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg></button><button type="button" class="header-move-btn" title="Move Right" onclick="event.stopPropagation();adjustHeaderOffsetX(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg></button></div></span><span id="header-alerts-right"></span></div></div>
+  <div id="header-alerts" class="header-date"><div class="header-date-inner" id="lineStyleWrap-alerts"><span class="line-wrap" id="lw-header-alerts"><span id="header-alerts-left"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('header','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="event-pin-btn" data-pin-key="header" title="Pin" onclick="event.stopPropagation();toggleLinePin('header')"></button></div></span><span id="header-alerts-right"></span></div></div>
   <div class="alerts-page-title-row"><span class="line-wrap" id="lw-alert-title"><span class="alerts-page-title" id="alertTitleText">Alert</span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('alertTitle','Alert')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button class="event-delete-btn" title="Delete" onclick="deleteLabel('alertTitle')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button></div></span></div>
   <div id="list-alerts"><div class="refreshing-state">Refreshing <span class="dots-bold">. . .</span></div></div>
 </div>
 
 <!-- PAGE 2: All Data (List) -->
 <div id="page-data" class="page">
-  <div id="header-data" class="header-date"><div class="header-date-inner" id="lineStyleWrap-data"><span class="line-wrap" id="lw-header-data"><span id="header-data-left"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('header','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="header-move-btn" title="Move Up" onclick="event.stopPropagation();adjustHeaderOffset(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg></button><button type="button" class="header-move-btn" title="Move Down" onclick="event.stopPropagation();adjustHeaderOffset(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M19 12l-7 7-7-7"></path></svg></button><button type="button" class="header-move-btn" title="Move Left" onclick="event.stopPropagation();adjustHeaderOffsetX(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg></button><button type="button" class="header-move-btn" title="Move Right" onclick="event.stopPropagation();adjustHeaderOffsetX(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg></button></div></span></div><div id="lw-header-count-row"><span class="line-wrap" id="lw-header-count"><span id="header-data-right"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('listCount','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="header-move-btn" title="Move Up" onclick="event.stopPropagation();adjustListCountOffset(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg></button><button type="button" class="header-move-btn" title="Move Down" onclick="event.stopPropagation();adjustListCountOffset(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M19 12l-7 7-7-7"></path></svg></button><button type="button" class="header-move-btn" title="Move Left" onclick="event.stopPropagation();adjustListCountOffsetX(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg></button><button type="button" class="header-move-btn" title="Move Right" onclick="event.stopPropagation();adjustListCountOffsetX(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg></button></div></span></div></div>
+  <div id="header-data" class="header-date"><div class="header-date-inner" id="lineStyleWrap-data"><span class="line-wrap" id="lw-header-data"><span id="header-data-left"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('header','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="event-pin-btn" data-pin-key="header" title="Pin" onclick="event.stopPropagation();toggleLinePin('header')"></button></div></span></div><div id="lw-header-count-row"><span class="line-wrap" id="lw-header-count"><span id="header-data-right"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('listCount','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="event-pin-btn" data-pin-key="listCount" title="Pin" onclick="event.stopPropagation();toggleLinePin('listCount')"></button></div></span></div></div>
   <div id="list-data"><div class="loading">Loading...</div></div>
 </div>
 
@@ -1150,6 +1157,7 @@ function attachLongPress(item, onLongPress) {
     }
     el.addEventListener("click", (ev) => {
       ev.stopPropagation();
+      if (suppressNextLineClick) { suppressNextLineClick = false; return; }
       toggleItemActions(el, id, 3000);
     });
   }
@@ -1345,7 +1353,7 @@ function renderAll() {
     .map((ev) => buildEventDisplay(ev.name, ev.date, ev.type, ev.alertDays, ev.key, ev.animation, ev.animations))
     .filter(Boolean);
 
-  setLabelIfChanged(document.getElementById("header-data-right"), getLabelValue("listCount", events.length + ".Reminder List"), getLabelAnimations("listCount"));
+  setLabelIfChanged(document.getElementById("header-data-right"), getListCountDisplayText(events.length), getLabelAnimations("listCount"));
   const alertTitleEl = document.getElementById("alertTitleText");
   if (alertTitleEl) {
     setLabelIfChanged(alertTitleEl, getLabelValue("alertTitle", "Alert"), getLabelAnimations("alertTitle"));
@@ -1575,9 +1583,37 @@ function applyHeaderOffsetToPage() {
   document.documentElement.style.setProperty("--header-offset-y", (s.y || 0) + "px");
 }
 
+function getHeaderPinned() { return !!cloudSettings.headerPinned; }
+function getListCountPinned() { return !!cloudSettings.listCountPinned; }
+
+function syncPinButtonsUI() {
+  const headerPinned = getHeaderPinned();
+  const listPinned = getListCountPinned();
+  document.querySelectorAll('.event-pin-btn[data-pin-key="header"]').forEach((b) => {
+    b.classList.toggle('pinned', headerPinned);
+    b.title = headerPinned ? 'Tap to unpin (allow dragging)' : 'Tap to pin (lock in place)';
+    b.textContent = headerPinned ? 'Unpin' : 'Pin';
+  });
+  document.querySelectorAll('.event-pin-btn[data-pin-key="listCount"]').forEach((b) => {
+    b.classList.toggle('pinned', listPinned);
+    b.title = listPinned ? 'Tap to unpin (allow dragging)' : 'Tap to pin (lock in place)';
+    b.textContent = listPinned ? 'Unpin' : 'Pin';
+  });
+}
+
+let pinSaveTimer = null;
+function toggleLinePin(key) {
+  if (key === 'header') cloudSettings.headerPinned = !getHeaderPinned();
+  else if (key === 'listCount') cloudSettings.listCountPinned = !getListCountPinned();
+  syncPinButtonsUI();
+  if (pinSaveTimer) clearTimeout(pinSaveTimer);
+  pinSaveTimer = setTimeout(() => saveCloudSettings(cloudSettings), 400);
+}
+
 function syncLineStyleUI() {
   applyHeaderOffsetToPage();
   applyListCountOffsetToPage();
+  syncPinButtonsUI();
 }
 
 let lineStyleSaveTimer = null;
@@ -1586,16 +1622,6 @@ function saveHeaderOffset(partial) {
   syncLineStyleUI();
   if (lineStyleSaveTimer) clearTimeout(lineStyleSaveTimer);
   lineStyleSaveTimer = setTimeout(() => saveCloudSettings(cloudSettings), 400);
-}
-
-function adjustHeaderOffset(delta) {
-  const s = getHeaderOffset();
-  saveHeaderOffset({ y: (s.y || 0) + delta });
-}
-
-function adjustHeaderOffsetX(delta) {
-  const s = getHeaderOffset();
-  saveHeaderOffset({ x: (s.x || 0) + delta });
 }
 
 // Independent position for the "X.Reminder List" count label — deliberately
@@ -1619,15 +1645,57 @@ function saveListCountOffset(partial) {
   listCountSaveTimer = setTimeout(() => saveCloudSettings(cloudSettings), 400);
 }
 
-function adjustListCountOffset(delta) {
-  const s = getListCountOffset();
-  saveListCountOffset({ y: (s.y || 0) + delta });
+// Finger-drag positioning for the "Today - date" line and the
+// "X.Reminder List" count line — no arrow buttons, just press and drag
+// with a finger (or mouse) anywhere on the line and it follows the
+// pointer directly. A tap that doesn't move stays a normal tap and still
+// opens the Edit popup; only a real drag (past a small threshold) repositions
+// the line and suppresses that tap's click so Edit doesn't pop open too.
+let suppressNextLineClick = false;
+
+function makeLineDraggable(dragElId, getOffsetFn, saveOffsetFn, isPinnedFn) {
+  const dragEl = document.getElementById(dragElId);
+  if (!dragEl) return;
+  dragEl.style.touchAction = "none";
+  let dragging = false;
+  let moved = false;
+  let startX = 0, startY = 0;
+  let baseOffset = { x: 0, y: 0 };
+  const THRESHOLD = 6;
+
+  dragEl.addEventListener("pointerdown", (ev) => {
+    if (ev.pointerType === "mouse" && ev.button !== 0) return;
+    if (isPinnedFn && isPinnedFn()) return;
+    dragging = true;
+    moved = false;
+    startX = ev.clientX;
+    startY = ev.clientY;
+    baseOffset = getOffsetFn();
+    try { dragEl.setPointerCapture(ev.pointerId); } catch (e) {}
+  });
+
+  dragEl.addEventListener("pointermove", (ev) => {
+    if (!dragging) return;
+    const dx = ev.clientX - startX;
+    const dy = ev.clientY - startY;
+    if (!moved && (Math.abs(dx) > THRESHOLD || Math.abs(dy) > THRESHOLD)) moved = true;
+    if (moved) {
+      saveOffsetFn({ x: (baseOffset.x || 0) + dx, y: (baseOffset.y || 0) + dy });
+    }
+  });
+
+  function endDrag() {
+    if (!dragging) return;
+    dragging = false;
+    if (moved) suppressNextLineClick = true;
+  }
+  dragEl.addEventListener("pointerup", endDrag);
+  dragEl.addEventListener("pointercancel", endDrag);
 }
 
-function adjustListCountOffsetX(delta) {
-  const s = getListCountOffset();
-  saveListCountOffset({ x: (s.x || 0) + delta });
-}
+makeLineDraggable("lineStyleWrap-alerts", getHeaderOffset, saveHeaderOffset, getHeaderPinned);
+makeLineDraggable("lineStyleWrap-data", getHeaderOffset, saveHeaderOffset, getHeaderPinned);
+makeLineDraggable("lw-header-count-row", getListCountOffset, saveListCountOffset, getListCountPinned);
 
 let lineStyleHideTimer = null;
 
@@ -1677,6 +1745,21 @@ function getLabelValue(key, defaultText) {
   const label = (cloudSettings.labels && cloudSettings.labels[key]) || { text: null, hidden: false };
   if (label.hidden) return "";
   return (label.text !== null && label.text !== undefined && label.text !== "") ? label.text : defaultText;
+}
+
+// The reminder count must always reflect the live number of reminders
+// below it, even if the person previously used Edit to type custom
+// wording. Wherever a number appears inside that custom text — front,
+// middle, or end (e.g. "Reminder List - 6") — it is always swapped in
+// place for the true live count on every render, so the number can never
+// get stuck out of sync with the actual list again.
+function getListCountDisplayText(count) {
+  const label = (cloudSettings.labels && cloudSettings.labels.listCount) || { text: null, hidden: false };
+  if (label.hidden) return "";
+  const stored = (label.text !== null && label.text !== undefined) ? label.text : "";
+  if (stored === "") return count + ".Reminder List";
+  if (/\d/.test(stored)) return stored.replace(/\d+/, String(count));
+  return count + "." + stored;
 }
 
 function getLabelAnimations(key) {
@@ -2583,6 +2666,9 @@ if (settingsRef) {
         cloudSettings.listCountOffset = val.listCountOffset;
         syncLineStyleUI();
       }
+      cloudSettings.headerPinned = !!val.headerPinned;
+      cloudSettings.listCountPinned = !!val.listCountPinned;
+      syncPinButtonsUI();
       cloudSettings.animFavorites = val.animFavorites || [];
       cloudSettings.animHidden = val.animHidden || [];
       applyFontSettingsToContainer("page-alerts", getEffectiveAlertsFontSettings());
