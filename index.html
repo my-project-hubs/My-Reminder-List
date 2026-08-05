@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="build-id" content="2026-08-05-11">
+<meta name="build-id" content="2026-08-05-17t">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -64,29 +64,78 @@
   #page-data {
     padding-top: 28px;
   }
-  #page-history { padding-top: 20px; }
-  .history-page-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
-  .history-page-title { color: var(--title-color, #b266b2); font-size: var(--title-size, 24px); font-family: var(--title-font, inherit); font-weight: var(--title-weight, 700); }
-  #lw-history-title { transform: translate(var(--historyTitle-offset-x, 0px), var(--historyTitle-offset-y, 0px)); }
+  #page-history { padding-top: 56px; }
+  .history-page-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 15;
+    min-height: 36px;
+  }
+  .history-page-title {
+    color: var(--title-color, #b266b2);
+    font-size: var(--title-size, 24px);
+    font-family: var(--title-font, inherit);
+    font-weight: var(--title-weight, 700);
+    /* Fallback so it never vanishes on a dark background if --title-color is black */
+    text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+  }
+  #lw-history-title {
+    display: inline-flex;
+    align-items: baseline;
+    transform: translate(var(--historyTitle-offset-x, 0px), var(--historyTitle-offset-y, 0px));
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #lw-history-title:active { cursor: grabbing; }
   .history-back-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.3); color: #fff; width: 34px; height: 34px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
   /* History page cards are just the List page's own event cards, reused
      as-is, tappable to open that reminder's change-history popup. */
   #list-history .history-card { cursor: pointer; }
   #list-history .history-card:active { background: rgba(255,255,255,0.07); }
   #historyDetailBody .empty-state { margin-top: 20px; }
-  .history-entry { margin-bottom: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.2); border-radius: 18px; padding: 14px 16px; position: relative; cursor: pointer; }
-  .history-entry-delete-popup { position: absolute; top: 10px; right: 10px; opacity: 0; pointer-events: none; transition: opacity 0.15s ease; }
+  /* History detail opens nearly full-screen so text is easy to read */
+  #historyDetailOverlay { align-items: center; }
+  #historyDetailOverlay .settings-panel {
+    border-radius: 26px;
+    height: calc(100vh - 1.2in);
+    max-height: calc(100vh - 1.2in);
+    width: 94%;
+    max-width: 640px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 28px;
+  }
+  #historyDetailOverlay .settings-title {
+    font-size: 26px;
+    font-weight: 800;
+    margin-bottom: 16px;
+    flex: none;
+  }
+  #historyDetailBody {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+  }
+  .history-entry { margin-bottom: 18px; background: #f7f8fa; border: 1px solid #e8e9ef; border-radius: 18px; padding: 20px 20px; position: relative; cursor: pointer; }
+  .history-entry-delete-popup { position: absolute; top: 12px; right: 12px; opacity: 0; pointer-events: none; transition: opacity 0.15s ease; }
   .history-entry.actions-visible .history-entry-delete-popup { opacity: 1; pointer-events: auto; }
-  .history-entry-delete-popup button { background: rgba(255,80,80,0.12); border: 1px solid rgba(255,80,80,0.4); color: #ff4d4d; font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 999px; cursor: pointer; }
+  .history-entry-delete-popup button { background: rgba(255,80,80,0.12); border: 1px solid rgba(255,80,80,0.4); color: #ff4d4d; font-size: 15px; font-weight: 700; padding: 8px 16px; border-radius: 999px; cursor: pointer; }
   .history-entry-delete-popup button:active { background: rgba(255,80,80,0.25); }
-  .history-entry-name { color: #fff; font-size: 17px; font-weight: 600; margin-bottom: 8px; }
-  .history-entry-dates { display: flex; align-items: center; gap: 8px; font-size: 15px; color: #ccc; }
-  .history-entry-old { color: #ff6b6b; text-decoration: line-through; }
-  .history-entry-arrow { color: #888; }
-  .history-entry-new { color: #ffb84d; font-weight: 600; }
-  .history-entry-days { color: #4da6ff; font-size: 13px; font-weight: 600; margin-top: 6px; }
-  .history-entry-time { color: #666; font-size: 12px; margin-top: 6px; }
-  #page-alerts .header-date, #page-data .header-date {
+  .history-entry-name { color: #14151a; font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+  .history-entry-dates { display: flex; align-items: center; gap: 12px; font-size: 24px; color: #555; flex-wrap: wrap; }
+  .history-entry-old { color: #e04545; text-decoration: line-through; font-weight: 700; }
+  .history-entry-arrow { color: #888; font-size: 24px; }
+  .history-entry-new { color: #d97706; font-weight: 700; }
+  .history-entry-days { color: #0052cc; font-size: 22px; font-weight: 700; margin-top: 14px; line-height: 1.35; }
+  .history-entry-time { color: #6b7280; font-size: 17px; margin-top: 12px; }
+  #page-alerts .header-date, #page-data .header-date, #page-history .header-date {
     position: fixed;
     top: 0;
     left: 0;
@@ -124,10 +173,12 @@
     justify-content: flex-end;
     transform: translate(var(--listcount-offset-x, 0px), var(--listcount-offset-y, 0px));
   }
-  /* Always match the "Today - date" line's font size exactly — no separate
-     size control exists (or should exist) for this label. */
+  /* Reminder List count line — independent from Today Date (own color/size/font) */
   #header-data-right {
-    font-size: var(--header-size, 19px) !important;
+    font-size: var(--listcount-size, 19px) !important;
+    color: var(--listcount-color, #ffffff) !important;
+    font-family: var(--listcount-font, inherit) !important;
+    font-weight: var(--listcount-weight, 400) !important;
   }
   .line-style-popup {
     position: absolute;
@@ -257,36 +308,58 @@
     padding: 4px;
   }
 
-  /* Horizontal row of 4 direct-access buttons, pulled right up to sit level
-     with the "Today - date" header line, right side, close together. */
+  /* 4 separate round buttons — no shared long pill bar behind them */
   .top-icon-stack {
     position: fixed;
     top: 6px;
-    right: 14px;
+    right: 10px;
     z-index: 30;
     display: flex;
     flex-direction: row;
-    gap: 0px;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
   .stack-icon-btn {
-    width: 54px;
-    height: 54px;
+    position: relative;
+    width: 46px;
+    height: 46px;
     border-radius: 50%;
-    background: #000000;
-    border: 1px solid rgba(255,255,255,0.15);
-    box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+    background: rgba(20, 22, 32, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
     color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     padding: 0;
-    font-size: 23px;
+    font-size: 26px;
     font-weight: 700;
     line-height: 1;
+    overflow: hidden;
+    transition: background 0.15s ease, transform 0.12s ease, border-color 0.15s ease;
   }
-  .stack-icon-btn:active { background: #1a1a1a; }
-  .stack-icon-btn .toggle-icon { display: inline-block; transition: transform 0.4s ease; }
+  /* Per-icon white glyph sizes (button circle size stays the same) */
+  #stackIconWrap-anim .stack-icon-btn { font-size: 25px; }      /* A: -1 */
+  #stackIconWrap-settings .stack-icon-btn { font-size: 25px; } /* Settings: -1 */
+  #stackIconWrap-add .stack-icon-btn { font-size: 28px; }       /* Plus: +2 */
+  #stackIconWrap-switch .stack-icon-btn { font-size: 28px; }    /* Switch: +2 */
+  .stack-icon-btn:active {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.32);
+    transform: scale(0.9);
+  }
+  .stack-icon-btn .toggle-icon {
+    display: inline-block;
+    transition: transform 0.4s ease;
+    font-size: inherit;
+  }
 
   /* Each of the 4 buttons gets its own independent drag offset — moving one
      never affects the others — plus a long-press Pin/Unpin popup. When
@@ -706,13 +779,29 @@
   .add-field-row input[type="text"]:focus { outline: none; border-color: #0052cc; background: #ffffff; box-shadow: 0 0 0 4px rgba(0,82,204,0.1); }
   .add-field-row input[type="number"] { width: 100px; padding: 13px; border: 1.5px solid #ececf1; background: #f7f8fa; border-radius: 14px; font-size: 17px; font-weight: 600; color: #14151a; }
   .add-alert-type-row { align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
-  .add-date-counter-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .add-date-counter-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .add-date-counter-row + .add-date-counter-row { margin-top: 14px; }
   .date-input-small { width: 165px; padding: 13px; border: 1.5px solid #ececf1; background: #f7f8fa; border-radius: 14px; font-size: 16px; font-weight: 600; color: #14151a; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
   .date-input-small:focus { outline: none; border-color: #0052cc; background: #ffffff; box-shadow: 0 0 0 4px rgba(0,82,204,0.1); }
-  .date-col { display: flex; flex-direction: column; }
-  .alert-col { display: flex; flex-direction: column; }
-  .alert-col input[type="number"] { width: 70px; padding: 13px; border: 1.5px solid #ececf1; background: #f7f8fa; border-radius: 14px; font-size: 17px; font-weight: 600; color: #14151a; text-align: center; }
-  .counter-col { display: flex; flex-direction: column; align-items: flex-start; }
+  .date-col { display: flex; flex-direction: column; flex: 1; min-width: 140px; }
+  .price-col { display: flex; flex-direction: column; flex: 1; min-width: 100px; }
+  .price-col input[type="text"],
+  .price-col input[type="number"] {
+    width: 100%;
+    max-width: 140px;
+    padding: 13px;
+    border: 1.5px solid #ececf1;
+    background: #f7f8fa;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #14151a;
+    text-align: center;
+  }
+  .price-col input:focus { outline: none; border-color: #0052cc; background: #ffffff; box-shadow: 0 0 0 4px rgba(0,82,204,0.1); }
+  .alert-col { display: flex; flex-direction: column; flex: 1; min-width: 100px; }
+  .alert-col input[type="number"] { width: 100%; max-width: 100px; padding: 13px; border: 1.5px solid #ececf1; background: #f7f8fa; border-radius: 14px; font-size: 17px; font-weight: 600; color: #14151a; text-align: center; }
+  .counter-col { display: flex; flex-direction: column; align-items: flex-start; flex: 1; min-width: 120px; }
   .add-type-group { display: flex; align-items: center; gap: 8px; background: #eef0f4; padding: 4px; border-radius: 999px; }
   .add-type-group-vertical { flex-direction: column; align-items: stretch; gap: 4px; }
   .add-type-row { gap: 20px; align-items: center; }
@@ -791,13 +880,13 @@
     <button class="stack-icon-btn" onclick="stackIconAction(openAddReminder)" title="Add New Reminder">+</button>
     <div class="stack-icon-pin-popup" data-stack-key="add" onclick="event.stopPropagation();toggleStackIconPin('add')">Pin</div>
   </div>
-  <div class="stack-icon-item" id="stackIconWrap-switch">
-    <button class="stack-icon-btn" onclick="stackIconAction(togglePage)" title="Switch Page"><span class="toggle-icon" id="toggleIcon">⇄</span></button>
-    <div class="stack-icon-pin-popup" data-stack-key="switch" onclick="event.stopPropagation();toggleStackIconPin('switch')">Pin</div>
-  </div>
   <div class="stack-icon-item" id="stackIconWrap-settings">
     <button class="stack-icon-btn" onclick="stackIconAction(openSettings)" title="Settings">⚙</button>
     <div class="stack-icon-pin-popup" data-stack-key="settings" onclick="event.stopPropagation();toggleStackIconPin('settings')">Pin</div>
+  </div>
+  <div class="stack-icon-item" id="stackIconWrap-switch">
+    <button class="stack-icon-btn" onclick="stackIconAction(togglePage)" title="Switch Page"><span class="toggle-icon" id="toggleIcon">⇄</span></button>
+    <div class="stack-icon-pin-popup" data-stack-key="switch" onclick="event.stopPropagation();toggleStackIconPin('switch')">Pin</div>
   </div>
 </div>
 
@@ -845,6 +934,8 @@
       <div id="animControlAlertsList"></div>
       <div class="anim-control-group-title" id="animControlDataTitle">List Page</div>
       <div id="animControlDataList"></div>
+      <div class="anim-control-group-title" id="animControlHistoryTitle">History Page</div>
+      <div id="animControlHistoryList"></div>
     </div>
   </div>
 </div>
@@ -866,8 +957,8 @@
         <div class="settings-field"><label>Color</label><div class="color-combo"><input type="color" id="page-bg-color"></div></div>
       </div>
     </div>
-    <div class="settings-row">
-      <div class="settings-row-label">Today Date</div>
+    <div class="settings-row" id="settingsRow-header">
+      <div class="settings-row-label" id="settingsRowHeaderLabel">Today Date</div>
       <div class="settings-controls">
         <div class="settings-field"><label>Size</label><input type="number" id="header-size" min="8" max="60"></div>
         <div class="settings-field"><label class="lbl-sm">Color</label><div class="color-combo"><input type="color" id="header-color"></div></div>
@@ -935,7 +1026,7 @@
 <div id="page-history" class="page">
   <div id="header-history" class="header-date"><div class="header-date-inner" id="lineStyleWrap-history"><span class="line-wrap" id="lw-header-history"><span id="header-history-left"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('header','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="event-pin-btn" data-pin-key="header-history" title="Pin" onclick="event.stopPropagation();toggleLinePin('header-history')"></button></div></span></div></div>
   <div class="history-page-title-row">
-    <span class="line-wrap" id="lw-history-title"><span class="history-page-title" id="historyTitleText">Target Date History</span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('historyTitle','Target Date History')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="event-pin-btn" data-pin-key="historyTitle" title="Pin" onclick="event.stopPropagation();toggleLinePin('historyTitle')"></button></div></span>
+    <span class="line-wrap" id="lw-history-title"><span class="history-page-title" id="historyTitleText">History</span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('historyTitle','History')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="event-pin-btn" data-pin-key="historyTitle" title="Pin" onclick="event.stopPropagation();toggleLinePin('historyTitle')"></button></div></span>
   </div>
   <div id="list-history"><div class="loading">Loading...</div></div>
 </div>
@@ -958,10 +1049,16 @@
       <div class="add-date-counter-row">
         <div class="date-col">
           <div class="settings-row-label">Target Date</div>
-          <input type="text" id="new-target-date" class="date-input-small" placeholder="DD/MM/YYYY">
+          <input type="text" id="new-target-date" class="date-input-small" placeholder="DD/MM/YYYY" inputmode="numeric" maxlength="10" autocomplete="off">
         </div>
+        <div class="price-col">
+          <div class="settings-row-label">Price</div>
+          <input type="text" id="new-price" placeholder="0" inputmode="decimal" autocomplete="off">
+        </div>
+      </div>
+      <div class="add-date-counter-row">
         <div class="alert-col">
-          <div class="settings-row-label">Alert Day</div>
+          <div class="settings-row-label">Alert Page</div>
           <input type="number" id="new-alert-day" min="0" max="365" placeholder="e.g. 15">
         </div>
         <div class="counter-col">
@@ -982,7 +1079,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
-let cloudSettings = { alerts: {}, data: {}, labels: { header: { text: null, hidden: false }, listCount: { text: null, hidden: false }, alertTitle: { text: null, hidden: false } }, animFavorites: [], animHidden: [] };
+let cloudSettings = { alerts: {}, data: {}, labels: { header: { text: null, hidden: false }, listCount: { text: null, hidden: false }, alertTitle: { text: null, hidden: false }, historyTitle: { text: null, hidden: false } }, animFavorites: [], animHidden: [] };
 const ANIM_SPEED_MULTIPLIERS = { slow: 0.6, normal: 1, medium: 1.5, high: 2.2 };
 let ALERT_THRESHOLD_DAYS = 15;
 let CYLINDER_THRESHOLD_VALUE = 3.00;
@@ -1064,7 +1161,19 @@ function renderHistoryList() {
     card.className = "event history-card";
     card.innerHTML = `<div class="event-name">${e.name}</div>`;
     card.addEventListener("click", () => openHistoryDetail(e.key, e.name));
-    container.appendChild(card);
+    // Apply the same event animations here so Animation Control on History
+    // page actually shows the effect on these name cards.
+    const animIds = normalizeAnimationIds(e.animations, e.animation);
+    let node = card;
+    if (animIds.length > 0) {
+      animIds.slice().reverse().forEach((id) => {
+        const wrap = document.createElement("div");
+        wrap.className = "la-" + id + " la-event-wrap";
+        wrap.appendChild(node);
+        node = wrap;
+      });
+    }
+    container.appendChild(node);
   });
 }
 
@@ -1072,7 +1181,7 @@ function renderHistoryList() {
 // new date, for every time its Target Date was edited. Shows "No History"
 // when this reminder has never had a change logged.
 function openHistoryDetail(key, name) {
-  document.getElementById("historyDetailTitle").textContent = name || "";
+  document.getElementById("historyDetailTitle").textContent = (name ? name + " (History)" : "History");
   const body = document.getElementById("historyDetailBody");
   body.innerHTML = '<div class="loading">Loading...</div>';
   document.getElementById("historyDetailOverlay").classList.add("open");
@@ -1676,7 +1785,13 @@ function renderAll() {
 
   const historyTitleEl = document.getElementById("historyTitleText");
   if (historyTitleEl) {
-    setLabelIfChanged(historyTitleEl, getLabelValue("historyTitle", "Target Date History"), getLabelAnimations("historyTitle"));
+    // Always keep the History title visible — if it was deleted/hidden earlier,
+    // restore the default so the line never stays blank on this page.
+    if (cloudSettings.labels && cloudSettings.labels.historyTitle && cloudSettings.labels.historyTitle.hidden) {
+      cloudSettings.labels.historyTitle.hidden = false;
+      if (!cloudSettings.labels.historyTitle.text) cloudSettings.labels.historyTitle.text = null;
+    }
+    setLabelIfChanged(historyTitleEl, getLabelValue("historyTitle", "History"), getLabelAnimations("historyTitle"));
   }
 
   const events = getSortedEvents()
@@ -1717,7 +1832,7 @@ if (eventsRef) {
       Object.keys(val).forEach((key) => {
         const ev = val[key];
         if (!ev || !ev.name || !ev.date) return;
-        raw.push({ name: ev.name, date: ev.date, type: ev.type, alertDays: ev.alertDays, key: key, order: ev.order, animation: ev.animation, animations: ev.animations });
+        raw.push({ name: ev.name, date: ev.date, type: ev.type, alertDays: ev.alertDays, price: ev.price, key: key, order: ev.order, animation: ev.animation, animations: ev.animations });
       });
     }
     latestRawEvents = raw;
@@ -1735,12 +1850,38 @@ if (eventsRef) {
 
 let editingReminderKey = null;
 
+// Auto-insert "/" while typing a date: 05082026 → 05/08/2026
+// Digits only are kept; slashes appear after day (2) and month (2).
+function formatDateInputValue(raw) {
+  const digits = String(raw || "").replace(/\D/g, "").slice(0, 8);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return digits.slice(0, 2) + "/" + digits.slice(2);
+  return digits.slice(0, 2) + "/" + digits.slice(2, 4) + "/" + digits.slice(4);
+}
+
+function onDateInputFormat(ev) {
+  const el = ev.target;
+  const formatted = formatDateInputValue(el.value);
+  // Keep cursor near the end after auto-slash inserts (typical mobile typing).
+  el.value = formatted;
+}
+
+(function attachDateAutoSlash() {
+  const el = document.getElementById("new-target-date");
+  if (!el || el.dataset.autoSlashAttached) return;
+  el.dataset.autoSlashAttached = "1";
+  el.setAttribute("inputmode", "numeric");
+  el.setAttribute("maxlength", "10");
+  el.addEventListener("input", onDateInputFormat);
+})();
+
 function openAddReminder() {
   editingReminderKey = null;
   document.getElementById("addReminderTitle").textContent = "Add New List";
   document.getElementById("addReminderSaveBtn").textContent = "Save New List";
   document.getElementById("new-list-name").value = "";
   document.getElementById("new-target-date").value = "";
+  document.getElementById("new-price").value = "";
   document.getElementById("new-alert-day").value = ALERT_THRESHOLD_DAYS;
   document.querySelector('input[name="new-type"][value="countdown"]').checked = true;
   document.getElementById("addReminderOverlay").classList.add("open");
@@ -1755,6 +1896,7 @@ function openEditReminder(key) {
   document.getElementById("addReminderSaveBtn").textContent = "Update List";
   document.getElementById("new-list-name").value = ev.name;
   document.getElementById("new-target-date").value = ev.date || "";
+  document.getElementById("new-price").value = (ev.price !== undefined && ev.price !== null) ? ev.price : "";
   document.getElementById("new-alert-day").value = (ev.alertDays !== undefined && ev.alertDays !== null) ? ev.alertDays : ALERT_THRESHOLD_DAYS;
   const type = (ev.type || "countdown").toLowerCase();
   const typeInput = document.querySelector(`input[name="new-type"][value="${type}"]`);
@@ -1781,6 +1923,7 @@ function closeAddReminder() {
 function saveNewReminder() {
   const name = document.getElementById("new-list-name").value.trim();
   const dateVal = document.getElementById("new-target-date").value.trim();
+  const priceVal = document.getElementById("new-price").value.trim();
   const alertDayRaw = document.getElementById("new-alert-day").value;
   const alertDay = parseInt(alertDayRaw, 10);
   const type = document.querySelector('input[name="new-type"]:checked').value;
@@ -1802,7 +1945,8 @@ function saveNewReminder() {
     name: name,
     date: dateVal,
     type: type,
-    alertDays: isNaN(alertDay) ? ALERT_THRESHOLD_DAYS : alertDay
+    alertDays: isNaN(alertDay) ? ALERT_THRESHOLD_DAYS : alertDay,
+    price: priceVal
   };
 
   let action;
@@ -1892,8 +2036,20 @@ const DEFAULT_PAGE_SETTINGS = {
 };
 
 function cloneDefaults() { return JSON.parse(JSON.stringify(DEFAULT_PAGE_SETTINGS)); }
-function defaultLabels() { return { header: { text: null, hidden: false }, listCount: { text: null, hidden: false }, alertTitle: { text: null, hidden: false } }; }
+const DEFAULT_LISTCOUNT_STYLE = { size: 19, color: "#ffffff", font: "inherit", bold: false };
+function getListCountStyle() {
+  return cloudSettings.listCountStyle || DEFAULT_LISTCOUNT_STYLE;
+}
+function applyListCountStyle() {
+  const s = getListCountStyle();
+  document.documentElement.style.setProperty("--listcount-size", (s.size || 19) + "px");
+  document.documentElement.style.setProperty("--listcount-color", s.color || "#ffffff");
+  document.documentElement.style.setProperty("--listcount-font", s.font || "inherit");
+  document.documentElement.style.setProperty("--listcount-weight", s.bold ? "700" : "400");
+}
+function defaultLabels() { return { header: { text: null, hidden: false }, listCount: { text: null, hidden: false }, alertTitle: { text: null, hidden: false }, historyTitle: { text: null, hidden: false } }; }
 cloudSettings.alerts = cloneDefaults();
+cloudSettings.listCountStyle = cloudSettings.listCountStyle || JSON.parse(JSON.stringify(DEFAULT_LISTCOUNT_STYLE));
 cloudSettings.animSpeed = cloudSettings.animSpeed || "normal";
 applyAnimSpeedToPage(cloudSettings.animSpeed);
 cloudSettings.data = cloneDefaults();
@@ -1942,7 +2098,14 @@ function applyHeaderOffsetToPage() {
 
 const headerOffsetSaveTimers = {};
 function saveHeaderOffsetFor(page, partial) {
-  cloudSettings["headerOffset" + page] = Object.assign({}, getHeaderOffsetFor(page), partial);
+  // Today-date line is shared across Alerts / List / History — moving it on
+  // any one page updates the same position on all three.
+  const merged = Object.assign({}, getHeaderOffsetFor(page), partial);
+  cloudSettings.headerOffsetAlerts = Object.assign({}, merged);
+  cloudSettings.headerOffsetData = Object.assign({}, merged);
+  cloudSettings.headerOffsetHistory = Object.assign({}, merged);
+  // Keep the legacy shared field in sync too (used as fallback on first load).
+  cloudSettings.headerOffset = Object.assign({}, merged);
   applyHeaderOffsetToPage();
   if (headerOffsetSaveTimers[page]) clearTimeout(headerOffsetSaveTimers[page]);
   headerOffsetSaveTimers[page] = setTimeout(() => saveCloudSettings(cloudSettings), 400);
@@ -1987,9 +2150,13 @@ function syncPinButtonsUI() {
 
 let pinSaveTimer = null;
 function toggleLinePin(key) {
-  if (key === 'header-alerts') cloudSettings.headerPinnedAlerts = !getHeaderPinnedAlerts();
-  else if (key === 'header-data') cloudSettings.headerPinnedData = !getHeaderPinnedData();
-  else if (key === 'header-history') cloudSettings.headerPinnedHistory = !getHeaderPinnedHistory();
+  if (key === 'header-alerts' || key === 'header-data' || key === 'header-history') {
+    // Today-date pin is shared — pin/unpin on any page applies to all three.
+    const next = !(getHeaderPinnedAlerts() && getHeaderPinnedData() && getHeaderPinnedHistory());
+    cloudSettings.headerPinnedAlerts = next;
+    cloudSettings.headerPinnedData = next;
+    cloudSettings.headerPinnedHistory = next;
+  }
   else if (key === 'listCount') cloudSettings.listCountPinned = !getListCountPinned();
   else if (key === 'historyTitle') cloudSettings.historyTitlePinned = !getHistoryTitlePinned();
   syncPinButtonsUI();
@@ -2097,6 +2264,7 @@ makeLineDraggable("lineStyleWrap-data", getHeaderOffsetData, saveHeaderOffsetDat
 makeLineDraggable("lineStyleWrap-history", getHeaderOffsetHistory, saveHeaderOffsetHistory, getHeaderPinnedHistory);
 makeLineDraggable("lw-header-count-row", getListCountOffset, saveListCountOffset, getListCountPinned);
 makeLineDraggable("lw-history-title", getHistoryTitleOffset, saveHistoryTitleOffset, getHistoryTitlePinned);
+applyListCountStyle();
 
 // --- Top-right 4-icon-stack: per-button drag position + long-press Pin/Unpin ---
 // Each button (anim / add / switch / settings) has its own independent
@@ -2377,8 +2545,10 @@ function applyPageBackground(page) {
   // left it showing white in some cases even after the page background changed.
   const headerAlerts = document.getElementById("header-alerts");
   const headerData = document.getElementById("header-data");
+  const headerHistory = document.getElementById("header-history");
   if (headerAlerts) headerAlerts.style.backgroundColor = bg;
   if (headerData) headerData.style.backgroundColor = bg;
+  if (headerHistory) headerHistory.style.backgroundColor = bg;
 }
 
 function fillSettingsForm(settings) {
@@ -2390,6 +2560,14 @@ function fillSettingsForm(settings) {
     document.getElementById(`${target}-bold`).checked = !!s.bold;
   });
   document.getElementById("page-bg-color").value = (!settings.background || settings.background.toLowerCase() === "#ffffff") ? "#08080f" : settings.background;
+  // List page settings: the header row controls Reminder List style, not Today Date.
+  if (currentConfigTab === "data") {
+    const lc = getListCountStyle();
+    document.getElementById("header-size").value = lc.size;
+    document.getElementById("header-color").value = lc.color;
+    document.getElementById("header-font").value = lc.font || "inherit";
+    document.getElementById("header-bold").checked = !!lc.bold;
+  }
 }
 
 function readSettingsForm() {
@@ -2427,6 +2605,13 @@ function updateTabUI() {
   if (titleRow) titleRow.style.display = (currentConfigTab === "alerts" || currentConfigTab === "history") ? "" : "none";
   const titleRowLabel = document.getElementById("settingsRowTitleLabel");
   if (titleRowLabel) titleRowLabel.textContent = (currentConfigTab === "history") ? "History Title" : "Alert Title";
+  // List page: this row styles the "Reminder List" count line (not Today Date).
+  // Alert / History pages: same row styles the shared Today Date line.
+  const headerRowLabel = document.getElementById("settingsRowHeaderLabel");
+  if (headerRowLabel) headerRowLabel.textContent = (currentConfigTab === "data") ? "Reminder List" : "Today Date";
+  // History page settings: no Today Date row (shared Today Date is edited from Alert page).
+  const headerRow = document.getElementById("settingsRow-header");
+  if (headerRow) headerRow.style.display = (currentConfigTab === "history") ? "none" : "";
   // List Name / Day Left / Target Date colors only exist on the List page's
   // reminder cards — nothing to configure for them on Alert or History.
   ["settingsRow-name", "settingsRow-countdown", "settingsRow-date"].forEach((id) => {
@@ -2641,18 +2826,26 @@ function pickAnimControlItem(type, key, animIds) {
 function renderAnimControlList() {
   const alertsListEl = document.getElementById("animControlAlertsList");
   const dataListEl = document.getElementById("animControlDataList");
+  const historyListEl = document.getElementById("animControlHistoryList");
   const alertsTitleEl = document.getElementById("animControlAlertsTitle");
   const dataTitleEl = document.getElementById("animControlDataTitle");
+  const historyTitleEl = document.getElementById("animControlHistoryTitle");
   if (!alertsListEl || !dataListEl) return;
   alertsListEl.innerHTML = "";
   dataListEl.innerHTML = "";
+  if (historyListEl) historyListEl.innerHTML = "";
 
   const activePage = getActivePageName();
   const showAlerts = activePage === "alerts";
-  alertsTitleEl.style.display = showAlerts ? "" : "none";
+  const showData = activePage === "data";
+  const showHistory = activePage === "history";
+
+  if (alertsTitleEl) alertsTitleEl.style.display = showAlerts ? "" : "none";
   alertsListEl.style.display = showAlerts ? "" : "none";
-  dataTitleEl.style.display = showAlerts ? "none" : "";
-  dataListEl.style.display = showAlerts ? "none" : "";
+  if (dataTitleEl) dataTitleEl.style.display = showData ? "" : "none";
+  dataListEl.style.display = showData ? "" : "none";
+  if (historyTitleEl) historyTitleEl.style.display = showHistory ? "" : "none";
+  if (historyListEl) historyListEl.style.display = showHistory ? "" : "none";
 
   const makeRow = (label, type, key, animIds) => {
     const row = document.createElement("div");
@@ -2684,11 +2877,17 @@ function renderAnimControlList() {
     events.filter((e) => e.isAlert).forEach((e) => {
       alertsListEl.appendChild(makeRow(e.name, "event", e.key, e.animations));
     });
-  } else {
-    dataListEl.appendChild(makeRow("Today Date", "label", "header", getLabelAnimations("header")));
+  } else if (showData) {
+    // List page: no Today Date row — only Reminder List + reminder cards
     dataListEl.appendChild(makeRow("Reminder List", "label", "listCount", getLabelAnimations("listCount")));
     events.forEach((e) => {
       dataListEl.appendChild(makeRow(e.name, "event", e.key, e.animations));
+    });
+  } else if (showHistory && historyListEl) {
+    // History page: no Today Date row — only History title + reminder names
+    historyListEl.appendChild(makeRow("History Title", "label", "historyTitle", getLabelAnimations("historyTitle")));
+    events.forEach((e) => {
+      historyListEl.appendChild(makeRow(e.name, "event", e.key, e.animations));
     });
   }
 }
@@ -3172,12 +3371,52 @@ async function applyAnimationChoice() {
 
 async function applySettings() {
   configDrafts[currentConfigTab] = readSettingsForm();
+
+  if (currentConfigTab === "data") {
+    // On List page, the header form row is Reminder List style — save it
+    // separately so it never overwrites the shared Today Date color/size.
+    cloudSettings.listCountStyle = JSON.parse(JSON.stringify(configDrafts.data.header));
+    // Keep List page's Today Date header in sync with the shared header
+    // (from Alerts / History), not with the Reminder List form values.
+    const sharedKeep = JSON.parse(JSON.stringify(
+      (cloudSettings.alerts && cloudSettings.alerts.header) ||
+      (cloudSettings.history && cloudSettings.history.header) ||
+      DEFAULT_PAGE_SETTINGS.header
+    ));
+    configDrafts.data.header = sharedKeep;
+    if (configDrafts.alerts) configDrafts.alerts.header = JSON.parse(JSON.stringify(sharedKeep));
+    if (configDrafts.history) configDrafts.history.header = JSON.parse(JSON.stringify(sharedKeep));
+  } else if (currentConfigTab === "history") {
+    // History settings no longer shows Today Date — don't let stale form
+    // values overwrite the shared Today Date header.
+    const sharedKeep = JSON.parse(JSON.stringify(
+      (cloudSettings.alerts && cloudSettings.alerts.header) ||
+      (cloudSettings.data && cloudSettings.data.header) ||
+      DEFAULT_PAGE_SETTINGS.header
+    ));
+    ["alerts", "data", "history"].forEach((page) => {
+      if (!configDrafts[page]) configDrafts[page] = cloneDefaults();
+      configDrafts[page].header = JSON.parse(JSON.stringify(sharedKeep));
+    });
+  } else {
+    // Alert page: Today-date (header) styling is shared across all three pages.
+    const sharedHeader = JSON.parse(JSON.stringify(
+      (configDrafts[currentConfigTab] && configDrafts[currentConfigTab].header)
+      || DEFAULT_PAGE_SETTINGS.header
+    ));
+    ["alerts", "data", "history"].forEach((page) => {
+      if (!configDrafts[page]) configDrafts[page] = cloneDefaults();
+      configDrafts[page].header = JSON.parse(JSON.stringify(sharedHeader));
+    });
+  }
+
   cloudSettings.alerts = configDrafts.alerts;
   cloudSettings.data = configDrafts.data;
   cloudSettings.history = configDrafts.history;
   applyFontSettingsToContainer("page-alerts", getEffectiveAlertsFontSettings());
   applyFontSettingsToContainer("page-data", cloudSettings.data);
   applyFontSettingsToContainer("page-history", cloudSettings.history);
+  applyListCountStyle();
   applyPageBackground(getActivePageName());
   loadAll();
   setSyncStatus("Saving...");
@@ -3206,7 +3445,25 @@ if (settingsRef) {
       // page's current settings so its Today-Date/Title text is visible by
       // default instead of falling back to plain black text.
       cloudSettings.history = val.history ? val.history : JSON.parse(JSON.stringify(cloudSettings.data || cloneDefaults()));
+      // Keep Today-date (header) styling identical on all three pages.
+      // Prefer List's header, then Alerts, then History, then defaults.
+      (function syncSharedHeader() {
+        const src =
+          (cloudSettings.data && cloudSettings.data.header) ||
+          (cloudSettings.alerts && cloudSettings.alerts.header) ||
+          (cloudSettings.history && cloudSettings.history.header) ||
+          DEFAULT_PAGE_SETTINGS.header;
+        const shared = JSON.parse(JSON.stringify(src));
+        if (!cloudSettings.alerts) cloudSettings.alerts = cloneDefaults();
+        if (!cloudSettings.data) cloudSettings.data = cloneDefaults();
+        if (!cloudSettings.history) cloudSettings.history = cloneDefaults();
+        cloudSettings.alerts.header = JSON.parse(JSON.stringify(shared));
+        cloudSettings.data.header = JSON.parse(JSON.stringify(shared));
+        cloudSettings.history.header = JSON.parse(JSON.stringify(shared));
+      })();
       if (val.labels) cloudSettings.labels = val.labels;
+      if (val.listCountStyle) cloudSettings.listCountStyle = val.listCountStyle;
+      applyListCountStyle();
       if (val.thresholds) {
         cloudSettings.thresholds = val.thresholds;
         ALERT_THRESHOLD_DAYS = val.thresholds.days || ALERT_THRESHOLD_DAYS;
@@ -3223,6 +3480,27 @@ if (settingsRef) {
       if (val.headerOffsetAlerts) cloudSettings.headerOffsetAlerts = val.headerOffsetAlerts;
       if (val.headerOffsetData) cloudSettings.headerOffsetData = val.headerOffsetData;
       if (val.headerOffsetHistory) cloudSettings.headerOffsetHistory = val.headerOffsetHistory;
+      // Unify Today-date position across all three pages (one shared position).
+      (function syncSharedHeaderOffset() {
+        const src =
+          cloudSettings.headerOffsetAlerts ||
+          cloudSettings.headerOffsetData ||
+          cloudSettings.headerOffsetHistory ||
+          cloudSettings.headerOffset ||
+          DEFAULT_HEADER_OFFSET;
+        const shared = Object.assign({}, src);
+        cloudSettings.headerOffsetAlerts = Object.assign({}, shared);
+        cloudSettings.headerOffsetData = Object.assign({}, shared);
+        cloudSettings.headerOffsetHistory = Object.assign({}, shared);
+        cloudSettings.headerOffset = Object.assign({}, shared);
+      })();
+      // Unify Today-date pin across all three pages.
+      (function syncSharedHeaderPin() {
+        const pinned = !!(cloudSettings.headerPinnedAlerts || cloudSettings.headerPinnedData || cloudSettings.headerPinnedHistory);
+        cloudSettings.headerPinnedAlerts = pinned;
+        cloudSettings.headerPinnedData = pinned;
+        cloudSettings.headerPinnedHistory = pinned;
+      })();
       syncLineStyleUI();
       if (val.listCountOffset) {
         cloudSettings.listCountOffset = val.listCountOffset;
