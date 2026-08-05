@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="build-id" content="2026-08-05-17t">
+<meta name="build-id" content="2026-08-05-17v">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -68,7 +68,7 @@
   .history-page-title-row {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     margin-bottom: 24px;
     position: relative;
     z-index: 15;
@@ -872,13 +872,13 @@
   <button class="cmp-down" data-dir="down" title="Down">▼</button>
 </div>
 <div class="top-icon-stack">
-  <div class="stack-icon-item" id="stackIconWrap-anim">
-    <button class="stack-icon-btn" onclick="stackIconAction(openAnimControlPanel)" title="Animation Control">A</button>
-    <div class="stack-icon-pin-popup" data-stack-key="anim" onclick="event.stopPropagation();toggleStackIconPin('anim')">Pin</div>
-  </div>
   <div class="stack-icon-item" id="stackIconWrap-add">
     <button class="stack-icon-btn" onclick="stackIconAction(openAddReminder)" title="Add New Reminder">+</button>
     <div class="stack-icon-pin-popup" data-stack-key="add" onclick="event.stopPropagation();toggleStackIconPin('add')">Pin</div>
+  </div>
+  <div class="stack-icon-item" id="stackIconWrap-anim">
+    <button class="stack-icon-btn" onclick="stackIconAction(openAnimControlPanel)" title="Animation Control">A</button>
+    <div class="stack-icon-pin-popup" data-stack-key="anim" onclick="event.stopPropagation();toggleStackIconPin('anim')">Pin</div>
   </div>
   <div class="stack-icon-item" id="stackIconWrap-settings">
     <button class="stack-icon-btn" onclick="stackIconAction(openSettings)" title="Settings">⚙</button>
@@ -1149,7 +1149,7 @@ function renderHistoryList() {
       .filter(Boolean)
   );
   if (events.length === 0) {
-    container.innerHTML = '<div class="empty-state">Koi reminder nahi hai.</div>';
+    container.innerHTML = '<div class="refreshing-state">Refreshing <span class="dots-bold">. . .</span></div>';
     return;
   }
   // Only the name line — no "Day Left" countdown, no target date — per
@@ -1341,6 +1341,9 @@ function showPage(name) {
   // kept in sync automatically — see cloudSettings.history and the
   // applyFontSettingsToContainer("page-history", ...) calls elsewhere.
   applyPageBackground(name);
+  // Plus (+) icon only on List page — hidden on Alert and History.
+  const addWrap = document.getElementById("stackIconWrap-add");
+  if (addWrap) addWrap.style.display = (name === "data") ? "" : "none";
 }
 
 // One button now cycles through all 3 pages: Alert -> List -> History -> Alert.
@@ -2179,6 +2182,7 @@ let historyTitleOffsetSaveTimer = null;
 function saveHistoryTitleOffset(partial) {
   cloudSettings.historyTitleOffset = Object.assign({}, getHistoryTitleOffset(), partial);
   applyHistoryTitleOffsetToPage();
+  try { localStorage.setItem("historyTitleOffset", JSON.stringify(cloudSettings.historyTitleOffset)); } catch (e) {}
   if (historyTitleOffsetSaveTimer) clearTimeout(historyTitleOffsetSaveTimer);
   historyTitleOffsetSaveTimer = setTimeout(() => saveCloudSettings(cloudSettings), 400);
 }
@@ -2207,6 +2211,7 @@ let listCountSaveTimer = null;
 function saveListCountOffset(partial) {
   cloudSettings.listCountOffset = Object.assign({}, getListCountOffset(), partial);
   applyListCountOffsetToPage();
+  try { localStorage.setItem("listCountOffset", JSON.stringify(cloudSettings.listCountOffset)); } catch (e) {}
   if (listCountSaveTimer) clearTimeout(listCountSaveTimer);
   listCountSaveTimer = setTimeout(() => saveCloudSettings(cloudSettings), 400);
 }
@@ -2511,6 +2516,34 @@ function deleteLabel(key) {
   });
   hideAllActions();
 }
+
+// Instantly restore drag positions from localStorage so refresh doesn't
+// briefly show Reminder List / History title at the wrong place before Firebase loads.
+(function restoreOffsetsFromLocal() {
+  try {
+    const lc = JSON.parse(localStorage.getItem("listCountOffset") || "null");
+    if (lc && typeof lc.x === "number" && typeof lc.y === "number") {
+      document.documentElement.style.setProperty("--listcount-offset-x", (lc.x || 0) + "px");
+      document.documentElement.style.setProperty("--listcount-offset-y", (lc.y || 0) + "px");
+      cloudSettings.listCountOffset = lc;
+    }
+  } catch (e) {}
+  try {
+    const ht = JSON.parse(localStorage.getItem("historyTitleOffset") || "null");
+    if (ht && typeof ht.x === "number" && typeof ht.y === "number") {
+      document.documentElement.style.setProperty("--historyTitle-offset-x", (ht.x || 0) + "px");
+      document.documentElement.style.setProperty("--historyTitle-offset-y", (ht.y || 0) + "px");
+      cloudSettings.historyTitleOffset = ht;
+    }
+  } catch (e) {}
+  try {
+    const lcs = JSON.parse(localStorage.getItem("listCountStyle") || "null");
+    if (lcs && lcs.color) {
+      cloudSettings.listCountStyle = lcs;
+      if (typeof applyListCountStyle === "function") applyListCountStyle();
+    }
+  } catch (e) {}
+})();
 
 let savedPage = null;
 try { savedPage = localStorage.getItem("activePage"); } catch (e) {}
@@ -3376,6 +3409,7 @@ async function applySettings() {
     // On List page, the header form row is Reminder List style — save it
     // separately so it never overwrites the shared Today Date color/size.
     cloudSettings.listCountStyle = JSON.parse(JSON.stringify(configDrafts.data.header));
+    try { localStorage.setItem("listCountStyle", JSON.stringify(cloudSettings.listCountStyle)); } catch (e) {}
     // Keep List page's Today Date header in sync with the shared header
     // (from Alerts / History), not with the Reminder List form values.
     const sharedKeep = JSON.parse(JSON.stringify(
@@ -3504,11 +3538,16 @@ if (settingsRef) {
       syncLineStyleUI();
       if (val.listCountOffset) {
         cloudSettings.listCountOffset = val.listCountOffset;
+        try { localStorage.setItem("listCountOffset", JSON.stringify(val.listCountOffset)); } catch (e) {}
         syncLineStyleUI();
       }
       if (val.historyTitleOffset) {
         cloudSettings.historyTitleOffset = val.historyTitleOffset;
+        try { localStorage.setItem("historyTitleOffset", JSON.stringify(val.historyTitleOffset)); } catch (e) {}
         syncLineStyleUI();
+      }
+      if (val.listCountStyle) {
+        try { localStorage.setItem("listCountStyle", JSON.stringify(val.listCountStyle)); } catch (e) {}
       }
       cloudSettings.headerPinnedAlerts = !!val.headerPinnedAlerts;
       cloudSettings.headerPinnedData = !!val.headerPinnedData;
