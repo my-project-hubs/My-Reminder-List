@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="build-id" content="2026-08-05-1">
+<meta name="build-id" content="2026-08-05-3">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -89,6 +89,14 @@
     padding-bottom: 8px;
     position: relative;
     transform: translate(var(--header-offset-x, 0px), var(--header-offset-y, 0px));
+  }
+  /* The "X.Reminder List" count label now lives on its own separate line
+     below the header row (see HTML), with its own independent x/y offset —
+     moving it never affects the "Today - date" line above, and vice versa. */
+  #lw-header-count-row {
+    display: flex;
+    justify-content: flex-end;
+    transform: translate(var(--listcount-offset-x, 0px), var(--listcount-offset-y, 0px));
   }
   .line-style-popup {
     position: absolute;
@@ -806,7 +814,7 @@
 
 <!-- PAGE 2: All Data (List) -->
 <div id="page-data" class="page">
-  <div id="header-data" class="header-date"><div class="header-date-inner" id="lineStyleWrap-data"><span class="line-wrap" id="lw-header-data"><span id="header-data-left"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('header','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="header-move-btn" title="Move Up" onclick="event.stopPropagation();adjustHeaderOffset(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg></button><button type="button" class="header-move-btn" title="Move Down" onclick="event.stopPropagation();adjustHeaderOffset(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M19 12l-7 7-7-7"></path></svg></button><button type="button" class="header-move-btn" title="Move Left" onclick="event.stopPropagation();adjustHeaderOffsetX(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg></button><button type="button" class="header-move-btn" title="Move Right" onclick="event.stopPropagation();adjustHeaderOffsetX(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg></button></div></span><span class="line-wrap" id="lw-header-count"><span id="header-data-right"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('listCount','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="header-move-btn" title="Move Up" onclick="event.stopPropagation();adjustHeaderOffset(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg></button><button type="button" class="header-move-btn" title="Move Down" onclick="event.stopPropagation();adjustHeaderOffset(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M19 12l-7 7-7-7"></path></svg></button><button type="button" class="header-move-btn" title="Move Left" onclick="event.stopPropagation();adjustHeaderOffsetX(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg></button><button type="button" class="header-move-btn" title="Move Right" onclick="event.stopPropagation();adjustHeaderOffsetX(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg></button></div></span></div></div>
+  <div id="header-data" class="header-date"><div class="header-date-inner" id="lineStyleWrap-data"><span class="line-wrap" id="lw-header-data"><span id="header-data-left"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('header','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="header-move-btn" title="Move Up" onclick="event.stopPropagation();adjustHeaderOffset(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg></button><button type="button" class="header-move-btn" title="Move Down" onclick="event.stopPropagation();adjustHeaderOffset(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M19 12l-7 7-7-7"></path></svg></button><button type="button" class="header-move-btn" title="Move Left" onclick="event.stopPropagation();adjustHeaderOffsetX(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg></button><button type="button" class="header-move-btn" title="Move Right" onclick="event.stopPropagation();adjustHeaderOffsetX(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg></button></div></span></div><div id="lw-header-count-row"><span class="line-wrap" id="lw-header-count"><span id="header-data-right"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('listCount','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="header-move-btn" title="Move Up" onclick="event.stopPropagation();adjustListCountOffset(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg></button><button type="button" class="header-move-btn" title="Move Down" onclick="event.stopPropagation();adjustListCountOffset(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M19 12l-7 7-7-7"></path></svg></button><button type="button" class="header-move-btn" title="Move Left" onclick="event.stopPropagation();adjustListCountOffsetX(-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg></button><button type="button" class="header-move-btn" title="Move Right" onclick="event.stopPropagation();adjustListCountOffsetX(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg></button></div></span></div></div>
   <div id="list-data"><div class="loading">Loading...</div></div>
 </div>
 
@@ -1325,16 +1333,11 @@ function renderAll() {
     setLabelIfChanged(alertTitleEl, getLabelValue("alertTitle", "Alert"), getLabelAnimations("alertTitle"));
   }
 
-  // TEMPORARY DIAGNOSTIC: reminder list rendering disabled on the List page
-  // (only the "Today - date" header stays visible) — to isolate whether the
-  // header still shifts even with zero list DOM activity happening below it.
-  // Re-enable by restoring the two lines below.
-  listData.innerHTML = "";
-  // if (events.length === 0) {
-  //   listData.innerHTML = '<div class="refreshing-state">Refreshing <span class="dots-bold">. . .</span></div>';
-  // } else {
-  //   renderEvents(listData, getAutoSortedForList(events), true);
-  // }
+  if (events.length === 0) {
+    listData.innerHTML = '<div class="refreshing-state">Refreshing <span class="dots-bold">. . .</span></div>';
+  } else {
+    renderEvents(listData, getAutoSortedForList(events), true);
+  }
 
   const alerts = events.filter((e) => e.isAlert);
   if (alerts.length === 0) listAlerts.innerHTML = '<div class="alert-empty-center">Empty Is Page</div>';
@@ -1556,6 +1559,7 @@ function applyHeaderOffsetToPage() {
 
 function syncLineStyleUI() {
   applyHeaderOffsetToPage();
+  applyListCountOffsetToPage();
 }
 
 let lineStyleSaveTimer = null;
@@ -1574,6 +1578,37 @@ function adjustHeaderOffset(delta) {
 function adjustHeaderOffsetX(delta) {
   const s = getHeaderOffset();
   saveHeaderOffset({ x: (s.x || 0) + delta });
+}
+
+// Independent position for the "X.Reminder List" count label — deliberately
+// separate from getHeaderOffset()/saveHeaderOffset() above so moving this
+// label never drags the "Today - date" text (or vice versa). Each has its
+// own stored offset and its own CSS variables.
+const DEFAULT_LISTCOUNT_OFFSET = { x: 0, y: 0 };
+function getListCountOffset() { return cloudSettings.listCountOffset || DEFAULT_LISTCOUNT_OFFSET; }
+
+function applyListCountOffsetToPage() {
+  const s = getListCountOffset();
+  document.documentElement.style.setProperty("--listcount-offset-x", (s.x || 0) + "px");
+  document.documentElement.style.setProperty("--listcount-offset-y", (s.y || 0) + "px");
+}
+
+let listCountSaveTimer = null;
+function saveListCountOffset(partial) {
+  cloudSettings.listCountOffset = Object.assign({}, getListCountOffset(), partial);
+  applyListCountOffsetToPage();
+  if (listCountSaveTimer) clearTimeout(listCountSaveTimer);
+  listCountSaveTimer = setTimeout(() => saveCloudSettings(cloudSettings), 400);
+}
+
+function adjustListCountOffset(delta) {
+  const s = getListCountOffset();
+  saveListCountOffset({ y: (s.y || 0) + delta });
+}
+
+function adjustListCountOffsetX(delta) {
+  const s = getListCountOffset();
+  saveListCountOffset({ x: (s.x || 0) + delta });
 }
 
 let lineStyleHideTimer = null;
@@ -2524,6 +2559,10 @@ if (settingsRef) {
       }
       if (val.headerOffset) {
         cloudSettings.headerOffset = val.headerOffset;
+        syncLineStyleUI();
+      }
+      if (val.listCountOffset) {
+        cloudSettings.listCountOffset = val.listCountOffset;
         syncLineStyleUI();
       }
       cloudSettings.animFavorites = val.animFavorites || [];
