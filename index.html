@@ -79,8 +79,11 @@
     font-size: var(--title-size, 24px);
     font-family: var(--title-font, inherit);
     font-weight: var(--title-weight, 700);
-    /* Fallback so it never vanishes on a dark background if --title-color is black */
-    text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+    /* Always readable on dark page background */
+    text-shadow: 0 1px 3px rgba(0,0,0,0.55), 0 0 1px rgba(255,255,255,0.25);
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: inline-block !important;
   }
   #lw-history-title {
     display: inline-flex;
@@ -784,7 +787,7 @@
   .date-input-small { width: 165px; padding: 13px; border: 1.5px solid #ececf1; background: #f7f8fa; border-radius: 14px; font-size: 16px; font-weight: 600; color: #14151a; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
   .date-input-small:focus { outline: none; border-color: #0052cc; background: #ffffff; box-shadow: 0 0 0 4px rgba(0,82,204,0.1); }
   .date-col { display: flex; flex-direction: column; flex: 1; min-width: 140px; }
-  .price-col { display: flex; flex-direction: column; flex: 1; min-width: 100px; }
+  .price-col { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 100px; }
   .price-col input[type="text"],
   .price-col input[type="number"] {
     width: 100%;
@@ -801,7 +804,7 @@
   .price-col input:focus { outline: none; border-color: #0052cc; background: #ffffff; box-shadow: 0 0 0 4px rgba(0,82,204,0.1); }
   .alert-col { display: flex; flex-direction: column; flex: 1; min-width: 100px; }
   .alert-col input[type="number"] { width: 100%; max-width: 100px; padding: 13px; border: 1.5px solid #ececf1; background: #f7f8fa; border-radius: 14px; font-size: 17px; font-weight: 600; color: #14151a; text-align: center; }
-  .counter-col { display: flex; flex-direction: column; align-items: flex-start; flex: 1; min-width: 120px; }
+  .counter-col { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 120px; }
   .add-type-group { display: flex; align-items: center; gap: 8px; background: #eef0f4; padding: 4px; border-radius: 999px; }
   .add-type-group-vertical { flex-direction: column; align-items: stretch; gap: 4px; }
   .add-type-row { gap: 20px; align-items: center; }
@@ -1788,13 +1791,27 @@ function renderAll() {
 
   const historyTitleEl = document.getElementById("historyTitleText");
   if (historyTitleEl) {
-    // Always keep the History title visible — if it was deleted/hidden earlier,
-    // restore the default so the line never stays blank on this page.
-    if (cloudSettings.labels && cloudSettings.labels.historyTitle && cloudSettings.labels.historyTitle.hidden) {
-      cloudSettings.labels.historyTitle.hidden = false;
-      if (!cloudSettings.labels.historyTitle.text) cloudSettings.labels.historyTitle.text = null;
+    // History title must ALWAYS stay visible. Never allow hidden/blank from Firebase.
+    if (!cloudSettings.labels) cloudSettings.labels = defaultLabels();
+    const ht = cloudSettings.labels.historyTitle || { text: null, hidden: false };
+    let needSave = false;
+    if (ht.hidden) { ht.hidden = false; needSave = true; }
+    if (ht.text === "") { ht.text = null; needSave = true; }
+    cloudSettings.labels.historyTitle = ht;
+    if (needSave) { try { saveCloudSettings(cloudSettings); } catch (e) {} }
+    // Reset absurd drag offset that would push title off-screen
+    const off = cloudSettings.historyTitleOffset || { x: 0, y: 0 };
+    if (Math.abs(off.x || 0) > 400 || Math.abs(off.y || 0) > 400) {
+      cloudSettings.historyTitleOffset = { x: 0, y: 0 };
+      applyHistoryTitleOffsetToPage();
+      try { saveCloudSettings(cloudSettings); } catch (e) {}
     }
     setLabelIfChanged(historyTitleEl, getLabelValue("historyTitle", "History"), getLabelAnimations("historyTitle"));
+    // Belt-and-braces: if still empty after setLabel, force the word "History"
+    if (!historyTitleEl.textContent || !historyTitleEl.textContent.trim()) {
+      historyTitleEl.textContent = "History";
+      historyTitleEl.dataset.laCache = "";
+    }
   }
 
   const events = getSortedEvents()
@@ -2557,8 +2574,16 @@ function applyFontSettingsToContainer(containerId, settings) {
   const container = document.getElementById(containerId);
   FONT_TARGETS.forEach((target) => {
     const s = settings[target] || DEFAULT_PAGE_SETTINGS[target];
+    let color = s.color;
+    // On History page, title color pure black (#000) vanishes on dark bg — force purple default
+    if (containerId === "page-history" && target === "title") {
+      const c = (color || "").toLowerCase().replace(/\s/g, "");
+      if (!c || c === "#000" || c === "#000000" || c === "black" || c === "rgb(0,0,0)") {
+        color = "#b266b2";
+      }
+    }
     container.style.setProperty(`--${target}-size`, s.size + "px");
-    container.style.setProperty(`--${target}-color`, s.color);
+    container.style.setProperty(`--${target}-color`, color);
     container.style.setProperty(`--${target}-font`, s.font);
     container.style.setProperty(`--${target}-weight`, s.bold ? "700" : "400");
   });
@@ -3496,6 +3521,14 @@ if (settingsRef) {
         cloudSettings.history.header = JSON.parse(JSON.stringify(shared));
       })();
       if (val.labels) cloudSettings.labels = val.labels;
+      // History title must never stay hidden/blank after a Firebase sync
+      if (!cloudSettings.labels) cloudSettings.labels = defaultLabels();
+      if (!cloudSettings.labels.historyTitle) cloudSettings.labels.historyTitle = { text: null, hidden: false };
+      if (cloudSettings.labels.historyTitle.hidden || cloudSettings.labels.historyTitle.text === "") {
+        cloudSettings.labels.historyTitle.hidden = false;
+        if (cloudSettings.labels.historyTitle.text === "") cloudSettings.labels.historyTitle.text = null;
+        try { saveCloudSettings(cloudSettings); } catch (e) {}
+      }
       if (val.listCountStyle) cloudSettings.listCountStyle = val.listCountStyle;
       applyListCountStyle();
       if (val.thresholds) {
