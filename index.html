@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="build-id" content="2026-08-05-21v">
+<meta name="build-id" content="2026-08-05-23v">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -142,6 +142,7 @@
   .history-entry-arrow { color: #888; font-size: 24px; }
   .history-entry-new { color: #d97706; font-weight: 700; }
   .history-entry-days { color: #0052cc; font-size: 22px; font-weight: 700; margin-top: 14px; line-height: 1.35; }
+  .history-entry-days-detail { margin-top: 6px; }
   .history-entry-price { color: #059669; font-size: 20px; font-weight: 700; margin-top: 10px; line-height: 1.35; }
   .history-entry-time { color: #6b7280; font-size: 17px; margin-top: 12px; }
   #page-alerts .header-date, #page-data .header-date, #page-history .header-date {
@@ -1254,17 +1255,21 @@ function renderHistoryDetailItems(items, name, reminderKey) {
     let daysLine = "";
     if (daysDiff !== undefined && daysDiff !== null) {
       const n = Math.abs(daysDiff);
-      // Gas cylinder: how long the cylinder lasted.
-      // All other reminders: how long the recharge will last.
-      const msg = isGasCylinder
-        ? "The gas cylinder lasted " + n + " days."
-        : "The recharge will last " + n + " days.";
-      daysLine = `<div class="history-entry-days">${msg}</div>`;
+      // Line 1: label only (no wrap issues)
+      // Line 2: "28 days - ₹ 298"
+      const label = isGasCylinder
+        ? "The gas cylinder lasted"
+        : "The recharge will last";
+      const p = priceText ? priceText.replace(/^₹\s*/, "").trim() : "";
+      const detail = p
+        ? (n + " days - ₹ " + p)
+        : (n + " days");
+      daysLine = `<div class="history-entry-days">${escapeHtml(label)}</div>`
+        + `<div class="history-entry-days history-entry-days-detail">${escapeHtml(detail)}</div>`;
+    } else if (priceText) {
+      const p = priceText.replace(/^₹\s*/, "").trim();
+      daysLine = `<div class="history-entry-days">₹ ${escapeHtml(p)}</div>`;
     }
-    // Price line from List page — after the days line, for every reminder
-    const priceLine = priceText
-      ? `<div class="history-entry-price">${escapeHtml(priceText)}</div>`
-      : "";
     return `<div class="history-entry" data-fbkey="${escapeHtml(e._fbKey || "")}">
       <div class="history-entry-dates">
         <span class="history-entry-old">${escapeHtml(e.oldDate || "")}</span>
@@ -1272,7 +1277,6 @@ function renderHistoryDetailItems(items, name, reminderKey) {
         <span class="history-entry-new">${escapeHtml(e.newDate || "")}</span>
       </div>
       ${daysLine}
-      ${priceLine}
       <div class="history-entry-time">${when}</div>
       <div class="history-entry-delete-popup">
         <button type="button" onclick="event.stopPropagation();deleteHistoryEntry(this)">Delete</button>
