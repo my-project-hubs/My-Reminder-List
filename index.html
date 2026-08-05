@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="build-id" content="2026-08-05-4">
+<meta name="build-id" content="2026-08-05-5">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -58,12 +58,34 @@
   .page { display: none; }
   .page.active { display: block; }
 
-  #page-alerts, #page-data {
+  #page-alerts, #page-data, #page-history {
     padding-top: 50px;
   }
   #page-data {
     padding-top: 28px;
   }
+  #page-history { padding-top: 20px; }
+  .history-page-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+  .history-page-title { color: var(--historyTitle-color, #b266b2); font-size: 24px; font-weight: 700; }
+  #lw-history-title { transform: translate(var(--historyTitle-offset-x, 0px), var(--historyTitle-offset-y, 0px)); }
+  .event-color-btn { color: #555555; font-size: 18px; }
+  .history-back-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.3); color: #fff; width: 34px; height: 34px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .history-list-back-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.3); color: #fff; font-size: 14px; cursor: pointer; padding: 8px 14px; border-radius: 14px; margin-bottom: 16px; display: inline-flex; align-items: center; gap: 6px; }
+  .history-list-row { margin-bottom: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.2); border-radius: 18px; padding: 14px 16px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .history-list-row:active { background: rgba(255,255,255,0.08); }
+  .history-list-row-name { color: #fff; font-size: 17px; font-weight: 600; }
+  .history-list-row-meta { color: #888; font-size: 13px; margin-top: 4px; }
+  .history-list-row-arrow { color: #888; font-size: 18px; }
+  .history-entry { margin-bottom: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.2); border-radius: 18px; padding: 14px 16px; }
+  .history-group { margin-bottom: 24px; }
+  .history-group-title { color: #fff; font-size: 18px; font-weight: 700; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.15); }
+  .history-entry-name { color: #fff; font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+  .history-entry-dates { display: flex; align-items: center; gap: 8px; font-size: 15px; color: #ccc; }
+  .history-entry-old { color: #ff6b6b; text-decoration: line-through; }
+  .history-entry-arrow { color: #888; }
+  .history-entry-new { color: #6bff9e; font-weight: 600; }
+  .history-entry-days { color: #ffb84d; font-size: 13px; font-weight: 600; margin-top: 6px; }
+  .history-entry-time { color: #666; font-size: 12px; margin-top: 6px; }
   #page-alerts .header-date, #page-data .header-date {
     position: fixed;
     top: 0;
@@ -698,7 +720,7 @@
   <button class="settings-icon" onclick="openSettings()" title="Settings">⚙</button>
   <button class="anim-control-icon" onclick="openAnimControlPanel()" title="Animation Control">A</button>
   <button class="add-icon-btn" onclick="openAddReminder()" title="Add New Reminder">+</button>
-  <button id="pageToggleBtn" class="page-toggle-btn" onclick="togglePage()" title="Switch page"><span id="toggleIcon" class="toggle-icon">⇄</span></button>
+  <button id="pageToggleBtn" class="page-toggle-btn" onclick="togglePage()" title="Switch page (Alert / List / History)"><span id="toggleIcon" class="toggle-icon">⇄</span></button>
 </div>
 
 <div id="animationOverlay" class="settings-overlay">
@@ -830,6 +852,16 @@
   <div id="list-data"><div class="loading">Loading...</div></div>
 </div>
 
+<!-- PAGE 3: Target Date History -->
+<div id="page-history" class="page">
+  <div id="header-history" class="header-date"><div class="header-date-inner" id="lineStyleWrap-history"><span class="line-wrap" id="lw-header-history"><span id="header-history-left"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('header','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="event-pin-btn" data-pin-key="header" title="Pin" onclick="event.stopPropagation();toggleLinePin('header')"></button></div></span></div></div>
+  <div class="history-page-title-row">
+    <span class="line-wrap" id="lw-history-title"><span class="history-page-title" id="historyTitleText">Target Date History</span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('historyTitle','Target Date History')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="event-color-btn" title="Color" onclick="event.stopPropagation();document.getElementById('historyTitleColorInput').click()">🎨</button><input type="color" id="historyTitleColorInput" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;" onclick="event.stopPropagation()" onchange="setHistoryTitleColor(this.value)"><button type="button" class="event-pin-btn" data-pin-key="historyTitle" title="Pin" onclick="event.stopPropagation();toggleLinePin('historyTitle')"></button></div></span>
+    <button class="history-back-btn" onclick="closeHistoryPage()" title="Back">✕</button>
+  </div>
+  <div id="list-history"><div class="loading">Loading...</div></div>
+</div>
+
 <div id="addReminderOverlay" class="settings-overlay">
   <div class="settings-panel">
     <div class="settings-title"><span id="addReminderTitle">Add New List</span><button onclick="closeAddReminder()">✕</button></div>
@@ -883,12 +915,145 @@ const firebaseConfig = {
 
 let settingsRef = null;
 let eventsRef = null;
+let dateHistoryRef = null;
 try {
   firebase.initializeApp(firebaseConfig);
   settingsRef = firebase.database().ref("settings");
   eventsRef = firebase.database().ref("remindersData/events");
+  dateHistoryRef = firebase.database().ref("remindersData/dateHistory");
 } catch (e) {
   console.error("Firebase init failed:", e);
+}
+
+// Logs one target-date change (old -> new) for a reminder. Called only when
+// an existing reminder is edited and its Target Date actually changed.
+// The "days" count is worked out purely from the two DATE VALUES themselves
+// (oldDate -> newDate), never from the real-world clock/today's date -- so
+// if you actually save the edit on 25 Aug but change the target date from
+// 10 Aug to 20 Aug, it shows "10 din" (20-10), not anything based on 25 Aug.
+function logDateHistory(reminderKey, reminderName, oldDate, newDate) {
+  if (!dateHistoryRef || oldDate === newDate) return;
+  const oldDt = parseEventDateString(oldDate);
+  const newDt = parseEventDateString(newDate);
+  const daysDiff = (oldDt && newDt) ? Math.round((newDt - oldDt) / 86400000) : null;
+  dateHistoryRef.push({
+    key: reminderKey,
+    name: reminderName,
+    oldDate: oldDate,
+    newDate: newDate,
+    daysDiff: daysDiff,
+    changedAt: Date.now()
+  }).catch((err) => {
+    console.error("Date history save failed:", err);
+  });
+}
+
+// Holds the grouped history data from the last load, so switching between
+// the name-list view and a single reminder's detail view (and back) never
+// needs another Firebase round-trip.
+let historyGroupsCache = [];
+
+function renderHistory() {
+  const container = document.getElementById("list-history");
+  if (!dateHistoryRef) {
+    container.innerHTML = '<div class="empty-state">Firebase connect nahi hai.</div>';
+    return;
+  }
+  container.innerHTML = '<div class="loading">Loading...</div>';
+  dateHistoryRef.orderByChild("changedAt").once("value", (snapshot) => {
+    const entries = [];
+    snapshot.forEach((child) => {
+      entries.push(child.val());
+    });
+    if (entries.length === 0) {
+      historyGroupsCache = [];
+      container.innerHTML = '<div class="empty-state">Abhi tak koi target date change nahi hui.</div>';
+      return;
+    }
+    entries.reverse(); // most recent first within each group
+    // Group entries by reminder (key, falling back to name for older
+    // entries) so each reminder gets its own separate history block instead
+    // of everything being mixed together in one flat list.
+    const groups = [];
+    const groupIndexById = {};
+    entries.forEach((e) => {
+      const groupId = e.key || e.name;
+      if (!(groupId in groupIndexById)) {
+        groupIndexById[groupId] = groups.length;
+        groups.push({ name: e.name, items: [] });
+      }
+      groups[groupIndexById[groupId]].items.push(e);
+    });
+    historyGroupsCache = groups;
+    renderHistoryList();
+  }, (err) => {
+    container.innerHTML = '<div class="empty-state">History load nahi ho payi.</div>';
+    console.error("History load error:", err);
+  });
+}
+
+// Name-list view: one row per reminder that has ever had its Target Date
+// changed, same as the reminder list itself. Tapping a row opens that
+// reminder's full history (renderHistoryDetail below).
+function renderHistoryList() {
+  const container = document.getElementById("list-history");
+  if (historyGroupsCache.length === 0) {
+    container.innerHTML = '<div class="empty-state">Abhi tak koi target date change nahi hui.</div>';
+    return;
+  }
+  container.innerHTML = historyGroupsCache.map((g, i) => {
+    const lastWhen = g.items[0] && g.items[0].changedAt ? new Date(g.items[0].changedAt).toLocaleDateString() : "";
+    const countText = g.items.length + (g.items.length === 1 ? " change" : " changes");
+    return `<div class="history-list-row" data-idx="${i}">
+      <div>
+        <div class="history-list-row-name">${escapeHtml(g.name || "")}</div>
+        <div class="history-list-row-meta">${countText}${lastWhen ? " · last " + lastWhen : ""}</div>
+      </div>
+      <span class="history-list-row-arrow">›</span>
+    </div>`;
+  }).join("");
+  container.querySelectorAll(".history-list-row").forEach((row) => {
+    row.addEventListener("click", () => renderHistoryDetail(parseInt(row.dataset.idx, 10)));
+  });
+}
+
+// Detail view: full change history for a single reminder, with a back
+// button that returns to the name-list view above (without leaving the
+// History page itself).
+function renderHistoryDetail(idx) {
+  const container = document.getElementById("list-history");
+  const g = historyGroupsCache[idx];
+  if (!g) { renderHistoryList(); return; }
+  const itemsHtml = g.items.map((e) => {
+    const when = e.changedAt ? new Date(e.changedAt).toLocaleString() : "";
+    let daysLine = "";
+    if (e.daysDiff !== undefined && e.daysDiff !== null) {
+      const n = Math.abs(e.daysDiff);
+      const dir = e.daysDiff >= 0 ? "forward" : "backward";
+      daysLine = `<div class="history-entry-days">${n} days ${dir} - Target Date changed</div>`;
+    }
+    return `<div class="history-entry">
+      <div class="history-entry-dates">
+        <span class="history-entry-old">${escapeHtml(e.oldDate || "")}</span>
+        <span class="history-entry-arrow">→</span>
+        <span class="history-entry-new">${escapeHtml(e.newDate || "")}</span>
+      </div>
+      ${daysLine}
+      <div class="history-entry-time">${when}</div>
+    </div>`;
+  }).join("");
+  container.innerHTML = `<button class="history-list-back-btn" id="historyListBackBtn">‹ Back to list</button>
+    <div class="history-group">
+      <div class="history-group-title">${escapeHtml(g.name || "")}</div>
+      ${itemsHtml}
+    </div>`;
+  document.getElementById("historyListBackBtn").addEventListener("click", renderHistoryList);
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
 }
 
 function saveCloudSettings(data) {
@@ -919,22 +1084,51 @@ function setSyncStatus(text) {
 }
 
 function getActivePageName() {
+  if (document.getElementById("page-history").classList.contains("active")) return "history";
   return document.getElementById("page-alerts").classList.contains("active") ? "alerts" : "data";
 }
 
 function showPage(name) {
+  // Capture which normal page (alerts/data) is active BEFORE toggling classes,
+  // so History can keep that page's background instead of falling back to a
+  // wrong default once neither alerts nor data is marked active.
+  let currentNormalPage = getActivePageName();
+  if (currentNormalPage === "history") currentNormalPage = pageBeforeHistory || "alerts";
   document.getElementById("page-alerts").classList.toggle("active", name === "alerts");
   document.getElementById("page-data").classList.toggle("active", name === "data");
-  sessionStorage.setItem("activePage", name);
-  applyPageBackground(name);
+  document.getElementById("page-history").classList.toggle("active", name === "history");
+  // History is a temporary overlay-like page, not part of the normal
+  // alerts/data cycle, so it's not persisted as the "last open page".
+  if (name !== "history") {
+    sessionStorage.setItem("activePage", name);
+  }
+  applyPageBackground(name === "history" ? currentNormalPage : name);
 }
 
+// One button now cycles through all 3 pages: Alert -> List -> History -> Alert.
+const PAGE_CYCLE_ORDER = ["alerts", "data", "history"];
 let toggleIconRotation = 0;
 function togglePage() {
-  const next = getActivePageName() === "alerts" ? "data" : "alerts";
+  const current = getActivePageName();
+  if (current !== "history") pageBeforeHistory = current;
+  const idx = PAGE_CYCLE_ORDER.indexOf(current);
+  const next = PAGE_CYCLE_ORDER[(idx + 1) % PAGE_CYCLE_ORDER.length];
   showPage(next);
-  toggleIconRotation += 180;
+  if (next === "history") renderHistory();
+  toggleIconRotation += 120;
   document.getElementById("toggleIcon").style.transform = "rotate(" + toggleIconRotation + "deg)";
+}
+
+// Remembers which normal page (alerts/data) was open before History was
+// opened, so the ✕ button can return there instead of always going to Alerts.
+let pageBeforeHistory = "alerts";
+function openHistoryPage() {
+  pageBeforeHistory = getActivePageName();
+  showPage("history");
+  renderHistory();
+}
+function closeHistoryPage() {
+  showPage(pageBeforeHistory);
 }
 
 function parseEventDateString(dateStr) {
@@ -1137,7 +1331,7 @@ function attachLongPress(item, onLongPress) {
   item.addEventListener('mouseleave', clear);
 }
 
-["lw-header-alerts", "lw-header-data", "lw-header-count", "lw-alert-title"].forEach((id) => {
+["lw-header-alerts", "lw-header-data", "lw-header-history", "lw-header-count", "lw-alert-title", "lw-history-title"].forEach((id) => {
   const el = document.getElementById(id);
   if (el) {
     const actionsEl = el.querySelector(".event-actions");
@@ -1348,6 +1542,12 @@ function renderAll() {
 
   setLabelIfChanged(document.getElementById("header-alerts-left"), headerLabel, getLabelAnimations("header"));
   setLabelIfChanged(document.getElementById("header-data-left"), headerLabel, getLabelAnimations("header"));
+  setLabelIfChanged(document.getElementById("header-history-left"), headerLabel, getLabelAnimations("header"));
+
+  const historyTitleEl = document.getElementById("historyTitleText");
+  if (historyTitleEl) {
+    setLabelIfChanged(historyTitleEl, getLabelValue("historyTitle", "Target Date History"), getLabelAnimations("historyTitle"));
+  }
 
   const events = getSortedEvents()
     .map((ev) => buildEventDisplay(ev.name, ev.date, ev.type, ev.alertDays, ev.key, ev.animation, ev.animations))
@@ -1472,6 +1672,11 @@ function saveNewReminder() {
 
   let action;
   if (editingReminderKey) {
+    // Log the target-date change (if any) before overwriting the old value.
+    const existingEvent = latestRawEvents.find((ev) => ev.key === editingReminderKey);
+    if (existingEvent && existingEvent.date !== dateVal) {
+      logDateHistory(editingReminderKey, name, existingEvent.date, dateVal);
+    }
     action = eventsRef.child(editingReminderKey).update(newEvent);
   } else {
     newEvent.order = getSortedEvents().length;
@@ -1585,10 +1790,12 @@ function applyHeaderOffsetToPage() {
 
 function getHeaderPinned() { return !!cloudSettings.headerPinned; }
 function getListCountPinned() { return !!cloudSettings.listCountPinned; }
+function getHistoryTitlePinned() { return !!cloudSettings.historyTitlePinned; }
 
 function syncPinButtonsUI() {
   const headerPinned = getHeaderPinned();
   const listPinned = getListCountPinned();
+  const historyTitlePinned = getHistoryTitlePinned();
   document.querySelectorAll('.event-pin-btn[data-pin-key="header"]').forEach((b) => {
     b.classList.toggle('pinned', headerPinned);
     b.title = headerPinned ? 'Tap to unpin (allow dragging)' : 'Tap to pin (lock in place)';
@@ -1599,20 +1806,63 @@ function syncPinButtonsUI() {
     b.title = listPinned ? 'Tap to unpin (allow dragging)' : 'Tap to pin (lock in place)';
     b.textContent = listPinned ? 'Unpin' : 'Pin';
   });
+  document.querySelectorAll('.event-pin-btn[data-pin-key="historyTitle"]').forEach((b) => {
+    b.classList.toggle('pinned', historyTitlePinned);
+    b.title = historyTitlePinned ? 'Tap to unpin (allow dragging)' : 'Tap to pin (lock in place)';
+    b.textContent = historyTitlePinned ? 'Unpin' : 'Pin';
+  });
 }
 
 let pinSaveTimer = null;
 function toggleLinePin(key) {
   if (key === 'header') cloudSettings.headerPinned = !getHeaderPinned();
   else if (key === 'listCount') cloudSettings.listCountPinned = !getListCountPinned();
+  else if (key === 'historyTitle') cloudSettings.historyTitlePinned = !getHistoryTitlePinned();
   syncPinButtonsUI();
   if (pinSaveTimer) clearTimeout(pinSaveTimer);
   pinSaveTimer = setTimeout(() => saveCloudSettings(cloudSettings), 400);
 }
 
+// Independent position (and color) for the "Target Date History" title —
+// its own offset, its own pin, and its own color, all separate from the
+// "Today - date" line above it, so moving/coloring one never touches the
+// other.
+const DEFAULT_HISTORYTITLE_OFFSET = { x: 0, y: 0 };
+function getHistoryTitleOffset() { return cloudSettings.historyTitleOffset || DEFAULT_HISTORYTITLE_OFFSET; }
+function applyHistoryTitleOffsetToPage() {
+  const s = getHistoryTitleOffset();
+  document.documentElement.style.setProperty("--historyTitle-offset-x", (s.x || 0) + "px");
+  document.documentElement.style.setProperty("--historyTitle-offset-y", (s.y || 0) + "px");
+}
+let historyTitleOffsetSaveTimer = null;
+function saveHistoryTitleOffset(partial) {
+  cloudSettings.historyTitleOffset = Object.assign({}, getHistoryTitleOffset(), partial);
+  applyHistoryTitleOffsetToPage();
+  if (historyTitleOffsetSaveTimer) clearTimeout(historyTitleOffsetSaveTimer);
+  historyTitleOffsetSaveTimer = setTimeout(() => saveCloudSettings(cloudSettings), 400);
+}
+
+function getHistoryTitleColor() { return (cloudSettings.historyTitle && cloudSettings.historyTitle.color) || "#b266b2"; }
+function applyHistoryTitleColorToPage() {
+  document.documentElement.style.setProperty("--historyTitle-color", getHistoryTitleColor());
+  const input = document.getElementById("historyTitleColorInput");
+  if (input) input.value = getHistoryTitleColor();
+}
+function setHistoryTitleColor(val) {
+  cloudSettings.historyTitle = Object.assign({}, cloudSettings.historyTitle, { color: val });
+  applyHistoryTitleColorToPage();
+  setSyncStatus("Saving...");
+  saveCloudSettings(cloudSettings).then(() => setSyncStatus("Synced")).catch(() => {
+    setSyncStatus("Sync failed");
+    alert("Could not save. Please check your internet connection and try again.");
+  });
+}
+
 function syncLineStyleUI() {
   applyHeaderOffsetToPage();
   applyListCountOffsetToPage();
+  applyHistoryTitleOffsetToPage();
+  applyHistoryTitleColorToPage();
   syncPinButtonsUI();
 }
 
@@ -1695,7 +1945,9 @@ function makeLineDraggable(dragElId, getOffsetFn, saveOffsetFn, isPinnedFn) {
 
 makeLineDraggable("lineStyleWrap-alerts", getHeaderOffset, saveHeaderOffset, getHeaderPinned);
 makeLineDraggable("lineStyleWrap-data", getHeaderOffset, saveHeaderOffset, getHeaderPinned);
+makeLineDraggable("lineStyleWrap-history", getHeaderOffset, saveHeaderOffset, getHeaderPinned);
 makeLineDraggable("lw-header-count-row", getListCountOffset, saveListCountOffset, getListCountPinned);
+makeLineDraggable("lw-history-title", getHistoryTitleOffset, saveHistoryTitleOffset, getHistoryTitlePinned);
 
 let lineStyleHideTimer = null;
 
