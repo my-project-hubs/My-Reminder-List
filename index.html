@@ -75,6 +75,12 @@
     padding: 8px 20px 0px 20px;
     margin: 0 auto;
     max-width: 640px;
+    /* Keeps this fixed header on its own stable compositor layer so it can
+       never get visually dragged along by the heavy list re-render that
+       happens every time a reminder is reordered below it. */
+    transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
   }
   .header-date-inner {
     display: flex;
