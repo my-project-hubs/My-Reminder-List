@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="build-id" content="2026-08-05-7">
+<meta name="build-id" content="2026-08-05-11">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -69,23 +69,22 @@
   .history-page-title { color: var(--title-color, #b266b2); font-size: var(--title-size, 24px); font-family: var(--title-font, inherit); font-weight: var(--title-weight, 700); }
   #lw-history-title { transform: translate(var(--historyTitle-offset-x, 0px), var(--historyTitle-offset-y, 0px)); }
   .history-back-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.3); color: #fff; width: 34px; height: 34px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-  .history-list-back-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.3); color: #fff; font-size: 14px; cursor: pointer; padding: 8px 14px; border-radius: 14px; margin-bottom: 16px; display: inline-flex; align-items: center; gap: 6px; }
-  .history-list-row { margin-bottom: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.2); border-radius: 18px; padding: 14px 16px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-  .history-list-row:active { background: rgba(255,255,255,0.08); }
-  .history-list-row-name { color: #fff; font-size: 17px; font-weight: 600; }
-  .history-list-row-meta { color: #888; font-size: 13px; margin-top: 4px; }
-  .history-list-row-arrow { color: #888; font-size: 18px; }
-  .history-list-delete-btn { background: rgba(255,80,80,0.12); border: 1px solid rgba(255,80,80,0.35); color: #ff6b6b; width: 34px; height: 34px; min-width: 34px; border-radius: 50%; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-  .history-list-delete-btn:active { background: rgba(255,80,80,0.25); }
-  .history-entry { margin-bottom: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.2); border-radius: 18px; padding: 14px 16px; }
-  .history-group { margin-bottom: 24px; }
-  .history-group-title { color: #fff; font-size: 18px; font-weight: 700; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.15); }
+  /* History page cards are just the List page's own event cards, reused
+     as-is, tappable to open that reminder's change-history popup. */
+  #list-history .history-card { cursor: pointer; }
+  #list-history .history-card:active { background: rgba(255,255,255,0.07); }
+  #historyDetailBody .empty-state { margin-top: 20px; }
+  .history-entry { margin-bottom: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.2); border-radius: 18px; padding: 14px 16px; position: relative; cursor: pointer; }
+  .history-entry-delete-popup { position: absolute; top: 10px; right: 10px; opacity: 0; pointer-events: none; transition: opacity 0.15s ease; }
+  .history-entry.actions-visible .history-entry-delete-popup { opacity: 1; pointer-events: auto; }
+  .history-entry-delete-popup button { background: rgba(255,80,80,0.12); border: 1px solid rgba(255,80,80,0.4); color: #ff4d4d; font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 999px; cursor: pointer; }
+  .history-entry-delete-popup button:active { background: rgba(255,80,80,0.25); }
   .history-entry-name { color: #fff; font-size: 17px; font-weight: 600; margin-bottom: 8px; }
   .history-entry-dates { display: flex; align-items: center; gap: 8px; font-size: 15px; color: #ccc; }
   .history-entry-old { color: #ff6b6b; text-decoration: line-through; }
   .history-entry-arrow { color: #888; }
-  .history-entry-new { color: #6bff9e; font-weight: 600; }
-  .history-entry-days { color: #ffb84d; font-size: 13px; font-weight: 600; margin-top: 6px; }
+  .history-entry-new { color: #ffb84d; font-weight: 600; }
+  .history-entry-days { color: #4da6ff; font-size: 13px; font-weight: 600; margin-top: 6px; }
   .history-entry-time { color: #666; font-size: 12px; margin-top: 6px; }
   #page-alerts .header-date, #page-data .header-date {
     position: fixed;
@@ -239,7 +238,7 @@
   .settings-actions button:active { transform: scale(0.97); }
   .settings-apply { background: linear-gradient(135deg, #4d94ff, #0052cc); color: #ffffff; box-shadow: 0 6px 18px rgba(0,82,204,0.4); }
   .settings-reset { background: #eef0f4; color: #4b5160; }
-  .sync-status { position: fixed; top: 18px; left: 16px; font-size: 11px; color: #000000; z-index: 15; opacity: 1; }
+  .sync-status { position: fixed; top: 18px; left: 16px; font-size: 11px; color: #000000; z-index: 15; opacity: 1; display: none; }
 
   .top-icon-bar {
     position: fixed;
@@ -258,95 +257,66 @@
     padding: 4px;
   }
 
-  /* Single hamburger menu button, top-right, kept off the very corner with
-     roughly half an inch of breathing room on both edges (48px ≈ 0.5in). */
-  .hamburger-menu-btn {
+  /* Horizontal row of 4 direct-access buttons, pulled right up to sit level
+     with the "Today - date" header line, right side, close together. */
+  .top-icon-stack {
     position: fixed;
-    top: 48px;
-    right: 48px;
+    top: 6px;
+    right: 14px;
     z-index: 30;
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
+    display: flex;
+    flex-direction: row;
+    gap: 0px;
+  }
+  .stack-icon-btn {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
     background: #000000;
     border: 1px solid rgba(255,255,255,0.15);
     box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+    color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: grab;
-    padding: 0;
-    touch-action: none;
-    user-select: none;
-    -webkit-user-select: none;
-  }
-  .hamburger-menu-btn:active { background: #1a1a1a; cursor: grabbing; }
-  .hamburger-menu-btn svg { pointer-events: none; }
-
-  .hamburger-menu-panel {
-    position: fixed;
-    top: 96px;
-    right: 48px;
-    z-index: 30;
-    background: #ffffff;
-    border-radius: 16px;
-    box-shadow: 0 8px 26px rgba(0,0,0,0.4);
-    padding: 8px;
-    display: none;
-    flex-direction: column;
-    min-width: 190px;
-  }
-  .hamburger-menu-panel.open { display: flex; }
-  .hm-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: none;
-    border: none;
-    padding: 11px 12px;
-    border-radius: 10px;
     cursor: pointer;
-    font-size: 15px;
-    color: #222222;
-    text-align: left;
-    width: 100%;
-  }
-  .hm-item:active { background: #f0f0f2; }
-  .hm-icon {
-    width: 24px;
-    height: 24px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
+    padding: 0;
+    font-size: 23px;
     font-weight: 700;
-    color: #333333;
+    line-height: 1;
   }
-  .hm-label { white-space: nowrap; }
+  .stack-icon-btn:active { background: #1a1a1a; }
+  .stack-icon-btn .toggle-icon { display: inline-block; transition: transform 0.4s ease; }
 
-  .hamburger-pin-popup {
-    position: fixed;
-    z-index: 32;
+  /* Each of the 4 buttons gets its own independent drag offset — moving one
+     never affects the others — plus a long-press Pin/Unpin popup. When
+     unpinned (label reads "Pin") the button can be dragged anywhere with a
+     finger; when pinned (label reads "Unpin") it's locked in place. */
+  .stack-icon-item { position: relative; }
+  #stackIconWrap-anim { transform: translate(var(--stackicon-offset-anim-x, 0px), var(--stackicon-offset-anim-y, 0px)); }
+  #stackIconWrap-add { transform: translate(var(--stackicon-offset-add-x, 0px), var(--stackicon-offset-add-y, 0px)); }
+  #stackIconWrap-switch { transform: translate(var(--stackicon-offset-switch-x, 0px), var(--stackicon-offset-switch-y, 0px)); }
+  #stackIconWrap-settings { transform: translate(var(--stackicon-offset-settings-x, 0px), var(--stackicon-offset-settings-y, 0px)); }
+  .stack-icon-pin-popup {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
     background: #ffffff;
     border-radius: 12px;
     box-shadow: 0 4px 18px rgba(0,0,0,0.28);
-    padding: 6px;
-    display: none;
-  }
-  .hamburger-pin-popup.open { display: block; }
-  .hamburger-pin-popup-btn {
-    background: none;
-    border: none;
-    padding: 9px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    color: #222222;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 800;
+    color: #14151a;
     white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+    z-index: 40;
+    cursor: pointer;
   }
-  .hamburger-pin-popup-btn:active { background: #f0f0f2; }
+  .stack-icon-item.actions-visible .stack-icon-pin-popup { opacity: 1; pointer-events: auto; }
 
   .page-toggle-btn, .settings-icon, .add-icon-btn, .anim-control-icon {
     background: none;
@@ -812,23 +782,23 @@
   <button class="cmp-right" data-dir="right" title="Right">▶</button>
   <button class="cmp-down" data-dir="down" title="Down">▼</button>
 </div>
-<button id="hamburgerMenuBtn" class="hamburger-menu-btn" title="Menu">
-  <svg viewBox="0 0 24 24" width="22" height="22">
-    <rect x="1" y="3.5" width="22" height="3.4" rx="1.7" fill="#ffffff"></rect>
-    <rect x="1" y="10.3" width="22" height="3.4" rx="1.7" fill="#ffffff"></rect>
-    <rect x="1" y="17.1" width="22" height="3.4" rx="1.7" fill="#ffffff"></rect>
-  </svg>
-</button>
-<div id="hamburgerMenuPanel" class="hamburger-menu-panel">
-  <button class="hm-item" onclick="closeHamburgerMenu();openAddReminder()" title="Add New List"><span class="hm-icon">+</span><span class="hm-label">Add New List</span></button>
-  <button class="hm-item" onclick="closeHamburgerMenu();openAnimControlPanel()" title="Animation Control"><span class="hm-icon">A</span><span class="hm-label">Animation</span></button>
-  <button class="hm-item" onclick="closeHamburgerMenu();openSettings()" title="Settings"><span class="hm-icon">⚙</span><span class="hm-label">Settings</span></button>
-  <button class="hm-item" onclick="goToPage('alerts')" title="Alert Page"><span class="hm-icon">⏰</span><span class="hm-label">Alert page</span></button>
-  <button class="hm-item" onclick="goToPage('data')" title="Reminder List Page"><span class="hm-icon">📋</span><span class="hm-label">Reminder list page</span></button>
-  <button class="hm-item" onclick="goToPage('history')" title="History Page"><span class="hm-icon">🕘</span><span class="hm-label">History page</span></button>
-</div>
-<div id="hamburgerPinPopup" class="hamburger-pin-popup">
-  <button id="hamburgerPinPopupBtn" class="hamburger-pin-popup-btn" onclick="toggleHamburgerPinState()">Pin</button>
+<div class="top-icon-stack">
+  <div class="stack-icon-item" id="stackIconWrap-anim">
+    <button class="stack-icon-btn" onclick="stackIconAction(openAnimControlPanel)" title="Animation Control">A</button>
+    <div class="stack-icon-pin-popup" data-stack-key="anim" onclick="event.stopPropagation();toggleStackIconPin('anim')">Pin</div>
+  </div>
+  <div class="stack-icon-item" id="stackIconWrap-add">
+    <button class="stack-icon-btn" onclick="stackIconAction(openAddReminder)" title="Add New Reminder">+</button>
+    <div class="stack-icon-pin-popup" data-stack-key="add" onclick="event.stopPropagation();toggleStackIconPin('add')">Pin</div>
+  </div>
+  <div class="stack-icon-item" id="stackIconWrap-switch">
+    <button class="stack-icon-btn" onclick="stackIconAction(togglePage)" title="Switch Page"><span class="toggle-icon" id="toggleIcon">⇄</span></button>
+    <div class="stack-icon-pin-popup" data-stack-key="switch" onclick="event.stopPropagation();toggleStackIconPin('switch')">Pin</div>
+  </div>
+  <div class="stack-icon-item" id="stackIconWrap-settings">
+    <button class="stack-icon-btn" onclick="stackIconAction(openSettings)" title="Settings">⚙</button>
+    <div class="stack-icon-pin-popup" data-stack-key="settings" onclick="event.stopPropagation();toggleStackIconPin('settings')">Pin</div>
+  </div>
 </div>
 
 <div id="animationOverlay" class="settings-overlay">
@@ -970,6 +940,13 @@
   <div id="list-history"><div class="loading">Loading...</div></div>
 </div>
 
+<div id="historyDetailOverlay" class="settings-overlay">
+  <div class="settings-panel">
+    <div class="settings-title"><span id="historyDetailTitle"></span><button onclick="closeHistoryDetail()">✕</button></div>
+    <div id="historyDetailBody"></div>
+  </div>
+</div>
+
 <div id="addReminderOverlay" class="settings-overlay">
   <div class="settings-panel">
     <div class="settings-title"><span id="addReminderTitle">Add New List</span><button onclick="closeAddReminder()">✕</button></div>
@@ -1056,113 +1033,104 @@ function logDateHistory(reminderKey, reminderName, oldDate, newDate) {
   });
 }
 
-// Holds the grouped history data from the last load, so switching between
-// the name-list view and a single reminder's detail view (and back) never
-// needs another Firebase round-trip.
-let historyGroupsCache = [];
-
+// History page list: shows every CURRENT reminder (same live data, same
+// order, same green/cyan/yellow card look as the List page) — not just
+// ones that happen to have a logged change. As reminders are added or
+// removed on the List page, this list updates automatically right along
+// with it, since it's built from the exact same live events data.
+// Tapping a card opens a popup box with that reminder's full Target-Date
+// change history (or "No History" if it has never changed).
 function renderHistory() {
-  const container = document.getElementById("list-history");
-  if (!dateHistoryRef) {
-    container.innerHTML = '<div class="empty-state">Firebase connect nahi hai.</div>';
-    return;
-  }
-  container.innerHTML = '<div class="loading">Loading...</div>';
-  dateHistoryRef.orderByChild("changedAt").once("value", (snapshot) => {
-    const entries = [];
-    snapshot.forEach((child) => {
-      entries.push(Object.assign({ _fbKey: child.key }, child.val()));
-    });
-    if (entries.length === 0) {
-      historyGroupsCache = [];
-      container.innerHTML = '<div class="empty-state">Abhi tak koi target date change nahi hui.</div>';
-      return;
-    }
-    entries.reverse(); // most recent first within each group
-    // Group entries by reminder (key, falling back to name for older
-    // entries) so each reminder gets its own separate history block instead
-    // of everything being mixed together in one flat list.
-    const groups = [];
-    const groupIndexById = {};
-    entries.forEach((e) => {
-      const groupId = e.key || e.name;
-      if (!(groupId in groupIndexById)) {
-        groupIndexById[groupId] = groups.length;
-        groups.push({ name: e.name, items: [] });
-      }
-      groups[groupIndexById[groupId]].items.push(e);
-    });
-    historyGroupsCache = groups;
-    renderHistoryList();
-  }, (err) => {
-    container.innerHTML = '<div class="empty-state">History load nahi ho payi.</div>';
-    console.error("History load error:", err);
-  });
+  renderHistoryList();
 }
 
-// Name-list view: one row per reminder that has ever had its Target Date
-// changed, same as the reminder list itself. Tapping a row opens that
-// reminder's full history (renderHistoryDetail below).
 function renderHistoryList() {
   const container = document.getElementById("list-history");
-  if (historyGroupsCache.length === 0) {
-    container.innerHTML = '<div class="empty-state">Abhi tak koi target date change nahi hui.</div>';
+  const events = getAutoSortedForList(
+    getSortedEvents()
+      .map((ev) => buildEventDisplay(ev.name, ev.date, ev.type, ev.alertDays, ev.key, ev.animation, ev.animations))
+      .filter(Boolean)
+  );
+  if (events.length === 0) {
+    container.innerHTML = '<div class="empty-state">Koi reminder nahi hai.</div>';
     return;
   }
-  container.innerHTML = historyGroupsCache.map((g, i) => {
-    const lastWhen = g.items[0] && g.items[0].changedAt ? new Date(g.items[0].changedAt).toLocaleDateString() : "";
-    const countText = g.items.length + (g.items.length === 1 ? " change" : " changes");
-    return `<div class="history-list-row" data-idx="${i}">
-      <div>
-        <div class="history-list-row-name">${escapeHtml(g.name || "")}</div>
-        <div class="history-list-row-meta">${countText}${lastWhen ? " · last " + lastWhen : ""}</div>
-      </div>
-      <button class="history-list-delete-btn" data-idx="${i}" title="Delete permanently" onclick="event.stopPropagation();deleteHistoryGroup(${i})">🗑</button>
-      <span class="history-list-row-arrow">›</span>
-    </div>`;
-  }).join("");
-  container.querySelectorAll(".history-list-row").forEach((row) => {
-    row.addEventListener("click", () => renderHistoryDetail(parseInt(row.dataset.idx, 10)));
+  // Only the name line — no "Day Left" countdown, no target date — per
+  // reminder, same card look as the List page but stripped down to just
+  // the name.
+  container.innerHTML = "";
+  events.forEach((e) => {
+    const card = document.createElement("div");
+    card.className = "event history-card";
+    card.innerHTML = `<div class="event-name">${e.name}</div>`;
+    card.addEventListener("click", () => openHistoryDetail(e.key, e.name));
+    container.appendChild(card);
   });
 }
 
-// Permanently deletes a reminder's entire change-history (every entry in its
-// group) from Firebase. This only removes history log entries — it never
-// touches the reminder itself on the Alert/List pages.
-function deleteHistoryGroup(idx) {
-  const g = historyGroupsCache[idx];
-  if (!g) return;
-  const ok = confirm('"' + (g.name || "") + '" ki poori history hamesha ke liye delete kar dein?');
-  if (!ok) return;
+// Popup box with a single reminder's full change history — old date ->
+// new date, for every time its Target Date was edited. Shows "No History"
+// when this reminder has never had a change logged.
+function openHistoryDetail(key, name) {
+  document.getElementById("historyDetailTitle").textContent = name || "";
+  const body = document.getElementById("historyDetailBody");
+  body.innerHTML = '<div class="loading">Loading...</div>';
+  document.getElementById("historyDetailOverlay").classList.add("open");
   if (!dateHistoryRef) {
-    alert("Firebase connect nahi hai, delete nahi ho sakta.");
+    body.innerHTML = '<div class="empty-state">No History</div>';
     return;
   }
-  const keys = g.items.map((it) => it._fbKey).filter(Boolean);
-  Promise.all(keys.map((k) => dateHistoryRef.child(k).remove())).then(() => {
-    historyGroupsCache.splice(idx, 1);
-    renderHistoryList();
-  }).catch((err) => {
-    alert("Delete nahi ho paya.\n\nReason: " + ((err && err.message) ? err.message : "unknown error"));
+  dateHistoryRef.orderByChild("changedAt").once("value", (snapshot) => {
+    const items = [];
+    snapshot.forEach((child) => {
+      const v = child.val();
+      if (!v) return;
+      const matches = v.key ? v.key === key : v.name === name;
+      if (matches) items.push(Object.assign({ _fbKey: child.key }, v));
+    });
+    renderHistoryDetailItems(items, name);
+  }, () => {
+    body.innerHTML = '<div class="empty-state">History load nahi ho payi.</div>';
   });
 }
 
-// Detail view: full change history for a single reminder, with a back
-// button that returns to the name-list view above (without leaving the
-// History page itself).
-function renderHistoryDetail(idx) {
-  const container = document.getElementById("list-history");
-  const g = historyGroupsCache[idx];
-  if (!g) { renderHistoryList(); return; }
-  const itemsHtml = g.items.map((e) => {
+// One 3-second-auto-hide delete popup per entry line — tap the line to open
+// it, tap Delete to remove just that one change from Firebase, or leave it
+// alone and it closes itself after 3 seconds (same pattern as the rest of
+// the app's tap-to-reveal popups).
+let historyEntryHideTimer = null;
+function renderHistoryDetailItems(items, name) {
+  const body = document.getElementById("historyDetailBody");
+  if (items.length === 0) {
+    body.innerHTML = '<div class="empty-state">No History</div>';
+    return;
+  }
+  const isGasCylinder = (name || "").trim().toLowerCase() === "gas cylinder";
+  items.sort((a, b) => (b.changedAt || 0) - (a.changedAt || 0));
+  body.innerHTML = items.map((e) => {
     const when = e.changedAt ? new Date(e.changedAt).toLocaleString() : "";
-    let daysLine = "";
-    if (e.daysDiff !== undefined && e.daysDiff !== null) {
-      const n = Math.abs(e.daysDiff);
-      const dir = e.daysDiff >= 0 ? "forward" : "backward";
-      daysLine = `<div class="history-entry-days">${n} days ${dir} - Target Date changed</div>`;
+    // Always work out the days-forward/backward directly from this
+    // entry's own old/new dates — never rely purely on a stored
+    // daysDiff field, so every single change (1st, 5th, 10th, however
+    // many times the date is edited) shows this line, not just the
+    // latest one.
+    let daysDiff = e.daysDiff;
+    if (daysDiff === undefined || daysDiff === null) {
+      const oldDt = parseEventDateString(e.oldDate);
+      const newDt = parseEventDateString(e.newDate);
+      daysDiff = (oldDt && newDt) ? Math.round((newDt - oldDt) / 86400000) : null;
     }
-    return `<div class="history-entry">
+    let daysLine = "";
+    if (daysDiff !== undefined && daysDiff !== null) {
+      const n = Math.abs(daysDiff);
+      // Gas cylinder: how long the cylinder lasted.
+      // All other reminders: how long the recharge will last.
+      const msg = isGasCylinder
+        ? "The gas cylinder lasted " + n + " days."
+        : "The recharge will last " + n + " days.";
+      daysLine = `<div class="history-entry-days">${msg}</div>`;
+    }
+    return `<div class="history-entry" data-fbkey="${escapeHtml(e._fbKey || "")}">
       <div class="history-entry-dates">
         <span class="history-entry-old">${escapeHtml(e.oldDate || "")}</span>
         <span class="history-entry-arrow">→</span>
@@ -1170,14 +1138,49 @@ function renderHistoryDetail(idx) {
       </div>
       ${daysLine}
       <div class="history-entry-time">${when}</div>
+      <div class="history-entry-delete-popup">
+        <button type="button" onclick="event.stopPropagation();deleteHistoryEntry(this)">Delete</button>
+      </div>
     </div>`;
   }).join("");
-  container.innerHTML = `<button class="history-list-back-btn" id="historyListBackBtn">‹ Back to list</button>
-    <div class="history-group">
-      <div class="history-group-title">${escapeHtml(g.name || "")}</div>
-      ${itemsHtml}
-    </div>`;
-  document.getElementById("historyListBackBtn").addEventListener("click", renderHistoryList);
+  body.querySelectorAll(".history-entry").forEach((el) => {
+    el.addEventListener("click", () => toggleHistoryEntryPopup(el));
+  });
+}
+
+function toggleHistoryEntryPopup(el) {
+  const wasOpen = el.classList.contains("actions-visible");
+  document.querySelectorAll("#historyDetailBody .history-entry.actions-visible").forEach((other) => {
+    other.classList.remove("actions-visible");
+  });
+  if (historyEntryHideTimer) { clearTimeout(historyEntryHideTimer); historyEntryHideTimer = null; }
+  if (!wasOpen) {
+    el.classList.add("actions-visible");
+    historyEntryHideTimer = setTimeout(() => {
+      el.classList.remove("actions-visible");
+      historyEntryHideTimer = null;
+    }, 3000);
+  }
+}
+
+function deleteHistoryEntry(btnEl) {
+  const entryEl = btnEl.closest(".history-entry");
+  if (!entryEl) return;
+  const fbKey = entryEl.dataset.fbkey;
+  if (!fbKey || !dateHistoryRef) return;
+  dateHistoryRef.child(fbKey).remove().then(() => {
+    entryEl.remove();
+    const body = document.getElementById("historyDetailBody");
+    if (!body.querySelector(".history-entry")) {
+      body.innerHTML = '<div class="empty-state">No History</div>';
+    }
+  }).catch((err) => {
+    alert("Delete nahi ho paya.\n\nReason: " + ((err && err.message) ? err.message : "unknown error"));
+  });
+}
+
+function closeHistoryDetail() {
+  document.getElementById("historyDetailOverlay").classList.remove("open");
 }
 
 function escapeHtml(str) {
@@ -1230,53 +1233,6 @@ function showPage(name) {
   // applyFontSettingsToContainer("page-history", ...) calls elsewhere.
   applyPageBackground(name);
 }
-
-// Direct navigation from the hamburger menu's 3 page items — jumps
-// straight to the requested page instead of cycling through all 3.
-function goToPage(name) {
-  const current = getActivePageName();
-  if (current !== "history") pageBeforeHistory = current;
-  showPage(name);
-  if (name === "history") renderHistory();
-  closeHamburgerMenu();
-}
-
-// Hamburger menu: tapping the top-right icon opens a small dropdown with
-// the 4 action buttons (Add New List, Animation, Settings, Switch Page).
-// Tapping any item, or tapping anywhere outside the panel, closes it again.
-function positionHamburgerPanelNearButton() {
-  const panel = document.getElementById("hamburgerMenuPanel");
-  const btn = document.getElementById("hamburgerMenuBtn");
-  if (!panel || !btn) return;
-  const r = btn.getBoundingClientRect();
-  let left = r.right - panel.offsetWidth;
-  let top = r.bottom + 10;
-  left = Math.min(Math.max(left, 6), window.innerWidth - panel.offsetWidth - 6);
-  if (top + panel.offsetHeight > window.innerHeight - 6) {
-    top = r.top - panel.offsetHeight - 10;
-  }
-  panel.style.left = left + "px";
-  panel.style.top = top + "px";
-  panel.style.right = "auto";
-}
-function toggleHamburgerMenu() {
-  const panel = document.getElementById("hamburgerMenuPanel");
-  if (!panel) return;
-  const willOpen = !panel.classList.contains("open");
-  if (willOpen) positionHamburgerPanelNearButton();
-  panel.classList.toggle("open", willOpen);
-}
-function closeHamburgerMenu() {
-  const panel = document.getElementById("hamburgerMenuPanel");
-  if (panel) panel.classList.remove("open");
-}
-document.addEventListener("click", (e) => {
-  const panel = document.getElementById("hamburgerMenuPanel");
-  const btn = document.getElementById("hamburgerMenuBtn");
-  if (!panel || !panel.classList.contains("open")) return;
-  if (panel.contains(e.target) || (btn && btn.contains(e.target))) return;
-  panel.classList.remove("open");
-});
 
 // One button now cycles through all 3 pages: Alert -> List -> History -> Alert.
 const PAGE_CYCLE_ORDER = ["alerts", "data", "history"];
@@ -1742,6 +1698,11 @@ function renderAll() {
   const alerts = events.filter((e) => e.isAlert);
   if (alerts.length === 0) listAlerts.innerHTML = '<div class="alert-empty-center">Empty Is Page</div>';
   else renderEvents(listAlerts, alerts, false);
+
+  // Keep the History page's reminder list in sync with the live List page
+  // data at all times (not just while History is the active tab), so
+  // reminders added/removed anywhere show up there immediately too.
+  renderHistoryList();
 }
 
 function loadAll() {
@@ -2136,6 +2097,142 @@ makeLineDraggable("lineStyleWrap-data", getHeaderOffsetData, saveHeaderOffsetDat
 makeLineDraggable("lineStyleWrap-history", getHeaderOffsetHistory, saveHeaderOffsetHistory, getHeaderPinnedHistory);
 makeLineDraggable("lw-header-count-row", getListCountOffset, saveListCountOffset, getListCountPinned);
 makeLineDraggable("lw-history-title", getHistoryTitleOffset, saveHistoryTitleOffset, getHistoryTitlePinned);
+
+// --- Top-right 4-icon-stack: per-button drag position + long-press Pin/Unpin ---
+// Each button (anim / add / switch / settings) has its own independent
+// offset and its own pinned flag, stored in cloudSettings so it persists.
+// Unpinned (popup shows "Pin") = draggable anywhere with a finger.
+// Pinned (popup shows "Unpin") = locked in place, cannot be dragged.
+const STACK_ICON_KEYS = ["anim", "add", "switch", "settings"];
+const DEFAULT_STACKICON_OFFSET = { x: 0, y: 0 };
+
+function getStackIconOffset(key) {
+  return (cloudSettings.stackIconOffset && cloudSettings.stackIconOffset[key]) || DEFAULT_STACKICON_OFFSET;
+}
+function applyStackIconOffset(key) {
+  const s = getStackIconOffset(key);
+  document.documentElement.style.setProperty("--stackicon-offset-" + key + "-x", (s.x || 0) + "px");
+  document.documentElement.style.setProperty("--stackicon-offset-" + key + "-y", (s.y || 0) + "px");
+}
+function applyAllStackIconOffsets() { STACK_ICON_KEYS.forEach(applyStackIconOffset); }
+
+const stackIconSaveTimers = {};
+function saveStackIconOffset(key, partial) {
+  if (!cloudSettings.stackIconOffset) cloudSettings.stackIconOffset = {};
+  cloudSettings.stackIconOffset[key] = Object.assign({}, getStackIconOffset(key), partial);
+  applyStackIconOffset(key);
+  if (stackIconSaveTimers[key]) clearTimeout(stackIconSaveTimers[key]);
+  stackIconSaveTimers[key] = setTimeout(() => saveCloudSettings(cloudSettings), 400);
+}
+
+function getStackIconPinned(key) {
+  return !!(cloudSettings.stackIconPinned && cloudSettings.stackIconPinned[key]);
+}
+let stackIconPinSaveTimer = null;
+function toggleStackIconPin(key) {
+  if (!cloudSettings.stackIconPinned) cloudSettings.stackIconPinned = {};
+  cloudSettings.stackIconPinned[key] = !getStackIconPinned(key);
+  syncStackIconPinUI();
+  hideStackIconPopup(key);
+  if (stackIconPinSaveTimer) clearTimeout(stackIconPinSaveTimer);
+  stackIconPinSaveTimer = setTimeout(() => saveCloudSettings(cloudSettings), 400);
+}
+function syncStackIconPinUI() {
+  STACK_ICON_KEYS.forEach((key) => {
+    const popupEl = document.querySelector('.stack-icon-pin-popup[data-stack-key="' + key + '"]');
+    if (popupEl) popupEl.textContent = getStackIconPinned(key) ? 'Unpin' : 'Pin';
+  });
+}
+
+const stackIconHideTimers = {};
+function showStackIconPopup(key) {
+  const wrapEl = document.getElementById('stackIconWrap-' + key);
+  if (!wrapEl) return;
+  document.querySelectorAll('.stack-icon-item.actions-visible').forEach((el) => {
+    if (el !== wrapEl) el.classList.remove('actions-visible');
+  });
+  wrapEl.classList.add('actions-visible');
+  if (stackIconHideTimers[key]) clearTimeout(stackIconHideTimers[key]);
+  stackIconHideTimers[key] = setTimeout(() => { wrapEl.classList.remove('actions-visible'); }, 3000);
+}
+function hideStackIconPopup(key) {
+  const wrapEl = document.getElementById('stackIconWrap-' + key);
+  if (wrapEl) wrapEl.classList.remove('actions-visible');
+  if (stackIconHideTimers[key]) { clearTimeout(stackIconHideTimers[key]); stackIconHideTimers[key] = null; }
+}
+
+// A tap performs the button's normal action (open panel / add / switch /
+// settings). A long-press (500ms, finger held still) instead opens the
+// Pin/Unpin popup and suppresses that same tap's normal action. A real
+// drag (finger moves past a small threshold) repositions the button —
+// only while it's unpinned — and also suppresses the action.
+let suppressNextStackClick = false;
+function stackIconAction(fn) {
+  if (suppressNextStackClick) { suppressNextStackClick = false; return; }
+  fn();
+}
+
+function makeStackIconInteractive(key) {
+  const wrapEl = document.getElementById('stackIconWrap-' + key);
+  if (!wrapEl) return;
+  wrapEl.style.touchAction = "none";
+  let dragging = false;
+  let moved = false;
+  let startX = 0, startY = 0;
+  let baseOffset = { x: 0, y: 0 };
+  let longPressTimer = null;
+  const THRESHOLD = 6;
+
+  wrapEl.addEventListener("pointerdown", (ev) => {
+    if (ev.pointerType === "mouse" && ev.button !== 0) return;
+    dragging = true;
+    moved = false;
+    startX = ev.clientX;
+    startY = ev.clientY;
+    baseOffset = getStackIconOffset(key);
+    try { wrapEl.setPointerCapture(ev.pointerId); } catch (e) {}
+    longPressTimer = setTimeout(() => {
+      if (!moved) {
+        showStackIconPopup(key);
+        suppressNextStackClick = true;
+      }
+    }, 500);
+  });
+
+  wrapEl.addEventListener("pointermove", (ev) => {
+    if (!dragging) return;
+    if (getStackIconPinned(key)) return;
+    const dx = ev.clientX - startX;
+    const dy = ev.clientY - startY;
+    if (!moved && (Math.abs(dx) > THRESHOLD || Math.abs(dy) > THRESHOLD)) {
+      moved = true;
+      if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+      hideStackIconPopup(key);
+    }
+    if (moved) {
+      saveStackIconOffset(key, { x: (baseOffset.x || 0) + dx, y: (baseOffset.y || 0) + dy });
+    }
+  });
+
+  function endDrag() {
+    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+    if (!dragging) return;
+    dragging = false;
+    if (moved) suppressNextStackClick = true;
+  }
+  wrapEl.addEventListener("pointerup", endDrag);
+  wrapEl.addEventListener("pointercancel", endDrag);
+}
+
+STACK_ICON_KEYS.forEach(makeStackIconInteractive);
+applyAllStackIconOffsets();
+syncStackIconPinUI();
+
+document.addEventListener("click", (ev) => {
+  document.querySelectorAll('.stack-icon-item.actions-visible').forEach((el) => {
+    if (!el.contains(ev.target)) el.classList.remove('actions-visible');
+  });
+});
 
 let lineStyleHideTimer = null;
 
@@ -3162,182 +3259,6 @@ if (settingsRef) {
 } else {
   setSyncStatus("Offline");
 }
-
-// Hamburger ("home") button: draggable + pinnable + still opens its menu.
-// - A quick tap (press and release with no real movement, under the
-//   long-press threshold) opens the existing hamburger dropdown menu, same
-//   as before — nothing changes there.
-// - Press and hold without moving for ~500ms opens a small popup with a
-//   single toggle button: "Pin" (if currently unpinned) or "Unpin" (if
-//   currently pinned).
-// - Press and drag (when unpinned) moves the button anywhere on screen with
-//   zero lag/animation — it tracks the finger directly.
-// - While pinned, dragging is disabled entirely — the button stays put; a
-//   long-press still opens the popup so it can be unpinned again.
-// - The popup auto-hides after 3 seconds of inactivity, but that timer is
-//   paused/reset any time the button is actively being dragged, so it never
-//   disappears mid-drag.
-// - Position and pinned state are saved to localStorage and restored on load.
-(function () {
-  const btn = document.getElementById("hamburgerMenuBtn");
-  const popup = document.getElementById("hamburgerPinPopup");
-  const popupBtn = document.getElementById("hamburgerPinPopupBtn");
-  if (!btn || !popup || !popupBtn) return;
-
-  const STORAGE_KEY = "hamburgerBtnState";
-  let state = { x: null, y: null, pinned: false };
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-    if (saved && typeof saved === "object") state = Object.assign(state, saved);
-  } catch (e) {}
-
-  function saveState() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
-  }
-
-  function applyPosition() {
-    if (state.x === null || state.y === null) return; // keep CSS default (top-right)
-    const maxX = window.innerWidth - btn.offsetWidth;
-    const maxY = window.innerHeight - btn.offsetHeight;
-    const x = Math.min(Math.max(state.x, 0), Math.max(maxX, 0));
-    const y = Math.min(Math.max(state.y, 0), Math.max(maxY, 0));
-    btn.style.left = x + "px";
-    btn.style.top = y + "px";
-    btn.style.right = "auto";
-  }
-  applyPosition();
-
-  let popupHideTimer = null;
-  function updatePopupLabel() {
-    popupBtn.textContent = state.pinned ? "Unpin" : "Pin";
-  }
-  function positionPopupNearButton() {
-    const r = btn.getBoundingClientRect();
-    let left = r.left + r.width / 2 - popup.offsetWidth / 2;
-    let top = r.bottom + 8;
-    left = Math.min(Math.max(left, 6), window.innerWidth - popup.offsetWidth - 6);
-    if (top + popup.offsetHeight > window.innerHeight - 6) {
-      top = r.top - popup.offsetHeight - 8;
-    }
-    popup.style.left = left + "px";
-    popup.style.top = top + "px";
-  }
-  function scheduleHidePopup() {
-    if (popupHideTimer) clearTimeout(popupHideTimer);
-    popupHideTimer = setTimeout(() => {
-      popup.classList.remove("open");
-      popupHideTimer = null;
-    }, 3000);
-  }
-  function pausePopupHide() {
-    if (popupHideTimer) { clearTimeout(popupHideTimer); popupHideTimer = null; }
-  }
-  function openPopup() {
-    updatePopupLabel();
-    popup.classList.add("open");
-    positionPopupNearButton();
-    scheduleHidePopup();
-  }
-  function closePopup() {
-    popup.classList.remove("open");
-    pausePopupHide();
-  }
-
-  window.toggleHamburgerPinState = function () {
-    state.pinned = !state.pinned;
-    saveState();
-    updatePopupLabel();
-    scheduleHidePopup();
-  };
-
-  let pointerDown = false;
-  let moved = false;
-  let longPressFired = false;
-  let longPressTimer = null;
-  let startX = 0, startY = 0, startLeft = 0, startTop = 0;
-  const DRAG_THRESHOLD = 12;
-  const LONG_PRESS_MS = 500;
-
-  function clearLongPressTimer() {
-    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
-  }
-
-  btn.addEventListener("pointerdown", (e) => {
-    e.preventDefault();
-    const r = btn.getBoundingClientRect();
-    startX = e.clientX;
-    startY = e.clientY;
-    startLeft = r.left;
-    startTop = r.top;
-    moved = false;
-    longPressFired = false;
-    pointerDown = true;
-    // Pointer capture is always taken so pointerup/cancel always fires on
-    // this element (and endDrag always runs) whether pinned or not — this
-    // is what makes tap detection (and the menu toggle) reliable even when
-    // the button is pinned.
-    try { btn.setPointerCapture(e.pointerId); } catch (err) {}
-    if (popup.classList.contains("open")) pausePopupHide();
-    clearLongPressTimer();
-    longPressTimer = setTimeout(() => {
-      if (!moved) {
-        longPressFired = true;
-        openPopup();
-      }
-    }, LONG_PRESS_MS);
-  });
-
-  btn.addEventListener("pointermove", (e) => {
-    // While pinned, ignore movement entirely (no repositioning, and no
-    // amount of finger jitter can ever get misread as a drag) — this keeps
-    // every tap a clean tap while pinned.
-    if (!pointerDown || state.pinned) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    if (!moved && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
-    moved = true;
-    clearLongPressTimer();
-    if (popup.classList.contains("open")) {
-      pausePopupHide();
-      positionPopupNearButton();
-    }
-    const maxX = window.innerWidth - btn.offsetWidth;
-    const maxY = window.innerHeight - btn.offsetHeight;
-    const newLeft = Math.min(Math.max(startLeft + dx, 0), Math.max(maxX, 0));
-    const newTop = Math.min(Math.max(startTop + dy, 0), Math.max(maxY, 0));
-    btn.style.left = newLeft + "px";
-    btn.style.top = newTop + "px";
-    btn.style.right = "auto";
-  });
-
-  function endDrag(e) {
-    clearLongPressTimer();
-    if (!pointerDown) return;
-    pointerDown = false;
-    try { btn.releasePointerCapture(e.pointerId); } catch (err) {}
-    if (moved) {
-      const r = btn.getBoundingClientRect();
-      state.x = r.left;
-      state.y = r.top;
-      saveState();
-      if (popup.classList.contains("open")) scheduleHidePopup();
-    } else if (!longPressFired) {
-      // A genuine quick tap — same as the original hamburger behavior.
-      toggleHamburgerMenu();
-    }
-    moved = false;
-  }
-  btn.addEventListener("pointerup", endDrag);
-  btn.addEventListener("pointercancel", endDrag);
-
-  window.addEventListener("resize", applyPosition);
-
-  document.addEventListener("pointerdown", (e) => {
-    if (popup.classList.contains("open") && !popup.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
-      closePopup();
-    }
-  });
-})();
 
 // Auto-update checker: detects new deployment (or a stale cached page) and reloads automatically
 (function(){
