@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="build-id" content="2026-08-05-5">
+<meta name="build-id" content="2026-08-05-7">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -66,9 +66,8 @@
   }
   #page-history { padding-top: 20px; }
   .history-page-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
-  .history-page-title { color: var(--historyTitle-color, #b266b2); font-size: 24px; font-weight: 700; }
+  .history-page-title { color: var(--title-color, #b266b2); font-size: var(--title-size, 24px); font-family: var(--title-font, inherit); font-weight: var(--title-weight, 700); }
   #lw-history-title { transform: translate(var(--historyTitle-offset-x, 0px), var(--historyTitle-offset-y, 0px)); }
-  .event-color-btn { color: #555555; font-size: 18px; }
   .history-back-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.3); color: #fff; width: 34px; height: 34px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
   .history-list-back-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.3); color: #fff; font-size: 14px; cursor: pointer; padding: 8px 14px; border-radius: 14px; margin-bottom: 16px; display: inline-flex; align-items: center; gap: 6px; }
   .history-list-row { margin-bottom: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.2); border-radius: 18px; padding: 14px 16px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -76,6 +75,8 @@
   .history-list-row-name { color: #fff; font-size: 17px; font-weight: 600; }
   .history-list-row-meta { color: #888; font-size: 13px; margin-top: 4px; }
   .history-list-row-arrow { color: #888; font-size: 18px; }
+  .history-list-delete-btn { background: rgba(255,80,80,0.12); border: 1px solid rgba(255,80,80,0.35); color: #ff6b6b; width: 34px; height: 34px; min-width: 34px; border-radius: 50%; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .history-list-delete-btn:active { background: rgba(255,80,80,0.25); }
   .history-entry { margin-bottom: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.2); border-radius: 18px; padding: 14px 16px; }
   .history-group { margin-bottom: 24px; }
   .history-group-title { color: #fff; font-size: 18px; font-weight: 700; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.15); }
@@ -109,8 +110,13 @@
     align-items: baseline;
     padding-bottom: 8px;
     position: relative;
-    transform: translate(var(--header-offset-x, 0px), var(--header-offset-y, 0px));
   }
+  /* Each page's "Today - date" line now has its own independent x/y offset
+     and its own CSS variable, so dragging it on Alerts/List/History only
+     ever moves that one page's line — never the other two. */
+  #lineStyleWrap-alerts { transform: translate(var(--header-offset-alerts-x, 0px), var(--header-offset-alerts-y, 0px)); }
+  #lineStyleWrap-data { transform: translate(var(--header-offset-data-x, 0px), var(--header-offset-data-y, 0px)); }
+  #lineStyleWrap-history { transform: translate(var(--header-offset-history-x, 0px), var(--header-offset-history-y, 0px)); }
   /* The "X.Reminder List" count label now lives on its own separate line
      below the header row (see HTML), with its own independent x/y offset —
      moving it never affects the "Today - date" line above, and vice versa. */
@@ -233,7 +239,7 @@
   .settings-actions button:active { transform: scale(0.97); }
   .settings-apply { background: linear-gradient(135deg, #4d94ff, #0052cc); color: #ffffff; box-shadow: 0 6px 18px rgba(0,82,204,0.4); }
   .settings-reset { background: #eef0f4; color: #4b5160; }
-  .sync-status { position: fixed; top: 18px; left: 16px; font-size: 11px; color: #ffffff; z-index: 15; opacity: 0.85; }
+  .sync-status { position: fixed; top: 18px; left: 16px; font-size: 11px; color: #000000; z-index: 15; opacity: 1; }
 
   .top-icon-bar {
     position: fixed;
@@ -251,6 +257,96 @@
     border-radius: 999px;
     padding: 4px;
   }
+
+  /* Single hamburger menu button, top-right, kept off the very corner with
+     roughly half an inch of breathing room on both edges (48px ≈ 0.5in). */
+  .hamburger-menu-btn {
+    position: fixed;
+    top: 48px;
+    right: 48px;
+    z-index: 30;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: #000000;
+    border: 1px solid rgba(255,255,255,0.15);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    padding: 0;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .hamburger-menu-btn:active { background: #1a1a1a; cursor: grabbing; }
+  .hamburger-menu-btn svg { pointer-events: none; }
+
+  .hamburger-menu-panel {
+    position: fixed;
+    top: 96px;
+    right: 48px;
+    z-index: 30;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 8px 26px rgba(0,0,0,0.4);
+    padding: 8px;
+    display: none;
+    flex-direction: column;
+    min-width: 190px;
+  }
+  .hamburger-menu-panel.open { display: flex; }
+  .hm-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: none;
+    border: none;
+    padding: 11px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 15px;
+    color: #222222;
+    text-align: left;
+    width: 100%;
+  }
+  .hm-item:active { background: #f0f0f2; }
+  .hm-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: #333333;
+  }
+  .hm-label { white-space: nowrap; }
+
+  .hamburger-pin-popup {
+    position: fixed;
+    z-index: 32;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.28);
+    padding: 6px;
+    display: none;
+  }
+  .hamburger-pin-popup.open { display: block; }
+  .hamburger-pin-popup-btn {
+    background: none;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: #222222;
+    white-space: nowrap;
+  }
+  .hamburger-pin-popup-btn:active { background: #f0f0f2; }
 
   .page-toggle-btn, .settings-icon, .add-icon-btn, .anim-control-icon {
     background: none;
@@ -716,11 +812,23 @@
   <button class="cmp-right" data-dir="right" title="Right">▶</button>
   <button class="cmp-down" data-dir="down" title="Down">▼</button>
 </div>
-<div id="topIconBar" class="top-icon-bar">
-  <button class="settings-icon" onclick="openSettings()" title="Settings">⚙</button>
-  <button class="anim-control-icon" onclick="openAnimControlPanel()" title="Animation Control">A</button>
-  <button class="add-icon-btn" onclick="openAddReminder()" title="Add New Reminder">+</button>
-  <button id="pageToggleBtn" class="page-toggle-btn" onclick="togglePage()" title="Switch page (Alert / List / History)"><span id="toggleIcon" class="toggle-icon">⇄</span></button>
+<button id="hamburgerMenuBtn" class="hamburger-menu-btn" title="Menu">
+  <svg viewBox="0 0 24 24" width="22" height="22">
+    <rect x="1" y="3.5" width="22" height="3.4" rx="1.7" fill="#ffffff"></rect>
+    <rect x="1" y="10.3" width="22" height="3.4" rx="1.7" fill="#ffffff"></rect>
+    <rect x="1" y="17.1" width="22" height="3.4" rx="1.7" fill="#ffffff"></rect>
+  </svg>
+</button>
+<div id="hamburgerMenuPanel" class="hamburger-menu-panel">
+  <button class="hm-item" onclick="closeHamburgerMenu();openAddReminder()" title="Add New List"><span class="hm-icon">+</span><span class="hm-label">Add New List</span></button>
+  <button class="hm-item" onclick="closeHamburgerMenu();openAnimControlPanel()" title="Animation Control"><span class="hm-icon">A</span><span class="hm-label">Animation</span></button>
+  <button class="hm-item" onclick="closeHamburgerMenu();openSettings()" title="Settings"><span class="hm-icon">⚙</span><span class="hm-label">Settings</span></button>
+  <button class="hm-item" onclick="goToPage('alerts')" title="Alert Page"><span class="hm-icon">⏰</span><span class="hm-label">Alert page</span></button>
+  <button class="hm-item" onclick="goToPage('data')" title="Reminder List Page"><span class="hm-icon">📋</span><span class="hm-label">Reminder list page</span></button>
+  <button class="hm-item" onclick="goToPage('history')" title="History Page"><span class="hm-icon">🕘</span><span class="hm-label">History page</span></button>
+</div>
+<div id="hamburgerPinPopup" class="hamburger-pin-popup">
+  <button id="hamburgerPinPopupBtn" class="hamburger-pin-popup-btn" onclick="toggleHamburgerPinState()">Pin</button>
 </div>
 
 <div id="animationOverlay" class="settings-overlay">
@@ -777,6 +885,7 @@
     <div class="settings-page-tabs">
       <button id="cfgtab-alerts" class="cfgtab active" onclick="switchConfigTab('alerts')">Alerts Page</button>
       <button id="cfgtab-data" class="cfgtab" onclick="switchConfigTab('data')">List Page</button>
+      <button id="cfgtab-history" class="cfgtab" onclick="switchConfigTab('history')">History Page</button>
     </div>
     <div class="settings-row">
       <div class="settings-row-label-flex">
@@ -797,7 +906,7 @@
       </div>
     </div>
     <div class="settings-row" id="settingsRow-title">
-      <div class="settings-row-label">Alert Title</div>
+      <div class="settings-row-label" id="settingsRowTitleLabel">Alert Title</div>
       <div class="settings-controls">
         <div class="settings-field"><label>Size</label><input type="number" id="title-size" min="8" max="60"></div>
         <div class="settings-field"><label class="lbl-sm">Color</label><div class="color-combo"><input type="color" id="title-color"></div></div>
@@ -841,23 +950,22 @@
 
 <!-- PAGE 1: Alerts -->
 <div id="page-alerts" class="page active">
-  <div id="header-alerts" class="header-date"><div class="header-date-inner" id="lineStyleWrap-alerts"><span class="line-wrap" id="lw-header-alerts"><span id="header-alerts-left"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('header','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="event-pin-btn" data-pin-key="header" title="Pin" onclick="event.stopPropagation();toggleLinePin('header')"></button></div></span><span id="header-alerts-right"></span></div></div>
+  <div id="header-alerts" class="header-date"><div class="header-date-inner" id="lineStyleWrap-alerts"><span class="line-wrap" id="lw-header-alerts"><span id="header-alerts-left"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('header','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="event-pin-btn" data-pin-key="header-alerts" title="Pin" onclick="event.stopPropagation();toggleLinePin('header-alerts')"></button></div></span><span id="header-alerts-right"></span></div></div>
   <div class="alerts-page-title-row"><span class="line-wrap" id="lw-alert-title"><span class="alerts-page-title" id="alertTitleText">Alert</span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('alertTitle','Alert')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button class="event-delete-btn" title="Delete" onclick="deleteLabel('alertTitle')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button></div></span></div>
   <div id="list-alerts"><div class="refreshing-state">Refreshing <span class="dots-bold">. . .</span></div></div>
 </div>
 
 <!-- PAGE 2: All Data (List) -->
 <div id="page-data" class="page">
-  <div id="header-data" class="header-date"><div class="header-date-inner" id="lineStyleWrap-data"><span class="line-wrap" id="lw-header-data"><span id="header-data-left"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('header','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="event-pin-btn" data-pin-key="header" title="Pin" onclick="event.stopPropagation();toggleLinePin('header')"></button></div></span></div><div id="lw-header-count-row"><span class="line-wrap" id="lw-header-count"><span id="header-data-right"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('listCount','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="event-pin-btn" data-pin-key="listCount" title="Pin" onclick="event.stopPropagation();toggleLinePin('listCount')"></button></div></span></div></div>
+  <div id="header-data" class="header-date"><div class="header-date-inner" id="lineStyleWrap-data"><span class="line-wrap" id="lw-header-data"><span id="header-data-left"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('header','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="event-pin-btn" data-pin-key="header-data" title="Pin" onclick="event.stopPropagation();toggleLinePin('header-data')"></button></div></span></div><div id="lw-header-count-row"><span class="line-wrap" id="lw-header-count"><span id="header-data-right"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('listCount','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="event-pin-btn" data-pin-key="listCount" title="Pin" onclick="event.stopPropagation();toggleLinePin('listCount')"></button></div></span></div></div>
   <div id="list-data"><div class="loading">Loading...</div></div>
 </div>
 
 <!-- PAGE 3: Target Date History -->
 <div id="page-history" class="page">
-  <div id="header-history" class="header-date"><div class="header-date-inner" id="lineStyleWrap-history"><span class="line-wrap" id="lw-header-history"><span id="header-history-left"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('header','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="event-pin-btn" data-pin-key="header" title="Pin" onclick="event.stopPropagation();toggleLinePin('header')"></button></div></span></div></div>
+  <div id="header-history" class="header-date"><div class="header-date-inner" id="lineStyleWrap-history"><span class="line-wrap" id="lw-header-history"><span id="header-history-left"></span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('header','')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="event-pin-btn" data-pin-key="header-history" title="Pin" onclick="event.stopPropagation();toggleLinePin('header-history')"></button></div></span></div></div>
   <div class="history-page-title-row">
-    <span class="line-wrap" id="lw-history-title"><span class="history-page-title" id="historyTitleText">Target Date History</span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('historyTitle','Target Date History')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="event-color-btn" title="Color" onclick="event.stopPropagation();document.getElementById('historyTitleColorInput').click()">🎨</button><input type="color" id="historyTitleColorInput" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;" onclick="event.stopPropagation()" onchange="setHistoryTitleColor(this.value)"><button type="button" class="event-pin-btn" data-pin-key="historyTitle" title="Pin" onclick="event.stopPropagation();toggleLinePin('historyTitle')"></button></div></span>
-    <button class="history-back-btn" onclick="closeHistoryPage()" title="Back">✕</button>
+    <span class="line-wrap" id="lw-history-title"><span class="history-page-title" id="historyTitleText">Target Date History</span><div class="event-actions"><button class="event-edit-btn" title="Edit" onclick="editLabel('historyTitle','Target Date History')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></button><button type="button" class="event-pin-btn" data-pin-key="historyTitle" title="Pin" onclick="event.stopPropagation();toggleLinePin('historyTitle')"></button></div></span>
   </div>
   <div id="list-history"><div class="loading">Loading...</div></div>
 </div>
@@ -963,7 +1071,7 @@ function renderHistory() {
   dateHistoryRef.orderByChild("changedAt").once("value", (snapshot) => {
     const entries = [];
     snapshot.forEach((child) => {
-      entries.push(child.val());
+      entries.push(Object.assign({ _fbKey: child.key }, child.val()));
     });
     if (entries.length === 0) {
       historyGroupsCache = [];
@@ -1009,11 +1117,33 @@ function renderHistoryList() {
         <div class="history-list-row-name">${escapeHtml(g.name || "")}</div>
         <div class="history-list-row-meta">${countText}${lastWhen ? " · last " + lastWhen : ""}</div>
       </div>
+      <button class="history-list-delete-btn" data-idx="${i}" title="Delete permanently" onclick="event.stopPropagation();deleteHistoryGroup(${i})">🗑</button>
       <span class="history-list-row-arrow">›</span>
     </div>`;
   }).join("");
   container.querySelectorAll(".history-list-row").forEach((row) => {
     row.addEventListener("click", () => renderHistoryDetail(parseInt(row.dataset.idx, 10)));
+  });
+}
+
+// Permanently deletes a reminder's entire change-history (every entry in its
+// group) from Firebase. This only removes history log entries — it never
+// touches the reminder itself on the Alert/List pages.
+function deleteHistoryGroup(idx) {
+  const g = historyGroupsCache[idx];
+  if (!g) return;
+  const ok = confirm('"' + (g.name || "") + '" ki poori history hamesha ke liye delete kar dein?');
+  if (!ok) return;
+  if (!dateHistoryRef) {
+    alert("Firebase connect nahi hai, delete nahi ho sakta.");
+    return;
+  }
+  const keys = g.items.map((it) => it._fbKey).filter(Boolean);
+  Promise.all(keys.map((k) => dateHistoryRef.child(k).remove())).then(() => {
+    historyGroupsCache.splice(idx, 1);
+    renderHistoryList();
+  }).catch((err) => {
+    alert("Delete nahi ho paya.\n\nReason: " + ((err && err.message) ? err.message : "unknown error"));
   });
 }
 
@@ -1089,21 +1219,64 @@ function getActivePageName() {
 }
 
 function showPage(name) {
-  // Capture which normal page (alerts/data) is active BEFORE toggling classes,
-  // so History can keep that page's background instead of falling back to a
-  // wrong default once neither alerts nor data is marked active.
-  let currentNormalPage = getActivePageName();
-  if (currentNormalPage === "history") currentNormalPage = pageBeforeHistory || "alerts";
   document.getElementById("page-alerts").classList.toggle("active", name === "alerts");
   document.getElementById("page-data").classList.toggle("active", name === "data");
   document.getElementById("page-history").classList.toggle("active", name === "history");
-  // History is a temporary overlay-like page, not part of the normal
-  // alerts/data cycle, so it's not persisted as the "last open page".
-  if (name !== "history") {
-    sessionStorage.setItem("activePage", name);
-  }
-  applyPageBackground(name === "history" ? currentNormalPage : name);
+  // Persist whichever page is active — including History — so a refresh
+  // (or reopening the app) returns to exactly the page the user was on.
+  try { localStorage.setItem("activePage", name); } catch (e) {}
+  // History now has its own font-settings container (like Alert/List do),
+  // kept in sync automatically — see cloudSettings.history and the
+  // applyFontSettingsToContainer("page-history", ...) calls elsewhere.
+  applyPageBackground(name);
 }
+
+// Direct navigation from the hamburger menu's 3 page items — jumps
+// straight to the requested page instead of cycling through all 3.
+function goToPage(name) {
+  const current = getActivePageName();
+  if (current !== "history") pageBeforeHistory = current;
+  showPage(name);
+  if (name === "history") renderHistory();
+  closeHamburgerMenu();
+}
+
+// Hamburger menu: tapping the top-right icon opens a small dropdown with
+// the 4 action buttons (Add New List, Animation, Settings, Switch Page).
+// Tapping any item, or tapping anywhere outside the panel, closes it again.
+function positionHamburgerPanelNearButton() {
+  const panel = document.getElementById("hamburgerMenuPanel");
+  const btn = document.getElementById("hamburgerMenuBtn");
+  if (!panel || !btn) return;
+  const r = btn.getBoundingClientRect();
+  let left = r.right - panel.offsetWidth;
+  let top = r.bottom + 10;
+  left = Math.min(Math.max(left, 6), window.innerWidth - panel.offsetWidth - 6);
+  if (top + panel.offsetHeight > window.innerHeight - 6) {
+    top = r.top - panel.offsetHeight - 10;
+  }
+  panel.style.left = left + "px";
+  panel.style.top = top + "px";
+  panel.style.right = "auto";
+}
+function toggleHamburgerMenu() {
+  const panel = document.getElementById("hamburgerMenuPanel");
+  if (!panel) return;
+  const willOpen = !panel.classList.contains("open");
+  if (willOpen) positionHamburgerPanelNearButton();
+  panel.classList.toggle("open", willOpen);
+}
+function closeHamburgerMenu() {
+  const panel = document.getElementById("hamburgerMenuPanel");
+  if (panel) panel.classList.remove("open");
+}
+document.addEventListener("click", (e) => {
+  const panel = document.getElementById("hamburgerMenuPanel");
+  const btn = document.getElementById("hamburgerMenuBtn");
+  if (!panel || !panel.classList.contains("open")) return;
+  if (panel.contains(e.target) || (btn && btn.contains(e.target))) return;
+  panel.classList.remove("open");
+});
 
 // One button now cycles through all 3 pages: Alert -> List -> History -> Alert.
 const PAGE_CYCLE_ORDER = ["alerts", "data", "history"];
@@ -1116,7 +1289,8 @@ function togglePage() {
   showPage(next);
   if (next === "history") renderHistory();
   toggleIconRotation += 120;
-  document.getElementById("toggleIcon").style.transform = "rotate(" + toggleIconRotation + "deg)";
+  const toggleIconEl = document.getElementById("toggleIcon");
+  if (toggleIconEl) toggleIconEl.style.transform = "rotate(" + toggleIconRotation + "deg)";
 }
 
 // Remembers which normal page (alerts/data) was open before History was
@@ -1762,6 +1936,11 @@ cloudSettings.alerts = cloneDefaults();
 cloudSettings.animSpeed = cloudSettings.animSpeed || "normal";
 applyAnimSpeedToPage(cloudSettings.animSpeed);
 cloudSettings.data = cloneDefaults();
+// History starts out mirroring the List page's own Today-Date/Title styling
+// (rather than the raw black-text defaults) so it's visible immediately;
+// this gets overwritten as soon as History has its own saved settings, or
+// the person edits it directly from the History tab in Settings.
+cloudSettings.history = cloneDefaults();
 function getSavedFontSettings(page) { return cloudSettings[page] || cloneDefaults(); }
 
 // The Alert page shows the same reminder lines as the List page, so each
@@ -1780,27 +1959,59 @@ function getEffectiveAlertsFontSettings() {
 }
 
 const DEFAULT_HEADER_OFFSET = { x: 0, y: 0 };
-function getHeaderOffset() { return cloudSettings.headerOffset || DEFAULT_HEADER_OFFSET; }
+// Independent offset per page (Alerts / List / History) for the "Today -
+// date" line. Each page falls back to the old shared cloudSettings.headerOffset
+// value on first load (so existing positioning isn't lost), then each page's
+// own drag only ever updates its own field from here on.
+function getHeaderOffsetFor(page) {
+  return cloudSettings["headerOffset" + page] || cloudSettings.headerOffset || DEFAULT_HEADER_OFFSET;
+}
+function getHeaderOffsetAlerts() { return getHeaderOffsetFor("Alerts"); }
+function getHeaderOffsetData() { return getHeaderOffsetFor("Data"); }
+function getHeaderOffsetHistory() { return getHeaderOffsetFor("History"); }
 
 function applyHeaderOffsetToPage() {
-  const s = getHeaderOffset();
-  document.documentElement.style.setProperty("--header-offset-x", (s.x || 0) + "px");
-  document.documentElement.style.setProperty("--header-offset-y", (s.y || 0) + "px");
+  ["Alerts", "Data", "History"].forEach((page) => {
+    const s = getHeaderOffsetFor(page);
+    const suffix = page.toLowerCase();
+    document.documentElement.style.setProperty("--header-offset-" + suffix + "-x", (s.x || 0) + "px");
+    document.documentElement.style.setProperty("--header-offset-" + suffix + "-y", (s.y || 0) + "px");
+  });
 }
 
-function getHeaderPinned() { return !!cloudSettings.headerPinned; }
+const headerOffsetSaveTimers = {};
+function saveHeaderOffsetFor(page, partial) {
+  cloudSettings["headerOffset" + page] = Object.assign({}, getHeaderOffsetFor(page), partial);
+  applyHeaderOffsetToPage();
+  if (headerOffsetSaveTimers[page]) clearTimeout(headerOffsetSaveTimers[page]);
+  headerOffsetSaveTimers[page] = setTimeout(() => saveCloudSettings(cloudSettings), 400);
+}
+function saveHeaderOffsetAlerts(partial) { saveHeaderOffsetFor("Alerts", partial); }
+function saveHeaderOffsetData(partial) { saveHeaderOffsetFor("Data", partial); }
+function saveHeaderOffsetHistory(partial) { saveHeaderOffsetFor("History", partial); }
+
+function getHeaderPinnedAlerts() { return !!cloudSettings.headerPinnedAlerts; }
+function getHeaderPinnedData() { return !!cloudSettings.headerPinnedData; }
+function getHeaderPinnedHistory() { return !!cloudSettings.headerPinnedHistory; }
 function getListCountPinned() { return !!cloudSettings.listCountPinned; }
 function getHistoryTitlePinned() { return !!cloudSettings.historyTitlePinned; }
 
 function syncPinButtonsUI() {
-  const headerPinned = getHeaderPinned();
+  const pinnedByKey = {
+    "header-alerts": getHeaderPinnedAlerts(),
+    "header-data": getHeaderPinnedData(),
+    "header-history": getHeaderPinnedHistory()
+  };
+  Object.keys(pinnedByKey).forEach((key) => {
+    const pinned = pinnedByKey[key];
+    document.querySelectorAll('.event-pin-btn[data-pin-key="' + key + '"]').forEach((b) => {
+      b.classList.toggle('pinned', pinned);
+      b.title = pinned ? 'Tap to unpin (allow dragging)' : 'Tap to pin (lock in place)';
+      b.textContent = pinned ? 'Unpin' : 'Pin';
+    });
+  });
   const listPinned = getListCountPinned();
   const historyTitlePinned = getHistoryTitlePinned();
-  document.querySelectorAll('.event-pin-btn[data-pin-key="header"]').forEach((b) => {
-    b.classList.toggle('pinned', headerPinned);
-    b.title = headerPinned ? 'Tap to unpin (allow dragging)' : 'Tap to pin (lock in place)';
-    b.textContent = headerPinned ? 'Unpin' : 'Pin';
-  });
   document.querySelectorAll('.event-pin-btn[data-pin-key="listCount"]').forEach((b) => {
     b.classList.toggle('pinned', listPinned);
     b.title = listPinned ? 'Tap to unpin (allow dragging)' : 'Tap to pin (lock in place)';
@@ -1815,7 +2026,9 @@ function syncPinButtonsUI() {
 
 let pinSaveTimer = null;
 function toggleLinePin(key) {
-  if (key === 'header') cloudSettings.headerPinned = !getHeaderPinned();
+  if (key === 'header-alerts') cloudSettings.headerPinnedAlerts = !getHeaderPinnedAlerts();
+  else if (key === 'header-data') cloudSettings.headerPinnedData = !getHeaderPinnedData();
+  else if (key === 'header-history') cloudSettings.headerPinnedHistory = !getHeaderPinnedHistory();
   else if (key === 'listCount') cloudSettings.listCountPinned = !getListCountPinned();
   else if (key === 'historyTitle') cloudSettings.historyTitlePinned = !getHistoryTitlePinned();
   syncPinButtonsUI();
@@ -1842,36 +2055,11 @@ function saveHistoryTitleOffset(partial) {
   historyTitleOffsetSaveTimer = setTimeout(() => saveCloudSettings(cloudSettings), 400);
 }
 
-function getHistoryTitleColor() { return (cloudSettings.historyTitle && cloudSettings.historyTitle.color) || "#b266b2"; }
-function applyHistoryTitleColorToPage() {
-  document.documentElement.style.setProperty("--historyTitle-color", getHistoryTitleColor());
-  const input = document.getElementById("historyTitleColorInput");
-  if (input) input.value = getHistoryTitleColor();
-}
-function setHistoryTitleColor(val) {
-  cloudSettings.historyTitle = Object.assign({}, cloudSettings.historyTitle, { color: val });
-  applyHistoryTitleColorToPage();
-  setSyncStatus("Saving...");
-  saveCloudSettings(cloudSettings).then(() => setSyncStatus("Synced")).catch(() => {
-    setSyncStatus("Sync failed");
-    alert("Could not save. Please check your internet connection and try again.");
-  });
-}
-
 function syncLineStyleUI() {
   applyHeaderOffsetToPage();
   applyListCountOffsetToPage();
   applyHistoryTitleOffsetToPage();
-  applyHistoryTitleColorToPage();
   syncPinButtonsUI();
-}
-
-let lineStyleSaveTimer = null;
-function saveHeaderOffset(partial) {
-  cloudSettings.headerOffset = Object.assign({}, getHeaderOffset(), partial);
-  syncLineStyleUI();
-  if (lineStyleSaveTimer) clearTimeout(lineStyleSaveTimer);
-  lineStyleSaveTimer = setTimeout(() => saveCloudSettings(cloudSettings), 400);
 }
 
 // Independent position for the "X.Reminder List" count label — deliberately
@@ -1943,9 +2131,9 @@ function makeLineDraggable(dragElId, getOffsetFn, saveOffsetFn, isPinnedFn) {
   dragEl.addEventListener("pointercancel", endDrag);
 }
 
-makeLineDraggable("lineStyleWrap-alerts", getHeaderOffset, saveHeaderOffset, getHeaderPinned);
-makeLineDraggable("lineStyleWrap-data", getHeaderOffset, saveHeaderOffset, getHeaderPinned);
-makeLineDraggable("lineStyleWrap-history", getHeaderOffset, saveHeaderOffset, getHeaderPinned);
+makeLineDraggable("lineStyleWrap-alerts", getHeaderOffsetAlerts, saveHeaderOffsetAlerts, getHeaderPinnedAlerts);
+makeLineDraggable("lineStyleWrap-data", getHeaderOffsetData, saveHeaderOffsetData, getHeaderPinnedData);
+makeLineDraggable("lineStyleWrap-history", getHeaderOffsetHistory, saveHeaderOffsetHistory, getHeaderPinnedHistory);
 makeLineDraggable("lw-header-count-row", getListCountOffset, saveListCountOffset, getListCountPinned);
 makeLineDraggable("lw-history-title", getHistoryTitleOffset, saveHistoryTitleOffset, getHistoryTitlePinned);
 
@@ -2059,8 +2247,13 @@ function deleteLabel(key) {
   hideAllActions();
 }
 
-const savedPage = sessionStorage.getItem("activePage");
-showPage(savedPage === "data" ? "data" : "alerts");
+let savedPage = null;
+try { savedPage = localStorage.getItem("activePage"); } catch (e) {}
+if (!savedPage) { try { savedPage = sessionStorage.getItem("activePage"); } catch (e) {} } // one-time migration from the old storage
+if (savedPage !== "data" && savedPage !== "history") savedPage = "alerts";
+if (savedPage === "history") pageBeforeHistory = "alerts";
+showPage(savedPage);
+if (savedPage === "history") renderHistory();
 
 function applyFontSettingsToContainer(containerId, settings) {
   const container = document.getElementById(containerId);
@@ -2122,21 +2315,26 @@ let currentConfigTab = "alerts";
 function updateTabUI() {
   document.getElementById("cfgtab-alerts").classList.toggle("active", currentConfigTab === "alerts");
   document.getElementById("cfgtab-data").classList.toggle("active", currentConfigTab === "data");
+  document.getElementById("cfgtab-history").classList.toggle("active", currentConfigTab === "history");
   // Only the tab for the page you're currently on should be visible/usable —
   // same rule as the Animation Control panel: Alert page shows Alert-only,
-  // List page shows List-only, with no way to peek at or switch to the other.
+  // List page shows List-only, History page shows History-only, with no way
+  // to peek at or switch to the others.
   document.getElementById("cfgtab-alerts").style.display = (currentConfigTab === "alerts") ? "" : "none";
   document.getElementById("cfgtab-data").style.display = (currentConfigTab === "data") ? "" : "none";
-  // "Alert Title" only exists on the Alert page, so hide that row completely
-  // while configuring the List page — nothing Alert-specific should show there.
+  document.getElementById("cfgtab-history").style.display = (currentConfigTab === "history") ? "" : "none";
+  // "Alert Title" / "History Title" only exist on the Alert / History pages
+  // respectively, so this row is shared between those two tabs and relabels
+  // itself to match whichever one is open; it's hidden entirely on List.
   const titleRow = document.getElementById("settingsRow-title");
-  if (titleRow) titleRow.style.display = (currentConfigTab === "alerts") ? "" : "none";
-  // List Name / Day Left / Target Date colors now always follow the List
-  // page automatically, so there's nothing to configure for them on the
-  // Alert page — hide those rows there.
+  if (titleRow) titleRow.style.display = (currentConfigTab === "alerts" || currentConfigTab === "history") ? "" : "none";
+  const titleRowLabel = document.getElementById("settingsRowTitleLabel");
+  if (titleRowLabel) titleRowLabel.textContent = (currentConfigTab === "history") ? "History Title" : "Alert Title";
+  // List Name / Day Left / Target Date colors only exist on the List page's
+  // reminder cards — nothing to configure for them on Alert or History.
   ["settingsRow-name", "settingsRow-countdown", "settingsRow-date"].forEach((id) => {
     const row = document.getElementById(id);
-    if (row) row.style.display = (currentConfigTab === "alerts") ? "none" : "";
+    if (row) row.style.display = (currentConfigTab === "data") ? "" : "none";
   });
 }
 
@@ -2150,8 +2348,13 @@ function switchConfigTab(tab) {
 function openSettings() {
   configDrafts = {
     alerts: JSON.parse(JSON.stringify(getSavedFontSettings("alerts"))),
-    data: JSON.parse(JSON.stringify(getSavedFontSettings("data")))
+    data: JSON.parse(JSON.stringify(getSavedFontSettings("data"))),
+    history: JSON.parse(JSON.stringify(getSavedFontSettings("history")))
   };
+  // Exactly like Alert/List: whichever page you're currently on decides
+  // which tab (and therefore which page's own settings) opens — Alert page
+  // opens Alert settings, List page opens List settings, History page opens
+  // History settings.
   currentConfigTab = getActivePageName();
   updateTabUI();
   fillSettingsForm(configDrafts[currentConfigTab]);
@@ -2874,8 +3077,10 @@ async function applySettings() {
   configDrafts[currentConfigTab] = readSettingsForm();
   cloudSettings.alerts = configDrafts.alerts;
   cloudSettings.data = configDrafts.data;
+  cloudSettings.history = configDrafts.history;
   applyFontSettingsToContainer("page-alerts", getEffectiveAlertsFontSettings());
   applyFontSettingsToContainer("page-data", cloudSettings.data);
+  applyFontSettingsToContainer("page-history", cloudSettings.history);
   applyPageBackground(getActivePageName());
   loadAll();
   setSyncStatus("Saving...");
@@ -2900,6 +3105,10 @@ if (settingsRef) {
     if (val) {
       if (val.alerts) cloudSettings.alerts = val.alerts;
       if (val.data) cloudSettings.data = val.data;
+      // If History has never been saved on its own yet, mirror the List
+      // page's current settings so its Today-Date/Title text is visible by
+      // default instead of falling back to plain black text.
+      cloudSettings.history = val.history ? val.history : JSON.parse(JSON.stringify(cloudSettings.data || cloneDefaults()));
       if (val.labels) cloudSettings.labels = val.labels;
       if (val.thresholds) {
         cloudSettings.thresholds = val.thresholds;
@@ -2914,17 +3123,29 @@ if (settingsRef) {
         cloudSettings.headerOffset = val.headerOffset;
         syncLineStyleUI();
       }
+      if (val.headerOffsetAlerts) cloudSettings.headerOffsetAlerts = val.headerOffsetAlerts;
+      if (val.headerOffsetData) cloudSettings.headerOffsetData = val.headerOffsetData;
+      if (val.headerOffsetHistory) cloudSettings.headerOffsetHistory = val.headerOffsetHistory;
+      syncLineStyleUI();
       if (val.listCountOffset) {
         cloudSettings.listCountOffset = val.listCountOffset;
         syncLineStyleUI();
       }
-      cloudSettings.headerPinned = !!val.headerPinned;
+      if (val.historyTitleOffset) {
+        cloudSettings.historyTitleOffset = val.historyTitleOffset;
+        syncLineStyleUI();
+      }
+      cloudSettings.headerPinnedAlerts = !!val.headerPinnedAlerts;
+      cloudSettings.headerPinnedData = !!val.headerPinnedData;
+      cloudSettings.headerPinnedHistory = !!val.headerPinnedHistory;
       cloudSettings.listCountPinned = !!val.listCountPinned;
+      cloudSettings.historyTitlePinned = !!val.historyTitlePinned;
       syncPinButtonsUI();
       cloudSettings.animFavorites = val.animFavorites || [];
       cloudSettings.animHidden = val.animHidden || [];
       applyFontSettingsToContainer("page-alerts", getEffectiveAlertsFontSettings());
       applyFontSettingsToContainer("page-data", cloudSettings.data);
+      applyFontSettingsToContainer("page-history", cloudSettings.history);
       applyPageBackground(getActivePageName());
       loadAll();
       if (document.getElementById("animationOverlay").classList.contains("open")) {
@@ -2941,6 +3162,182 @@ if (settingsRef) {
 } else {
   setSyncStatus("Offline");
 }
+
+// Hamburger ("home") button: draggable + pinnable + still opens its menu.
+// - A quick tap (press and release with no real movement, under the
+//   long-press threshold) opens the existing hamburger dropdown menu, same
+//   as before — nothing changes there.
+// - Press and hold without moving for ~500ms opens a small popup with a
+//   single toggle button: "Pin" (if currently unpinned) or "Unpin" (if
+//   currently pinned).
+// - Press and drag (when unpinned) moves the button anywhere on screen with
+//   zero lag/animation — it tracks the finger directly.
+// - While pinned, dragging is disabled entirely — the button stays put; a
+//   long-press still opens the popup so it can be unpinned again.
+// - The popup auto-hides after 3 seconds of inactivity, but that timer is
+//   paused/reset any time the button is actively being dragged, so it never
+//   disappears mid-drag.
+// - Position and pinned state are saved to localStorage and restored on load.
+(function () {
+  const btn = document.getElementById("hamburgerMenuBtn");
+  const popup = document.getElementById("hamburgerPinPopup");
+  const popupBtn = document.getElementById("hamburgerPinPopupBtn");
+  if (!btn || !popup || !popupBtn) return;
+
+  const STORAGE_KEY = "hamburgerBtnState";
+  let state = { x: null, y: null, pinned: false };
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+    if (saved && typeof saved === "object") state = Object.assign(state, saved);
+  } catch (e) {}
+
+  function saveState() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  function applyPosition() {
+    if (state.x === null || state.y === null) return; // keep CSS default (top-right)
+    const maxX = window.innerWidth - btn.offsetWidth;
+    const maxY = window.innerHeight - btn.offsetHeight;
+    const x = Math.min(Math.max(state.x, 0), Math.max(maxX, 0));
+    const y = Math.min(Math.max(state.y, 0), Math.max(maxY, 0));
+    btn.style.left = x + "px";
+    btn.style.top = y + "px";
+    btn.style.right = "auto";
+  }
+  applyPosition();
+
+  let popupHideTimer = null;
+  function updatePopupLabel() {
+    popupBtn.textContent = state.pinned ? "Unpin" : "Pin";
+  }
+  function positionPopupNearButton() {
+    const r = btn.getBoundingClientRect();
+    let left = r.left + r.width / 2 - popup.offsetWidth / 2;
+    let top = r.bottom + 8;
+    left = Math.min(Math.max(left, 6), window.innerWidth - popup.offsetWidth - 6);
+    if (top + popup.offsetHeight > window.innerHeight - 6) {
+      top = r.top - popup.offsetHeight - 8;
+    }
+    popup.style.left = left + "px";
+    popup.style.top = top + "px";
+  }
+  function scheduleHidePopup() {
+    if (popupHideTimer) clearTimeout(popupHideTimer);
+    popupHideTimer = setTimeout(() => {
+      popup.classList.remove("open");
+      popupHideTimer = null;
+    }, 3000);
+  }
+  function pausePopupHide() {
+    if (popupHideTimer) { clearTimeout(popupHideTimer); popupHideTimer = null; }
+  }
+  function openPopup() {
+    updatePopupLabel();
+    popup.classList.add("open");
+    positionPopupNearButton();
+    scheduleHidePopup();
+  }
+  function closePopup() {
+    popup.classList.remove("open");
+    pausePopupHide();
+  }
+
+  window.toggleHamburgerPinState = function () {
+    state.pinned = !state.pinned;
+    saveState();
+    updatePopupLabel();
+    scheduleHidePopup();
+  };
+
+  let pointerDown = false;
+  let moved = false;
+  let longPressFired = false;
+  let longPressTimer = null;
+  let startX = 0, startY = 0, startLeft = 0, startTop = 0;
+  const DRAG_THRESHOLD = 12;
+  const LONG_PRESS_MS = 500;
+
+  function clearLongPressTimer() {
+    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+  }
+
+  btn.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    const r = btn.getBoundingClientRect();
+    startX = e.clientX;
+    startY = e.clientY;
+    startLeft = r.left;
+    startTop = r.top;
+    moved = false;
+    longPressFired = false;
+    pointerDown = true;
+    // Pointer capture is always taken so pointerup/cancel always fires on
+    // this element (and endDrag always runs) whether pinned or not — this
+    // is what makes tap detection (and the menu toggle) reliable even when
+    // the button is pinned.
+    try { btn.setPointerCapture(e.pointerId); } catch (err) {}
+    if (popup.classList.contains("open")) pausePopupHide();
+    clearLongPressTimer();
+    longPressTimer = setTimeout(() => {
+      if (!moved) {
+        longPressFired = true;
+        openPopup();
+      }
+    }, LONG_PRESS_MS);
+  });
+
+  btn.addEventListener("pointermove", (e) => {
+    // While pinned, ignore movement entirely (no repositioning, and no
+    // amount of finger jitter can ever get misread as a drag) — this keeps
+    // every tap a clean tap while pinned.
+    if (!pointerDown || state.pinned) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    if (!moved && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+    moved = true;
+    clearLongPressTimer();
+    if (popup.classList.contains("open")) {
+      pausePopupHide();
+      positionPopupNearButton();
+    }
+    const maxX = window.innerWidth - btn.offsetWidth;
+    const maxY = window.innerHeight - btn.offsetHeight;
+    const newLeft = Math.min(Math.max(startLeft + dx, 0), Math.max(maxX, 0));
+    const newTop = Math.min(Math.max(startTop + dy, 0), Math.max(maxY, 0));
+    btn.style.left = newLeft + "px";
+    btn.style.top = newTop + "px";
+    btn.style.right = "auto";
+  });
+
+  function endDrag(e) {
+    clearLongPressTimer();
+    if (!pointerDown) return;
+    pointerDown = false;
+    try { btn.releasePointerCapture(e.pointerId); } catch (err) {}
+    if (moved) {
+      const r = btn.getBoundingClientRect();
+      state.x = r.left;
+      state.y = r.top;
+      saveState();
+      if (popup.classList.contains("open")) scheduleHidePopup();
+    } else if (!longPressFired) {
+      // A genuine quick tap — same as the original hamburger behavior.
+      toggleHamburgerMenu();
+    }
+    moved = false;
+  }
+  btn.addEventListener("pointerup", endDrag);
+  btn.addEventListener("pointercancel", endDrag);
+
+  window.addEventListener("resize", applyPosition);
+
+  document.addEventListener("pointerdown", (e) => {
+    if (popup.classList.contains("open") && !popup.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+      closePopup();
+    }
+  });
+})();
 
 // Auto-update checker: detects new deployment (or a stale cached page) and reloads automatically
 (function(){
