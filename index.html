@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="build-id" content="2026-08-06-30v">
+<meta name="build-id" content="2026-08-06-37v">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -127,7 +127,8 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    max-width: 42%;
+    /* No max-width cap — recency (Yesterday etc.) must never be cut; name side ellipsizes instead */
+    max-width: none;
   }
   #list-history .history-recency {
     color: #ffffff;
@@ -136,9 +137,11 @@
     letter-spacing: 0.2px;
     white-space: nowrap;
     opacity: 0.9;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 9em;
+    /* Never truncate Today / Yesterday / Nd ago — name may ellipsis, recency must stay full */
+    flex: none;
+    overflow: visible;
+    text-overflow: clip;
+    max-width: none;
   }
   #list-history .history-count {
     flex: none;
@@ -241,7 +244,7 @@
     margin-right: 8px;
   }
   .history-upcoming-block .history-entry-days { margin-top: 10px; }
-  #historyDetailBody .empty-state { margin-top: 20px; }
+  #historyDetailBody .empty-state { margin-top: calc(20px + 0.5in); padding-top: 0.25in; }
   /* History detail opens nearly full-screen so text is easy to read */
   #historyDetailOverlay { align-items: center; }
   #historyDetailOverlay .settings-panel {
@@ -267,7 +270,102 @@
     -webkit-overflow-scrolling: touch;
     padding-bottom: 8px;
   }
-  .history-entry { margin-bottom: 18px; background: #f7f8fa; border: 1px solid #e8e9ef; border-radius: 18px; padding: 20px 20px; position: relative; cursor: pointer; }
+  /* PDF download bar — bottom-right of History detail panel */
+  .history-pdf-bar {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 12px 4px 4px;
+    border-top: 1px solid #e8e9ef;
+    margin-top: 8px;
+    position: relative;
+  }
+  .history-pdf-btn {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4d94ff, #0052cc);
+    color: #ffffff;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,82,204,0.4);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .history-pdf-btn:active { transform: scale(0.92); }
+  .history-pdf-btn svg { width: 20px; height: 20px; flex: none; }
+  /* Year picker popup (opens from PDF button) */
+  .history-pdf-year-popup {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 8px);
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.28);
+    padding: 12px 12px 10px;
+    min-width: 168px;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(6px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    z-index: 40;
+  }
+  .history-pdf-year-popup.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+  .history-pdf-year-popup .pdf-popup-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    padding: 0 4px;
+  }
+  .history-pdf-year-popup .pdf-year-option {
+    display: block;
+    width: 100%;
+    border: none;
+    background: #f7f8fa;
+    color: #14151a;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 11px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: left;
+    margin-bottom: 6px;
+    transition: background 0.12s ease, color 0.12s ease;
+  }
+  .history-pdf-year-popup .pdf-year-option:last-of-type { margin-bottom: 8px; }
+  .history-pdf-year-popup .pdf-year-option.selected {
+    background: linear-gradient(135deg, #e8f0ff, #f2f7ff);
+    color: #0052cc;
+    box-shadow: inset 0 0 0 1.5px #0052cc;
+  }
+  .history-pdf-year-popup .pdf-year-option:active { background: #eef0f4; }
+  .history-pdf-year-popup .pdf-popup-ok {
+    display: block;
+    width: 100%;
+    border: none;
+    background: linear-gradient(135deg, #4d94ff, #0052cc);
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 800;
+    padding: 12px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,82,204,0.35);
+  }
+  .history-pdf-year-popup .pdf-popup-ok:active { transform: scale(0.97); }
+  .history-entry { margin-bottom: 18px; background: #f7f8fa; border: 1.5px solid #c77dff; border-radius: 18px; padding: 20px 20px; position: relative; cursor: pointer; }
   .history-entry-delete-popup { position: absolute; top: 12px; right: 12px; opacity: 0; pointer-events: none; transition: opacity 0.15s ease; }
   .history-entry.actions-visible .history-entry-delete-popup { opacity: 1; pointer-events: auto; }
   .history-entry-delete-popup button { background: rgba(255,80,80,0.12); border: 1px solid rgba(255,80,80,0.4); color: #ff4d4d; font-size: 15px; font-weight: 700; padding: 8px 16px; border-radius: 999px; cursor: pointer; }
@@ -1392,6 +1490,18 @@
   <div class="settings-panel">
     <div class="settings-title"><span id="historyDetailTitle"></span><button onclick="closeHistoryDetail()">✕</button></div>
     <div id="historyDetailBody"></div>
+    <div class="history-pdf-bar">
+      <div class="history-pdf-year-popup" id="historyPdfYearPopup">
+        <div class="pdf-popup-title">Select period</div>
+        <button type="button" class="pdf-year-option selected" data-years="1" onclick="pickPdfYearOption(1)">1 Year</button>
+        <button type="button" class="pdf-year-option" data-years="2" onclick="pickPdfYearOption(2)">2 Years</button>
+        <button type="button" class="pdf-year-option" data-years="3" onclick="pickPdfYearOption(3)">3 Years</button>
+        <button type="button" class="pdf-popup-ok" onclick="confirmPdfYearAndDownload()">OK</button>
+      </div>
+      <button type="button" class="history-pdf-btn" id="historyPdfDownloadBtn" onclick="openPdfYearPopup()" title="Download PDF">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -1435,6 +1545,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 let cloudSettings = { alerts: {}, data: {}, labels: { header: { text: null, hidden: false }, listCount: { text: null, hidden: false }, alertTitle: { text: null, hidden: false }, historyTitle: { text: null, hidden: false } }, animFavorites: [], animHidden: [] };
 const ANIM_SPEED_MULTIPLIERS = { slow: 0.6, normal: 1, medium: 1.5, high: 2.2 };
@@ -1496,8 +1607,22 @@ function logDateHistory(reminderKey, reminderName, oldDate, newDate) {
   });
 }
 
+// =============================================================================
+// HISTORY PAGE CARD META — CORE FEATURE (DO NOT REMOVE / DO NOT DISABLE)
+// -----------------------------------------------------------------------------
+// Every History-list card ALWAYS shows:
+//   1) Recency label (optional): Today → Yesterday → 2d ago → 3d ago → 4d ago
+//      → 5d ago → 6d ago → 7d ago. From day 8 the LABEL hides automatically.
+//      When a new date-change is logged, the cycle starts again from Today.
+//   2) Count badge (always): total number of Target-Date changes in dateHistory
+//      for that reminder (0, 1, 2, …). Visible on the History page so you do
+//      not need to open the card to know how much history exists.
+// This is intentional product behaviour — keep both pieces in renderHistoryList.
+// =============================================================================
+const HISTORY_CARD_META_LOCKED = true; // marker: recency + count must stay on History cards
+const HISTORY_RECENCY_MAX_DAYS = 7;    // label visible for days 0..7 only; day 8+ → hide label
+
 // Per-reminder history meta: count (always) + latest changedAt (for recency label)
-// Label: Today → Yesterday → 2d ago … 7d ago → hidden from day 8
 let historyMetaCache = { byKey: {}, byName: {} };
 
 function getHistoryMetaForReminder(key, name) {
@@ -1507,6 +1632,8 @@ function getHistoryMetaForReminder(key, name) {
 }
 
 function formatHistoryRecency(latestAt) {
+  // LOCKED: do not remove; do not extend past HISTORY_RECENCY_MAX_DAYS without explicit request
+  if (!HISTORY_CARD_META_LOCKED) return "";
   if (!latestAt) return "";
   const now = new Date();
   const then = new Date(latestAt);
@@ -1515,8 +1642,8 @@ function formatHistoryRecency(latestAt) {
   const days = Math.round((startToday - startThen) / 86400000);
   if (days <= 0) return "Today";
   if (days === 1) return "Yesterday";
-  if (days >= 2 && days <= 7) return days + "d ago";
-  return ""; // day 8+ → hide
+  if (days >= 2 && days <= HISTORY_RECENCY_MAX_DAYS) return days + "d ago";
+  return ""; // day 8+ → hide label only; count badge still shows
 }
 
 function rebuildHistoryMetaCache(snapshot) {
@@ -1574,6 +1701,7 @@ function renderHistoryList() {
   events.forEach((e) => {
     const card = document.createElement("div");
     card.className = "event history-card";
+    // LOCKED meta: recency (≤7d) + always-visible total history count — do not strip
     const meta = getHistoryMetaForReminder(e.key, e.name);
     const count = meta.count || 0;
     const recency = formatHistoryRecency(meta.latestAt);
@@ -1613,10 +1741,15 @@ function renderHistoryList() {
 // Popup box with a single reminder's full change history — old date ->
 // new date, for every time its Target Date was edited. Shows "No History"
 // when this reminder has never had a change logged.
+// Current History-detail context (used by PDF download).
+let currentHistoryDetail = { key: null, name: null, items: [] };
+
 function openHistoryDetail(key, name) {
+  currentHistoryDetail = { key: key || null, name: name || null, items: [] };
   document.getElementById("historyDetailTitle").textContent = (name ? name + " (History)" : "History");
   const body = document.getElementById("historyDetailBody");
   body.innerHTML = '<div class="loading">Loading...</div>';
+  syncPdfYearUI();
   document.getElementById("historyDetailOverlay").classList.add("open");
   if (!dateHistoryRef) {
     body.innerHTML = '<div class="empty-state">No History</div>';
@@ -1630,6 +1763,7 @@ function openHistoryDetail(key, name) {
       const matches = v.key ? v.key === key : v.name === name;
       if (matches) items.push(Object.assign({ _fbKey: child.key }, v));
     });
+    currentHistoryDetail.items = items;
     renderHistoryDetailItems(items, name, key);
   }, () => {
     body.innerHTML = '<div class="empty-state">History load nahi ho payi.</div>';
@@ -1798,6 +1932,328 @@ function deleteHistoryEntry(btnEl) {
 
 function closeHistoryDetail() {
   document.getElementById("historyDetailOverlay").classList.remove("open");
+  currentHistoryDetail = { key: null, name: null, items: [] };
+}
+
+// PDF range: only full years (1, 2 or 3). Never months.
+let pdfYearPopupChoice = 1;
+
+function getPdfHistoryYears() {
+  const y = Number(cloudSettings.pdfHistoryYears);
+  if (y === 2 || y === 3) return y;
+  return 1;
+}
+function setPdfHistoryYears(years) {
+  const y = Number(years);
+  const ok = (y === 1 || y === 2 || y === 3) ? y : 1;
+  cloudSettings.pdfHistoryYears = ok;
+  try { localStorage.setItem("pdfHistoryYears", String(ok)); } catch (e) {}
+  if (settingsRef) {
+    try { saveCloudSettings(cloudSettings); } catch (e) {}
+  }
+}
+function syncPdfYearUI() {
+  // kept for compatibility; year UI is now popup-based
+  pdfYearPopupChoice = getPdfHistoryYears();
+}
+function pickPdfYearOption(years) {
+  const y = (years === 2 || years === 3) ? years : 1;
+  pdfYearPopupChoice = y;
+  document.querySelectorAll("#historyPdfYearPopup .pdf-year-option").forEach((btn) => {
+    btn.classList.toggle("selected", Number(btn.getAttribute("data-years")) === y);
+  });
+}
+function openPdfYearPopup() {
+  const popup = document.getElementById("historyPdfYearPopup");
+  if (!popup) return;
+  const wasOpen = popup.classList.contains("open");
+  if (wasOpen) {
+    popup.classList.remove("open");
+    return;
+  }
+  pdfYearPopupChoice = getPdfHistoryYears();
+  document.querySelectorAll("#historyPdfYearPopup .pdf-year-option").forEach((btn) => {
+    btn.classList.toggle("selected", Number(btn.getAttribute("data-years")) === pdfYearPopupChoice);
+  });
+  popup.classList.add("open");
+}
+function closePdfYearPopup() {
+  const popup = document.getElementById("historyPdfYearPopup");
+  if (popup) popup.classList.remove("open");
+}
+function confirmPdfYearAndDownload() {
+  setPdfHistoryYears(pdfYearPopupChoice);
+  closePdfYearPopup();
+  const btn = document.getElementById("historyPdfDownloadBtn");
+  if (btn) btn.style.opacity = "0.55";
+  Promise.resolve(downloadHistoryPdf()).finally(() => {
+    if (btn) btn.style.opacity = "";
+  });
+}
+// Close year popup when tapping outside
+document.addEventListener("click", (ev) => {
+  const bar = document.querySelector(".history-pdf-bar");
+  const popup = document.getElementById("historyPdfYearPopup");
+  if (!popup || !popup.classList.contains("open")) return;
+  if (bar && bar.contains(ev.target)) return;
+  closePdfYearPopup();
+});
+
+function filterHistoryItemsForPdfYears(items, years) {
+  const end = new Date();
+  end.setHours(23, 59, 59, 999);
+  const start = new Date(end.getFullYear() - years, end.getMonth(), end.getDate());
+  start.setHours(0, 0, 0, 0);
+  const startMs = start.getTime();
+  const endMs = end.getTime();
+  const filtered = (items || []).filter((e) => {
+    const t = e.changedAt || 0;
+    return t >= startMs && t <= endMs;
+  });
+  filtered.sort((a, b) => (b.changedAt || 0) - (a.changedAt || 0));
+  return { filtered, start, end, years };
+}
+
+// jsPDF default Helvetica has no ₹ glyph. Load Noto Sans (has ₹) once, then reuse.
+function arrayBufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  const chunk = 0x8000;
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+}
+
+async function ensurePdfRupeeFont(doc) {
+  if (!window.__pdfNotoSansB64) {
+    // Prefer cached base64 from a previous successful load this session
+    try {
+      const cached = localStorage.getItem("pdfNotoSansB64");
+      if (cached && cached.length > 1000) window.__pdfNotoSansB64 = cached;
+    } catch (e) {}
+  }
+  if (!window.__pdfNotoSansB64) {
+    const urls = [
+      "https://cdn.jsdelivr.net/gh/notofonts/noto-fonts@main/hinted/ttf/NotoSans/NotoSans-Regular.ttf",
+      "https://cdn.jsdelivr.net/gh/googlefonts/noto-fonts@main/hinted/ttf/NotoSans/NotoSans-Regular.ttf"
+    ];
+    let lastErr = null;
+    for (const url of urls) {
+      try {
+        const res = await fetch(url, { mode: "cors" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const buf = await res.arrayBuffer();
+        if (!buf || buf.byteLength < 10000) throw new Error("font too small");
+        window.__pdfNotoSansB64 = arrayBufferToBase64(buf);
+        try { localStorage.setItem("pdfNotoSansB64", window.__pdfNotoSansB64); } catch (e) {}
+        lastErr = null;
+        break;
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+    if (!window.__pdfNotoSansB64) {
+      throw lastErr || new Error("Could not load Unicode font");
+    }
+  }
+  doc.addFileToVFS("NotoSans-Regular.ttf", window.__pdfNotoSansB64);
+  doc.addFont("NotoSans-Regular.ttf", "NotoSans", "normal");
+  return true;
+}
+
+// Keep ₹ in the string for PDF (Noto Sans will draw it). Normalize spacing only.
+function formatPriceForPdf(raw) {
+  if (!raw) return "";
+  let s = String(raw).trim();
+  s = s.replace(/\u20B9/g, "₹");
+  // If user typed plain number, prefix ₹
+  if (s && !/₹|rs\.?|inr/i.test(s)) s = "₹ " + s;
+  // "Rs. 298" / "INR 298" → "₹ 298"
+  s = s.replace(/^(rs\.?|inr)\s*/i, "₹ ");
+  s = s.replace(/₹\s*/g, "₹ ");
+  return s.trim();
+}
+
+async function downloadHistoryPdf() {
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    alert("PDF library load nahi hui. Internet check karke page refresh karein.");
+    return;
+  }
+  const name = (currentHistoryDetail && currentHistoryDetail.name) || "Reminder";
+  const key = currentHistoryDetail && currentHistoryDetail.key;
+  const allItems = (currentHistoryDetail && currentHistoryDetail.items) || [];
+  const years = getPdfHistoryYears();
+  const { filtered, start, end } = filterHistoryItemsForPdfYears(allItems, years);
+
+  let priceText = "";
+  try {
+    const live = (typeof latestRawEvents !== "undefined" && Array.isArray(latestRawEvents))
+      ? latestRawEvents.find((ev) => (key && ev.key === key) || (name && ev.name === name))
+      : null;
+    const rawPrice = live && live.price !== undefined && live.price !== null ? String(live.price).trim() : "";
+    if (rawPrice !== "") {
+      priceText = /₹|\u20B9|rs\.?|inr/i.test(rawPrice) ? rawPrice : ("₹ " + rawPrice);
+    }
+  } catch (eP) {}
+  const priceForPdf = formatPriceForPdf(priceText);
+
+  const isGasCylinder = (name || "").trim().toLowerCase() === "gas cylinder";
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const margin = 16;
+  let y = margin;
+
+  // Load font that can draw ₹ (required for price line)
+  let hasRupeeFont = false;
+  try {
+    await ensurePdfRupeeFont(doc);
+    hasRupeeFont = true;
+  } catch (fontErr) {
+    console.warn("Unicode font load failed, ₹ may not render:", fontErr);
+  }
+
+  const fmtDate = (dt) => {
+    if (!dt || isNaN(dt.getTime())) return "";
+    const d = String(dt.getDate()).padStart(2, "0");
+    const m = String(dt.getMonth() + 1).padStart(2, "0");
+    return d + "/" + m + "/" + dt.getFullYear();
+  };
+  const periodLabel = fmtDate(start) + "  -  " + fmtDate(end);
+  const yearLabel = years === 1 ? "1 Year" : (years + " Years");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(18);
+  doc.setTextColor(20, 21, 26);
+  doc.text(String(name), margin, y);
+  y += 8;
+  doc.setFontSize(12);
+  doc.setTextColor(0, 82, 204);
+  doc.text("History PDF  ·  " + yearLabel, margin, y);
+  y += 6;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.setTextColor(100, 100, 110);
+  doc.text("Period: " + periodLabel, margin, y);
+  y += 5;
+  doc.text("Generated: " + formatPdfTimestamp(Date.now()), margin, y);
+  y += 4;
+  doc.setDrawColor(0, 82, 204);
+  doc.setLineWidth(0.4);
+  doc.line(margin, y, pageW - margin, y);
+  y += 8;
+
+  if (filtered.length === 0) {
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(11);
+    doc.setTextColor(120, 120, 130);
+    doc.text("No history changes in this " + yearLabel.toLowerCase() + " period.", margin, y);
+  } else {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(80, 80, 90);
+    doc.text(filtered.length + " change" + (filtered.length === 1 ? "" : "s") + " in this period", margin, y);
+    y += 8;
+
+    filtered.forEach((e, idx) => {
+      const oldDt = parseEventDateString(e.oldDate);
+      const newDt = parseEventDateString(e.newDate);
+      let liveDate = "";
+      try {
+        const liveEv = (typeof latestRawEvents !== "undefined" && Array.isArray(latestRawEvents))
+          ? latestRawEvents.find((ev) => (key && ev.key === key) || (name && ev.name === name))
+          : null;
+        if (liveEv && liveEv.date) liveDate = liveEv.date;
+      } catch (eL) {}
+      const status = isGasCylinder ? "" : getHistoryEntryStatus(e, allItems, liveDate);
+      const displayOldDt = (status === "Upcoming" && oldDt) ? addOneDay(oldDt) : oldDt;
+      const daysDiff = daysBetweenInclusive(displayOldDt, newDt);
+      const oldDisp = displayOldDt ? formatDisplayDate(displayOldDt) : (e.oldDate || "");
+      const newDisp = newDt ? formatDisplayDate(newDt) : (e.newDate || "");
+      const when = e.changedAt ? formatPdfTimestamp(e.changedAt) : "";
+
+      if (y > pageH - 32) {
+        doc.addPage();
+        y = margin;
+      }
+
+      doc.setFillColor(247, 248, 250);
+      doc.setDrawColor(199, 125, 255);
+      doc.roundedRect(margin, y - 4, pageW - margin * 2, 26, 3, 3, "FD");
+
+      let lineY = y + 2;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      if (status === "Active") {
+        doc.setTextColor(0, 179, 0);
+        doc.text("Active", margin + 3, lineY);
+      } else if (status === "Expired") {
+        doc.setTextColor(255, 0, 0);
+        doc.text("Expired", margin + 3, lineY);
+      } else if (status === "Upcoming") {
+        doc.setTextColor(255, 140, 0);
+        doc.text("Upcoming", margin + 3, lineY);
+      } else {
+        doc.setTextColor(100, 100, 110);
+        doc.text("#" + (idx + 1), margin + 3, lineY);
+      }
+
+      lineY += 5;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.setTextColor(224, 69, 69);
+      doc.text(String(oldDisp), margin + 3, lineY);
+      const oldW = doc.getTextWidth(String(oldDisp));
+      doc.setTextColor(136, 136, 136);
+      doc.text("  ->  ", margin + 3 + oldW, lineY);
+      const arrowW = doc.getTextWidth("  ->  ");
+      doc.setTextColor(217, 119, 6);
+      doc.text(String(newDisp), margin + 3 + oldW + arrowW, lineY);
+
+      lineY += 5;
+      doc.setFontSize(10);
+      doc.setTextColor(0, 82, 204);
+      // Price line uses Noto Sans so ₹ draws correctly
+      if (hasRupeeFont) doc.setFont("NotoSans", "normal");
+      else doc.setFont("helvetica", "normal");
+      if (daysDiff !== undefined && daysDiff !== null) {
+        const n = Math.abs(daysDiff);
+        const label = isGasCylinder ? "Gas cylinder lasted" : "Recharge will last";
+        let line = label + ": " + n + " days";
+        if (priceForPdf) {
+          if (hasRupeeFont) {
+            line += " - " + priceForPdf;
+          } else {
+            // Fallback without ₹ glyph
+            line += " - " + priceForPdf.replace(/₹/g, "Rs.");
+          }
+        }
+        doc.text(line, margin + 3, lineY);
+      } else if (priceForPdf) {
+        const p = hasRupeeFont ? priceForPdf : priceForPdf.replace(/₹/g, "Rs.");
+        doc.text(p, margin + 3, lineY);
+      }
+
+      lineY += 5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(107, 114, 128);
+      doc.text(when, margin + 3, lineY);
+
+      y += 30;
+    });
+  }
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(150, 150, 160);
+  doc.text("Reminders · " + yearLabel + " history export", margin, pageH - 10);
+
+  const safeName = String(name).replace(/[^\w\u0900-\u097F\- ]+/g, "").trim().replace(/\s+/g, "_") || "History";
+  const fileName = safeName + "_History_" + years + "Y_" + fmtDate(end).replace(/\//g, "-") + ".pdf";
+  doc.save(fileName);
 }
 
 function escapeHtml(str) {
@@ -1917,6 +2373,22 @@ function formatHistoryTimestamp(ms) {
   const mm = String(dt.getMinutes()).padStart(2, "0");
   const ss = String(dt.getSeconds()).padStart(2, "0");
   return `${d}/${m}/${y}, ${hh}:${mm}:${ss}`;
+}
+
+// PDF only: 12-hour clock with AM/PM (e.g. 06/08/2026, 7:22:14 PM)
+function formatPdfTimestamp(ms) {
+  const dt = new Date(ms);
+  if (isNaN(dt.getTime())) return "";
+  const d = String(dt.getDate()).padStart(2, "0");
+  const m = String(dt.getMonth() + 1).padStart(2, "0");
+  const y = dt.getFullYear();
+  let h = dt.getHours();
+  const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12;
+  if (h === 0) h = 12;
+  const mm = String(dt.getMinutes()).padStart(2, "0");
+  const ss = String(dt.getSeconds()).padStart(2, "0");
+  return d + "/" + m + "/" + y + ", " + h + ":" + mm + ":" + ss + " " + ampm;
 }
 
 // History page only: Active vs Expired based purely on the plan's target date.
@@ -3350,6 +3822,11 @@ function deleteLabel(key) {
 // briefly show Reminder List / History title at the wrong place before Firebase loads.
 (function restoreOffsetsFromLocal() {
   try {
+    const py = localStorage.getItem("pdfHistoryYears");
+    if (py === "1" || py === "2" || py === "3") cloudSettings.pdfHistoryYears = Number(py);
+  } catch (e) {}
+
+  try {
     const lc = JSON.parse(localStorage.getItem("listCountOffset") || "null");
     if (lc && typeof lc.x === "number" && typeof lc.y === "number") {
       document.documentElement.style.setProperty("--listcount-offset-x", (lc.x || 0) + "px");
@@ -4491,6 +4968,11 @@ if (settingsRef) {
       cloudSettings.historyTitlePinned = !!val.historyTitlePinned;
       syncPinButtonsUI();
       cloudSettings.animFavorites = val.animFavorites || [];
+      if (val.pdfHistoryYears === 1 || val.pdfHistoryYears === 2 || val.pdfHistoryYears === 3) {
+        cloudSettings.pdfHistoryYears = val.pdfHistoryYears;
+        try { localStorage.setItem("pdfHistoryYears", String(val.pdfHistoryYears)); } catch (e) {}
+      }
+      if (typeof syncPdfYearUI === "function") syncPdfYearUI();
       cloudSettings.animHidden = val.animHidden || [];
       applyFontSettingsToContainer("page-alerts", getEffectiveAlertsFontSettings());
       applyFontSettingsToContainer("page-data", cloudSettings.data);
