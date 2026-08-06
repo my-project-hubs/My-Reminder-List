@@ -183,7 +183,11 @@
     margin-right: 8px;
   }
   .history-upcoming-block .history-entry-days { margin-top: 10px; }
-  #historyDetailBody .empty-state { margin-top: 20px; }
+  #historyDetailBody .empty-state {
+    margin: auto;
+    text-align: center;
+    width: 100%;
+  }
   /* History detail opens nearly full-screen so text is easy to read */
   #historyDetailOverlay { align-items: center; }
   #historyDetailOverlay .settings-panel {
@@ -208,8 +212,91 @@
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 8px;
+    display: flex;
+    flex-direction: column;
   }
-  .history-entry { margin-bottom: 18px; background: #f7f8fa; border: 1px solid #e8e9ef; border-radius: 18px; padding: 20px 20px; position: relative; cursor: pointer; }
+  .history-detail-footer {
+    flex: none;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 10px 4px 0;
+  }
+  .history-detail-dl-btn {
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #ffffff;
+    background: #0052cc;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    letter-spacing: 0.2px;
+    line-height: 1.2;
+  }
+  .history-detail-dl-btn:active { background: #003d99; transform: scale(0.96); }
+  .history-dl-years-label {
+    font-size: 13px; font-weight: 800; color: #6b7280;
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;
+  }
+  .history-dl-years-list {
+    display: flex; flex-direction: column; gap: 8px;
+    margin-bottom: 16px; max-height: 40vh; overflow-y: auto;
+  }
+  .history-dl-years-list label {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 15px; font-weight: 600; color: #14151a;
+    padding: 10px 14px; background: #f7f8fa;
+    border: 1.5px solid #ececf1; border-radius: 14px; cursor: pointer;
+  }
+  .history-dl-years-list label.active {
+    border-color: #0052cc;
+    background: linear-gradient(135deg, #f2f7ff, #ffffff);
+    box-shadow: 0 2px 10px rgba(0,82,204,0.12);
+  }
+  .history-dl-years-list input[type="checkbox"] {
+    accent-color: #0052cc; width: 18px; height: 18px;
+  }
+  #historyPdfRender {
+    position: fixed; left: -9999px; top: 0; width: 400px;
+    background: #ffffff; padding: 28px 22px 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    z-index: -1; pointer-events: none;
+  }
+  #historyPdfRender .pdf-title { font-size: 20px; font-weight: 800; color: #14151a; margin-bottom: 6px; }
+  #historyPdfRender .pdf-meta { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
+  #historyPdfRender .pdf-line { height: 2px; background: #0052cc; margin: 14px 0 18px; border-radius: 2px; }
+  #historyPdfRender .pdf-year-head {
+    font-size: 18px; font-weight: 800; color: #0052cc;
+    margin: 18px 0 10px; padding-bottom: 6px; border-bottom: 2px solid #e8e9ef;
+  }
+  #historyPdfRender .pdf-year-head:first-of-type { margin-top: 0; }
+  #historyPdfRender .pdf-month-head {
+    font-size: 15px; font-weight: 800; color: #14151a;
+    margin: 14px 0 8px; letter-spacing: 0.2px;
+  }
+  #historyPdfRender .pdf-card {
+    background: #f7f8fa;
+    border: 1.5px solid #c4b5fd;
+    border-radius: 18px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    text-align: left;
+  }
+  #historyPdfRender .pdf-status { font-size: 12px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 8px; }
+  #historyPdfRender .pdf-status.active { color: #00B300; }
+  #historyPdfRender .pdf-status.upcoming { color: #FF8C00; }
+  #historyPdfRender .pdf-status.expired { color: #FF0000; }
+  #historyPdfRender .pdf-dates { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  #historyPdfRender .pdf-old { color: #e04545; }
+  #historyPdfRender .pdf-arrow { color: #888; margin: 0 8px; }
+  #historyPdfRender .pdf-new { color: #d97706; }
+  #historyPdfRender .pdf-days-label { color: #0052cc; font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+  #historyPdfRender .pdf-days-detail { color: #0052cc; font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  #historyPdfRender .pdf-time { color: #6b7280; font-size: 13px; }
+  #historyPdfRender .pdf-empty { color: #9a9ea6; font-size: 14px; font-style: italic; padding: 20px 0; }
+  /* Website History detail cards — light purple border */
+  .history-entry { margin-bottom: 18px; background: #f7f8fa; border: 1.5px solid #c4b5fd; border-radius: 18px; padding: 20px 20px; position: relative; cursor: pointer; }
   .history-entry-delete-popup { position: absolute; top: 12px; right: 12px; opacity: 0; pointer-events: none; transition: opacity 0.15s ease; }
   .history-entry.actions-visible .history-entry-delete-popup { opacity: 1; pointer-events: auto; }
   .history-entry-delete-popup button { background: rgba(255,80,80,0.12); border: 1px solid rgba(255,80,80,0.4); color: #ff4d4d; font-size: 15px; font-weight: 700; padding: 8px 16px; border-radius: 999px; cursor: pointer; }
@@ -1076,75 +1163,6 @@
   .cyl-move-popup.open{ display:flex; }
   .cyl-move-popup button{ width:44px; height:44px; border:none; border-radius:8px; background:#f2f2f2; color:#333333; font-size:20px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
   .cyl-move-popup button:active{ background:#dddddd; }
-
-  /* History card download button — small, blue, bottom of each card */
-  .history-download-btn {
-    display: inline-block;
-    margin-top: 10px;
-    padding: 5px 12px;
-    font-size: 12px;
-    font-weight: 700;
-    color: #ffffff;
-    background: linear-gradient(135deg, #4d94ff, #0052cc);
-    border: none;
-    border-radius: 999px;
-    cursor: pointer;
-    letter-spacing: 0.3px;
-    line-height: 1.2;
-    box-shadow: 0 2px 8px rgba(0,82,204,0.3);
-  }
-  .history-download-btn:active {
-    transform: scale(0.96);
-    background: linear-gradient(135deg, #3d7fe0, #0040a0);
-  }
-  .history-dl-mode-row {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 16px;
-  }
-  .history-dl-mode-row label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 15px;
-    font-weight: 600;
-    color: #14151a;
-    padding: 10px 14px;
-    background: #f7f8fa;
-    border: 1.5px solid #ececf1;
-    border-radius: 14px;
-    cursor: pointer;
-  }
-  .history-dl-mode-row label.active {
-    border-color: #0052cc;
-    background: linear-gradient(135deg, #f2f7ff, #ffffff);
-    box-shadow: 0 2px 10px rgba(0,82,204,0.12);
-  }
-  .history-dl-mode-row input[type="radio"] {
-    accent-color: #0052cc;
-    width: 18px;
-    height: 18px;
-  }
-  .history-dl-fields {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 8px;
-  }
-  .history-dl-fields .settings-field select {
-    min-width: 110px;
-    max-width: 160px;
-  }
-  .history-dl-fields-label {
-    font-size: 13px;
-    font-weight: 800;
-    color: #6b7280;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 6px;
-    width: 100%;
-  }
 </style>
 </head>
 <body>
@@ -1320,40 +1338,25 @@
   <div class="settings-panel">
     <div class="settings-title"><span id="historyDetailTitle"></span><button onclick="closeHistoryDetail()">✕</button></div>
     <div id="historyDetailBody"></div>
+    <div class="history-detail-footer">
+      <button type="button" class="history-detail-dl-btn" id="historyDetailDownloadBtn" onclick="event.stopPropagation();openHistoryDownloadFromDetail()">Download</button>
+    </div>
   </div>
 </div>
 
 <div id="historyDownloadOverlay" class="settings-overlay">
   <div class="settings-panel">
     <div class="settings-title"><span id="historyDownloadTitle">Download PDF</span><button onclick="closeHistoryDownload()">✕</button></div>
-    <div class="history-dl-mode-row" id="historyDlModeRow">
-      <label class="active"><input type="radio" name="historyDlMode" value="single" checked onchange="updateHistoryDlModeUI()"> Single Month</label>
-      <label><input type="radio" name="historyDlMode" value="range" onchange="updateHistoryDlModeUI()"> Month Range</label>
-      <label><input type="radio" name="historyDlMode" value="year" onchange="updateHistoryDlModeUI()"> Full Year</label>
-    </div>
-    <div id="historyDlFieldsSingle" class="history-dl-fields">
-      <div class="history-dl-fields-label">Month</div>
-      <div class="settings-field"><label>Year</label><select id="hdlSingleYear"></select></div>
-      <div class="settings-field"><label>Month</label><select id="hdlSingleMonth"></select></div>
-    </div>
-    <div id="historyDlFieldsRange" class="history-dl-fields" style="display:none;">
-      <div class="history-dl-fields-label">From</div>
-      <div class="settings-field"><label>Year</label><select id="hdlFromYear"></select></div>
-      <div class="settings-field"><label>Month</label><select id="hdlFromMonth"></select></div>
-      <div class="history-dl-fields-label" style="margin-top:8px;">To</div>
-      <div class="settings-field"><label>Year</label><select id="hdlToYear"></select></div>
-      <div class="settings-field"><label>Month</label><select id="hdlToMonth"></select></div>
-    </div>
-    <div id="historyDlFieldsYear" class="history-dl-fields" style="display:none;">
-      <div class="history-dl-fields-label">Year</div>
-      <div class="settings-field"><label>Year</label><select id="hdlFullYear"></select></div>
-    </div>
+    <div class="history-dl-years-label">Select Year(s)</div>
+    <div class="history-dl-years-list" id="historyDlYearsList"></div>
     <div class="settings-actions">
       <button class="settings-reset" onclick="closeHistoryDownload()">Cancel</button>
       <button class="settings-apply" id="historyDlConfirmBtn" onclick="confirmHistoryDownload()">Download</button>
     </div>
   </div>
 </div>
+
+<div id="historyPdfRender" aria-hidden="true"></div>
 
 <div id="addReminderOverlay" class="settings-overlay">
   <div class="settings-panel">
@@ -1395,6 +1398,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 let cloudSettings = { alerts: {}, data: {}, labels: { header: { text: null, hidden: false }, listCount: { text: null, hidden: false }, alertTitle: { text: null, hidden: false }, historyTitle: { text: null, hidden: false } }, animFavorites: [], animHidden: [] };
@@ -1484,18 +1488,8 @@ function renderHistoryList() {
   events.forEach((e) => {
     const card = document.createElement("div");
     card.className = "event history-card";
-    card.innerHTML = `<div class="event-name">${e.name}</div><button type="button" class="history-download-btn">Download</button>`;
-    card.addEventListener("click", (ev) => {
-      if (ev.target && ev.target.closest && ev.target.closest(".history-download-btn")) return;
-      openHistoryDetail(e.key, e.name);
-    });
-    const dlBtn = card.querySelector(".history-download-btn");
-    if (dlBtn) {
-      dlBtn.addEventListener("click", (ev) => {
-        ev.stopPropagation();
-        openHistoryDownload(e.key, e.name);
-      });
-    }
+    card.innerHTML = `<div class="event-name">${e.name}</div>`;
+    card.addEventListener("click", () => openHistoryDetail(e.key, e.name));
     // Apply the same event animations here so Animation Control on History
     // page actually shows the effect on these name cards.
     const animEntries = normalizeAnimationEntries(e.animations, e.animation);
@@ -1526,7 +1520,10 @@ function renderHistoryList() {
 // Popup box with a single reminder's full change history — old date ->
 // new date, for every time its Target Date was edited. Shows "No History"
 // when this reminder has never had a change logged.
+let currentHistoryDetail = null;
+
 function openHistoryDetail(key, name) {
+  currentHistoryDetail = { key: key, name: name };
   document.getElementById("historyDetailTitle").textContent = (name ? name + " (History)" : "History");
   const body = document.getElementById("historyDetailBody");
   body.innerHTML = '<div class="loading">Loading...</div>';
@@ -1710,36 +1707,39 @@ function deleteHistoryEntry(btnEl) {
 
 function closeHistoryDetail() {
   document.getElementById("historyDetailOverlay").classList.remove("open");
+  currentHistoryDetail = null;
 }
 
-// --- History PDF download ---
-const HISTORY_DL_MONTHS = [
+const HISTORY_DL_MIN_YEAR = 2026;
+const HISTORY_DL_MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
 ];
-let historyDownloadTarget = null; // { key, name }
+let historyDownloadTarget = null;
 
-function fillHistoryDlYearSelects() {
+function openHistoryDownloadFromDetail() {
+  if (!currentHistoryDetail) return;
+  openHistoryDownload(currentHistoryDetail.key, currentHistoryDetail.name);
+}
+
+function fillHistoryDlYearCheckboxes() {
+  const list = document.getElementById("historyDlYearsList");
+  if (!list) return;
   const yearNow = new Date().getFullYear();
-  const years = [];
-  for (let y = yearNow; y >= yearNow - 10; y--) years.push(y);
-  const ids = ["hdlSingleYear", "hdlFromYear", "hdlToYear", "hdlFullYear"];
-  ids.forEach((id) => {
-    const sel = document.getElementById(id);
-    if (!sel) return;
-    const prev = sel.value;
-    sel.innerHTML = years.map((y) => `<option value="${y}">${y}</option>`).join("");
-    if (prev && years.indexOf(parseInt(prev, 10)) !== -1) sel.value = prev;
-    else sel.value = String(yearNow);
-  });
-  const monthIds = ["hdlSingleMonth", "hdlFromMonth", "hdlToMonth"];
-  monthIds.forEach((id) => {
-    const sel = document.getElementById(id);
-    if (!sel) return;
-    const prev = sel.value;
-    sel.innerHTML = HISTORY_DL_MONTHS.map((m, i) => `<option value="${i}">${m}</option>`).join("");
-    if (prev !== "" && prev != null) sel.value = prev;
-    else sel.value = String(new Date().getMonth());
+  const top = Math.max(yearNow, HISTORY_DL_MIN_YEAR);
+  let html = "";
+  for (let y = top; y >= HISTORY_DL_MIN_YEAR; y--) {
+    const checked = y === yearNow || (yearNow < HISTORY_DL_MIN_YEAR && y === HISTORY_DL_MIN_YEAR) ? " checked" : "";
+    const active = checked ? " active" : "";
+    html += `<label class="${active}"><input type="checkbox" name="historyDlYear" value="${y}"${checked} onchange="updateHistoryDlYearUI()"> ${y}</label>`;
+  }
+  list.innerHTML = html || `<label class="active"><input type="checkbox" name="historyDlYear" value="${HISTORY_DL_MIN_YEAR}" checked onchange="updateHistoryDlYearUI()"> ${HISTORY_DL_MIN_YEAR}</label>`;
+}
+
+function updateHistoryDlYearUI() {
+  document.querySelectorAll("#historyDlYearsList label").forEach((lab) => {
+    const inp = lab.querySelector("input");
+    lab.classList.toggle("active", !!(inp && inp.checked));
   });
 }
 
@@ -1747,10 +1747,7 @@ function openHistoryDownload(key, name) {
   historyDownloadTarget = { key: key, name: name };
   const titleEl = document.getElementById("historyDownloadTitle");
   if (titleEl) titleEl.textContent = (name ? name + " — Download PDF" : "Download PDF");
-  fillHistoryDlYearSelects();
-  const singleRadio = document.querySelector('input[name="historyDlMode"][value="single"]');
-  if (singleRadio) singleRadio.checked = true;
-  updateHistoryDlModeUI();
+  fillHistoryDlYearCheckboxes();
   document.getElementById("historyDownloadOverlay").classList.add("open");
 }
 
@@ -1759,68 +1756,22 @@ function closeHistoryDownload() {
   historyDownloadTarget = null;
 }
 
-function updateHistoryDlModeUI() {
-  const mode = (document.querySelector('input[name="historyDlMode"]:checked') || {}).value || "single";
-  document.querySelectorAll("#historyDlModeRow label").forEach((lab) => {
-    const inp = lab.querySelector("input");
-    lab.classList.toggle("active", !!(inp && inp.checked));
+function getSelectedHistoryYears() {
+  const boxes = document.querySelectorAll('input[name="historyDlYear"]:checked');
+  const years = [];
+  boxes.forEach((b) => {
+    const y = parseInt(b.value, 10);
+    if (!isNaN(y) && y >= HISTORY_DL_MIN_YEAR) years.push(y);
   });
-  const single = document.getElementById("historyDlFieldsSingle");
-  const range = document.getElementById("historyDlFieldsRange");
-  const year = document.getElementById("historyDlFieldsYear");
-  if (single) single.style.display = mode === "single" ? "" : "none";
-  if (range) range.style.display = mode === "range" ? "" : "none";
-  if (year) year.style.display = mode === "year" ? "" : "none";
-}
-
-function historyDlMonthBounds(year, monthIndex) {
-  const start = new Date(year, monthIndex, 1, 0, 0, 0, 0);
-  const end = new Date(year, monthIndex + 1, 0, 23, 59, 59, 999);
-  return { start: start.getTime(), end: end.getTime() };
-}
-
-function historyDlYearBounds(year) {
-  const start = new Date(year, 0, 1, 0, 0, 0, 0);
-  const end = new Date(year, 11, 31, 23, 59, 59, 999);
-  return { start: start.getTime(), end: end.getTime() };
-}
-
-function getHistoryDownloadRange() {
-  const mode = (document.querySelector('input[name="historyDlMode"]:checked') || {}).value || "single";
-  if (mode === "single") {
-    const y = parseInt(document.getElementById("hdlSingleYear").value, 10);
-    const m = parseInt(document.getElementById("hdlSingleMonth").value, 10);
-    const b = historyDlMonthBounds(y, m);
-    return { start: b.start, end: b.end, label: HISTORY_DL_MONTHS[m] + " " + y, mode: mode };
-  }
-  if (mode === "range") {
-    const fy = parseInt(document.getElementById("hdlFromYear").value, 10);
-    const fm = parseInt(document.getElementById("hdlFromMonth").value, 10);
-    const ty = parseInt(document.getElementById("hdlToYear").value, 10);
-    const tm = parseInt(document.getElementById("hdlToMonth").value, 10);
-    const fromB = historyDlMonthBounds(fy, fm);
-    const toB = historyDlMonthBounds(ty, tm);
-    if (fromB.start > toB.end) {
-      return { error: "From month should be before or equal to To month." };
-    }
-    return {
-      start: fromB.start,
-      end: toB.end,
-      label: HISTORY_DL_MONTHS[fm] + " " + fy + " – " + HISTORY_DL_MONTHS[tm] + " " + ty,
-      mode: mode
-    };
-  }
-  // full year
-  const y = parseInt(document.getElementById("hdlFullYear").value, 10);
-  const b = historyDlYearBounds(y);
-  return { start: b.start, end: b.end, label: String(y), mode: mode };
+  years.sort((a, b) => a - b);
+  return years;
 }
 
 function confirmHistoryDownload() {
   if (!historyDownloadTarget) return;
-  const range = getHistoryDownloadRange();
-  if (range.error) {
-    alert(range.error);
+  const years = getSelectedHistoryYears();
+  if (!years.length) {
+    alert("Please select at least one year.");
     return;
   }
   const btn = document.getElementById("historyDlConfirmBtn");
@@ -1832,7 +1783,12 @@ function confirmHistoryDownload() {
     alert("Not connected to the database right now.");
     return;
   }
-  dateHistoryRef.orderByChild("changedAt").once("value", (snapshot) => {
+  const start = new Date(years[0], 0, 1, 0, 0, 0, 0).getTime();
+  const end = new Date(years[years.length - 1], 11, 31, 23, 59, 59, 999).getTime();
+  const yearSet = new Set(years);
+  const periodLabel = years.length === 1 ? String(years[0]) : (years[0] + " – " + years[years.length - 1]);
+
+  dateHistoryRef.orderByChild("changedAt").once("value", async (snapshot) => {
     const items = [];
     snapshot.forEach((child) => {
       const v = child.val();
@@ -1840,14 +1796,21 @@ function confirmHistoryDownload() {
       const matches = v.key ? v.key === key : v.name === name;
       if (!matches) return;
       const t = v.changedAt || 0;
-      if (t >= range.start && t <= range.end) {
-        items.push(Object.assign({ _fbKey: child.key }, v));
-      }
+      if (t < start || t > end) return;
+      const dt = new Date(t);
+      if (!yearSet.has(dt.getFullYear())) return;
+      items.push(Object.assign({ _fbKey: child.key }, v));
     });
-    // newest first
-    items.sort((a, b) => (b.changedAt || 0) - (a.changedAt || 0));
+    let liveDate = "";
     try {
-      generateHistoryPdf(name, items, range.label);
+      const liveEv = (typeof latestRawEvents !== "undefined" && Array.isArray(latestRawEvents))
+        ? latestRawEvents.find((ev) => (key && ev.key === key) || (name && ev.name === name))
+        : null;
+      if (liveEv && liveEv.date) liveDate = liveEv.date;
+    } catch (eLive) {}
+    items.sort((a, b) => (a.changedAt || 0) - (b.changedAt || 0));
+    try {
+      await generateHistoryPdf(name, items, periodLabel, key, liveDate, years);
     } catch (err) {
       alert("PDF bana nahi paya.\n\nReason: " + ((err && err.message) ? err.message : "unknown error"));
     }
@@ -1859,108 +1822,146 @@ function confirmHistoryDownload() {
   });
 }
 
-function generateHistoryPdf(name, items, periodLabel) {
-  if (typeof window.jspdf === "undefined" && typeof window.jsPDF === "undefined") {
-    // jspdf 2.x exposes window.jspdf.jsPDF
-    throw new Error("PDF library not loaded. Check internet connection and try again.");
+function buildHistoryPdfCardHtml(e, items, isGasCylinder, priceText, liveDate) {
+  const oldDt = parseEventDateString(e.oldDate);
+  const newDt = parseEventDateString(e.newDate);
+  let statusForDates = "";
+  if (!isGasCylinder) statusForDates = getHistoryEntryStatus(e, items, liveDate);
+  const displayOldDt = (statusForDates === "Upcoming" && oldDt) ? addOneDay(oldDt) : oldDt;
+  const daysDiff = daysBetweenInclusive(displayOldDt, newDt);
+  const oldDateDisp = displayOldDt ? formatDisplayDate(displayOldDt) : (e.oldDate || "");
+  const newDateDisp = newDt ? formatDisplayDate(newDt) : (e.newDate || "");
+  let daysLabel = "", daysDetail = "";
+  if (daysDiff !== undefined && daysDiff !== null) {
+    const n = Math.abs(daysDiff);
+    daysLabel = isGasCylinder ? "The gas cylinder lasted" : "The recharge will last";
+    const p = priceText ? priceText.replace(/^₹\s*/, "").trim() : "";
+    daysDetail = p ? (n + " days - ₹ " + p) : (n + " days");
+  } else if (priceText) {
+    daysDetail = "₹ " + priceText.replace(/^₹\s*/, "").trim();
   }
+  const when = e.changedAt ? formatHistoryTimestamp(e.changedAt) : "";
+  let statusHtml = "";
+  if (!isGasCylinder && statusForDates) {
+    const cls = statusForDates === "Active" ? "active" : (statusForDates === "Upcoming" ? "upcoming" : "expired");
+    const label = statusForDates === "Active" ? "● ACTIVE" : (statusForDates === "Upcoming" ? "UPCOMING" : "EXPIRED");
+    statusHtml = `<div class="pdf-status ${cls}">${label}</div>`;
+  }
+  return `<div class="pdf-card">
+    ${statusHtml}
+    <div class="pdf-dates"><span class="pdf-old">${escapeHtml(oldDateDisp)}</span><span class="pdf-arrow">→</span><span class="pdf-new">${escapeHtml(newDateDisp)}</span></div>
+    ${daysLabel ? `<div class="pdf-days-label">${escapeHtml(daysLabel)}</div>` : ""}
+    ${daysDetail ? `<div class="pdf-days-detail">${escapeHtml(daysDetail)}</div>` : ""}
+    ${when ? `<div class="pdf-time">${escapeHtml(when)}</div>` : ""}
+  </div>`;
+}
+
+async function generateHistoryPdf(name, items, periodLabel, reminderKey, liveDate, selectedYears) {
+  if (typeof html2canvas === "undefined") throw new Error("PDF library (html2canvas) not loaded. Check internet and try again.");
   const JsPDF = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : window.jsPDF;
-  const doc = new JsPDF({ unit: "pt", format: "a4" });
-  const pageW = doc.internal.pageSize.getWidth();
-  const pageH = doc.internal.pageSize.getHeight();
-  const margin = 48;
-  let y = margin;
-
-  const safeName = String(name || "History").replace(/[^\w\s\-]+/g, "").trim() || "History";
-  const fileBase = (safeName + "_" + String(periodLabel || "").replace(/\s+/g, "_")).replace(/[^\w\-]+/g, "_");
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
-  doc.setTextColor(20, 21, 26);
-  doc.text(String(name || "History") + " — History", margin, y);
-  y += 20;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
-  doc.setTextColor(80, 85, 95);
-  doc.text("Period: " + periodLabel, margin, y);
-  y += 16;
-  doc.text("Generated: " + formatHistoryTimestamp(Date.now()), margin, y);
-  y += 22;
-  doc.setDrawColor(0, 82, 204);
-  doc.setLineWidth(1.5);
-  doc.line(margin, y, pageW - margin, y);
-  y += 18;
-
-  if (!items.length) {
-    doc.setFont("helvetica", "italic");
-    doc.setFontSize(12);
-    doc.setTextColor(120, 120, 120);
-    doc.text("No history found for this period.", margin, y);
-    doc.save(fileBase + ".pdf");
-    return;
-  }
+  if (!JsPDF) throw new Error("PDF library (jsPDF) not loaded. Check internet and try again.");
 
   const isGasCylinder = (name || "").trim().toLowerCase() === "gas cylinder";
   let priceText = "";
   try {
     const live = (typeof latestRawEvents !== "undefined" && Array.isArray(latestRawEvents))
-      ? latestRawEvents.find((ev) => (historyDownloadTarget && historyDownloadTarget.key && ev.key === historyDownloadTarget.key) || (name && ev.name === name))
+      ? latestRawEvents.find((ev) => (reminderKey && ev.key === reminderKey) || (name && ev.name === name))
       : null;
     const rawPrice = live && live.price !== undefined && live.price !== null ? String(live.price).trim() : "";
-    if (rawPrice !== "") {
-      priceText = /₹|rs\.?|inr/i.test(rawPrice) ? rawPrice : ("₹ " + rawPrice);
-    }
+    if (rawPrice !== "") priceText = /₹|rs\.?|inr/i.test(rawPrice) ? rawPrice : ("₹ " + rawPrice);
   } catch (eP) {}
 
-  items.forEach((e, idx) => {
-    const oldDt = parseEventDateString(e.oldDate);
-    const newDt = parseEventDateString(e.newDate);
-    const oldDisp = oldDt ? formatDisplayDate(oldDt) : (e.oldDate || "—");
-    const newDisp = newDt ? formatDisplayDate(newDt) : (e.newDate || "—");
-    const daysDiff = daysBetweenInclusive(oldDt, newDt);
-    let daysStr = "";
-    if (daysDiff !== undefined && daysDiff !== null) {
-      const n = Math.abs(daysDiff);
-      const label = isGasCylinder ? "The gas cylinder lasted" : "The recharge will last";
-      const p = priceText ? priceText.replace(/^₹\s*/, "").trim() : "";
-      daysStr = label + ": " + n + " days" + (p ? (" - ₹ " + p) : "");
-    }
-    const when = e.changedAt ? formatHistoryTimestamp(e.changedAt) : "";
+  const renderEl = document.getElementById("historyPdfRender");
+  if (!renderEl) throw new Error("PDF render area missing.");
 
-    // Estimate block height
-    const blockH = 14 + 16 + (daysStr ? 14 : 0) + (when ? 14 : 0) + 18;
-    if (y + blockH > pageH - margin) {
-      doc.addPage();
-      y = margin;
-    }
+  const years = (selectedYears && selectedYears.length) ? selectedYears.slice().sort((a, b) => a - b) : [];
+  let bodyHtml = "";
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.setTextColor(20, 21, 26);
-    doc.text((idx + 1) + ".  " + oldDisp + "  →  " + newDisp, margin, y);
-    y += 16;
-    if (daysStr) {
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-      doc.setTextColor(0, 82, 204);
-      doc.text(daysStr, margin + 14, y);
-      y += 14;
-    }
-    if (when) {
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      doc.setTextColor(120, 125, 135);
-      doc.text(when, margin + 14, y);
-      y += 14;
-    }
-    y += 10;
-    doc.setDrawColor(230, 232, 238);
-    doc.setLineWidth(0.5);
-    doc.line(margin, y, pageW - margin, y);
-    y += 14;
-  });
+  if (!items.length) {
+    bodyHtml = `<div class="pdf-empty">No history found for this period.</div>`;
+  } else {
+    const byYearMonth = {};
+    items.forEach((e) => {
+      const dt = new Date(e.changedAt || 0);
+      const y = dt.getFullYear();
+      const m = dt.getMonth();
+      if (!byYearMonth[y]) byYearMonth[y] = {};
+      if (!byYearMonth[y][m]) byYearMonth[y][m] = [];
+      byYearMonth[y][m].push(e);
+    });
+    const yearList = years.length ? years : Object.keys(byYearMonth).map(Number).sort((a, b) => a - b);
+    yearList.forEach((y) => {
+      const months = byYearMonth[y];
+      if (!months) return;
+      bodyHtml += `<div class="pdf-year-head">${y}</div>`;
+      for (let m = 0; m < 12; m++) {
+        const list = months[m];
+        if (!list || !list.length) continue;
+        bodyHtml += `<div class="pdf-month-head">${HISTORY_DL_MONTH_NAMES[m]}</div>`;
+        const sorted = list.slice().sort((a, b) => {
+          const rank = (entry) => {
+            if (isGasCylinder) return 2;
+            const st = getHistoryEntryStatus(entry, items, liveDate);
+            if (st === "Active") return 0;
+            if (st === "Upcoming") return 1;
+            return 2;
+          };
+          const ra = rank(a), rb = rank(b);
+          if (ra !== rb) return ra - rb;
+          return (b.changedAt || 0) - (a.changedAt || 0);
+        });
+        sorted.forEach((e) => {
+          bodyHtml += buildHistoryPdfCardHtml(e, items, isGasCylinder, priceText, liveDate);
+        });
+      }
+    });
+    if (!bodyHtml) bodyHtml = `<div class="pdf-empty">No history found for this period.</div>`;
+  }
 
+  renderEl.innerHTML = `
+    <div class="pdf-title">${escapeHtml(String(name || "History"))} (History)</div>
+    <div class="pdf-meta">Period: ${escapeHtml(periodLabel)}</div>
+    <div class="pdf-meta">Generated: ${escapeHtml(formatHistoryTimestamp(Date.now()))}</div>
+    <div class="pdf-line"></div>
+    ${bodyHtml}
+  `;
+  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+  const canvas = await html2canvas(renderEl, { scale: 2, backgroundColor: "#ffffff", useCORS: true, logging: false });
+  const doc = new JsPDF({ unit: "pt", format: "a4" });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const margin = 28;
+  const maxW = pageW - margin * 2;
+  const maxH = pageH - margin * 2;
+  const imgW = canvas.width, imgH = canvas.height;
+  const ratio = Math.min(maxW / imgW, 1);
+  const drawW = imgW * ratio, drawH = imgH * ratio;
+
+  if (drawH <= maxH) {
+    doc.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", margin, margin, drawW, drawH);
+  } else {
+    const pageCanvasH = Math.floor((maxH / drawH) * imgH);
+    let srcY = 0, pageIndex = 0;
+    while (srcY < imgH) {
+      const sliceH = Math.min(pageCanvasH, imgH - srcY);
+      const slice = document.createElement("canvas");
+      slice.width = imgW; slice.height = sliceH;
+      const ctx = slice.getContext("2d");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, slice.width, slice.height);
+      ctx.drawImage(canvas, 0, srcY, imgW, sliceH, 0, 0, imgW, sliceH);
+      if (pageIndex > 0) doc.addPage();
+      doc.addImage(slice.toDataURL("image/jpeg", 0.95), "JPEG", margin, margin, drawW, (sliceH / imgH) * drawH);
+      srcY += sliceH;
+      pageIndex++;
+    }
+  }
+
+  const safeName = String(name || "History").replace(/[^\w\s\-]+/g, "").trim() || "History";
+  const fileBase = (safeName + "_" + String(periodLabel || "").replace(/\s+/g, "_")).replace(/[^\w\-]+/g, "_");
   doc.save(fileBase + ".pdf");
+  renderEl.innerHTML = "";
 }
 
 function escapeHtml(str) {
