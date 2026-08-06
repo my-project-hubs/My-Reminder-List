@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="build-id" content="2026-08-05-23v">
+<meta name="build-id" content="2026-08-06-09v">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -318,7 +318,7 @@
     padding: 4px;
   }
 
-  /* 4 separate round buttons — no shared long pill bar behind them */
+  /* 4 separate round buttons — glass style + soft glow animations */
   .top-icon-stack {
     position: fixed;
     top: 6px;
@@ -327,7 +327,7 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     background: transparent;
     border: none;
     padding: 0;
@@ -340,9 +340,9 @@
     width: 46px;
     height: 46px;
     border-radius: 50%;
-    background: rgba(20, 22, 32, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    background: linear-gradient(145deg, rgba(40, 44, 62, 0.72), rgba(18, 20, 32, 0.78));
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
     color: #ffffff;
     display: flex;
     align-items: center;
@@ -353,22 +353,56 @@
     font-weight: 700;
     line-height: 1;
     overflow: hidden;
-    transition: background 0.15s ease, transform 0.12s ease, border-color 0.15s ease;
+    transition: background 0.2s ease, transform 0.18s cubic-bezier(.34,1.4,.64,1), border-color 0.2s ease, box-shadow 0.25s ease;
+    animation: stackIconFloat 3.6s ease-in-out infinite;
   }
-  /* Per-icon white glyph sizes (button circle size stays the same) */
-  #stackIconWrap-anim .stack-icon-btn { font-size: 25px; }      /* A: -1 */
-  #stackIconWrap-settings .stack-icon-btn { font-size: 25px; } /* Settings: -1 */
-  #stackIconWrap-add .stack-icon-btn { font-size: 28px; }       /* Plus: +2 */
-  #stackIconWrap-switch .stack-icon-btn { font-size: 28px; }    /* Switch: +2 */
+  .stack-icon-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.28), transparent 55%);
+    pointer-events: none;
+  }
+  .stack-icon-btn::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    border: 1.5px solid transparent;
+    background: linear-gradient(135deg, rgba(77,148,255,0.55), rgba(184,107,255,0.35), rgba(77,217,255,0.45)) border-box;
+    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.55;
+    animation: stackIconRing 4s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes stackIconFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+  }
+  @keyframes stackIconRing {
+    0% { transform: rotate(0deg); opacity: 0.4; }
+    50% { opacity: 0.75; }
+    100% { transform: rotate(360deg); opacity: 0.4; }
+  }
+  #stackIconWrap-add .stack-icon-btn { animation-delay: 0s; box-shadow: 0 4px 14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 12px rgba(34,197,94,0.25); font-size: 28px; }
+  #stackIconWrap-anim .stack-icon-btn { animation-delay: 0.45s; box-shadow: 0 4px 14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 12px rgba(77,148,255,0.28); font-size: 25px; }
+  #stackIconWrap-settings .stack-icon-btn { animation-delay: 0.9s; box-shadow: 0 4px 14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 12px rgba(184,107,255,0.25); font-size: 25px; }
+  #stackIconWrap-switch .stack-icon-btn { animation-delay: 1.35s; box-shadow: 0 4px 14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 12px rgba(77,217,255,0.25); font-size: 28px; }
   .stack-icon-btn:active {
-    background: rgba(255, 255, 255, 0.16);
-    border-color: rgba(255, 255, 255, 0.32);
-    transform: scale(0.9);
+    background: linear-gradient(145deg, rgba(70, 78, 110, 0.85), rgba(30, 34, 52, 0.9));
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: scale(0.88);
+    animation: none;
   }
   .stack-icon-btn .toggle-icon {
     display: inline-block;
     transition: transform 0.4s ease;
     font-size: inherit;
+    position: relative;
+    z-index: 1;
   }
 
   /* Each of the 4 buttons gets its own independent drag offset — moving one
@@ -451,7 +485,7 @@
   .settings-icon:active { opacity: 0.85; }
 
   #animationOverlay { align-items: center; }
-  #animationOverlay .settings-panel { border-radius: 26px; height: calc(100vh - 2in); max-height: calc(100vh - 2in); width: 94%; max-width: 620px; margin: 0; display: flex; flex-direction: column; background: linear-gradient(180deg, #ffffff 0%, #f7f7fb 100%); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+  #animationOverlay .settings-panel { border-radius: 26px; height: calc(100vh - 2in); max-height: calc(100vh - 2in); width: 94%; max-width: 620px; margin: 0; display: flex; flex-direction: column; background: linear-gradient(180deg, #ffffff 0%, #f7f7fb 100%); box-shadow: 0 20px 60px rgba(0,0,0,0.4); overflow: hidden; }
   #animationOverlay .settings-title span { color: #14151a; font-weight: 800; font-size: 22px; letter-spacing: -0.2px; }
   #animationOverlay .settings-title button { color: #333; }
   #animationOverlay .settings-actions { margin-top: 0; justify-content: center; border-top: none; padding-top: 14px; }
@@ -468,10 +502,26 @@
   .anim-picker-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding: 4px 2px 10px; gap: 8px; }
   .anim-pick-row { display: flex; align-items: center; justify-content: center; padding: 18px 16px; background: #ffffff; border: 1px solid #f0f0f4; border-radius: 16px; box-shadow: 0 2px 8px rgba(20,20,30,0.05); cursor: pointer; transition: box-shadow 0.15s ease, border-color 0.15s ease; position: relative; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
   .anim-pick-row.selected { background: linear-gradient(135deg, #f2f7ff, #ffffff); border-color: #0052cc; box-shadow: 0 4px 14px rgba(0,82,204,0.15); }
+  .anim-pick-row.speed-focus { border-color: #d99b00; box-shadow: 0 4px 14px rgba(217,155,0,0.25); background: linear-gradient(135deg, #fff8e6, #ffffff); }
   .anim-pick-order { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, #4d94ff, #0052cc); color: #fff; font-size: 12px; font-weight: 700; margin-right: 10px; flex: none; box-shadow: 0 2px 6px rgba(0,82,204,0.35); }
   .anim-pick-serial { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 27px; font-weight: 700; color: #9a9ea6; flex: none; }
   .anim-pick-fav-star { position: absolute; top: 6px; left: 8px; font-size: 13px; color: #ffb400; line-height: 1; }
+  .anim-pick-new-badge {
+    position: absolute;
+    top: 6px;
+    right: 10px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    color: #ffffff;
+    background: linear-gradient(135deg, #ff5f6d, #ff8f3f);
+    border-radius: 999px;
+    padding: 2px 7px;
+    line-height: 1.3;
+    box-shadow: 0 2px 6px rgba(255,95,109,0.35);
+  }
   .anim-pick-section-label { text-align: center; color: #9a9ea6; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; padding: 6px 4px 0; }
+  .anim-pick-section-label.is-new { color: #e05a2b; }
   .anim-pick-checkmark { position: absolute; top: 8px; right: 10px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid #c7cad2; background: #ffffff; display: none; align-items: center; justify-content: center; font-size: 12px; color: #ffffff; font-weight: 800; flex: none; }
   .anim-picker-list.manage-active .anim-pick-checkmark { display: flex; }
   .anim-pick-row.manage-selected { background: linear-gradient(135deg, #fff8e6, #ffffff); border-color: #d99b00; box-shadow: 0 4px 14px rgba(217,155,0,0.2); }
@@ -749,6 +799,84 @@
   .la-102 { display:inline-block; animation: k102 1.8s ease-in-out infinite; animation-duration: calc(1.8s / var(--la-speed, 1)); }
   @keyframes k103 { 0%,45%{clip-path:inset(0 50% 0 50%); opacity:0;} 55%{clip-path:inset(0 0 0 0); opacity:1;} 100%{clip-path:inset(0 0 0 0); opacity:1;} }
   .la-103 { display:inline-block; animation: k103 2.6s ease-in-out infinite; animation-duration: calc(2.6s / var(--la-speed, 1)); }
+
+  /* 104: PowerPoint-style letter drop */
+  .la-104-letters { display: inline-block; white-space: pre-wrap; }
+  .la-104-char {
+    display: inline-block;
+    animation-name: k104drop;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    will-change: transform, opacity;
+  }
+  @keyframes k104drop {
+    0% { transform: translateY(-1.35em); opacity: 0; }
+    10% { opacity: 1; }
+    22% { transform: translateY(0); opacity: 1; }
+    58% { transform: translateY(0); opacity: 1; }
+    72% { transform: translateY(0.12em); opacity: 0; }
+    100% { transform: translateY(-1.35em); opacity: 0; }
+  }
+  .la-104 { display: inline-block; animation: k104drop 3.2s ease-in-out infinite; animation-duration: calc(3.2s / var(--la-speed, 1)); }
+
+  @keyframes k105 { 0%,100%{transform:scale(1);} 30%{transform:scale(1.14);} 50%{transform:scale(0.94);} 70%{transform:scale(1.06);} }
+  .la-105 { display:inline-block; animation: k105 2.2s cubic-bezier(.34,1.5,.64,1) infinite; animation-duration: calc(2.2s / var(--la-speed, 1)); }
+  @keyframes k106 { 0%,100%{transform:translateY(0);opacity:1;} 40%{transform:translateY(10px);opacity:0.15;} 55%{transform:translateY(-8px);opacity:0.15;} 70%{transform:translateY(0);opacity:1;} }
+  .la-106 { display:inline-block; animation: k106 2.8s ease-in-out infinite; animation-duration: calc(2.8s / var(--la-speed, 1)); }
+  @keyframes k107 { 0%,100%{transform:scale(1);filter:brightness(1);} 50%{transform:scale(1.08);filter:brightness(1.15);} }
+  .la-107 { display:inline-block; animation: k107 2.4s ease-in-out infinite; animation-duration: calc(2.4s / var(--la-speed, 1)); }
+  @keyframes k108 { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
+  .la-108 { background:linear-gradient(90deg,#888 0%,#fff 40%,#888 80%); background-size:200% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent; animation: k108 2.4s linear infinite; animation-duration: calc(2.4s / var(--la-speed, 1)); }
+  @keyframes k109 { 0%,100%{transform:perspective(400px) rotateX(0deg);opacity:1;} 45%{transform:perspective(400px) rotateX(90deg);opacity:0.2;} 55%{transform:perspective(400px) rotateX(-90deg);opacity:0.2;} }
+  .la-109 { display:inline-block; transform-origin:center; animation: k109 2.8s ease-in-out infinite; animation-duration: calc(2.8s / var(--la-speed, 1)); }
+  @keyframes k110 { 0%,8%{clip-path:inset(0 100% 0 0);opacity:0.4;} 55%{clip-path:inset(0 0 0 0);opacity:1;} 80%,100%{clip-path:inset(0 0 0 0);opacity:1;} }
+  .la-110 { display:inline-block; animation: k110 3s steps(16,end) infinite; animation-duration: calc(3s / var(--la-speed, 1)); }
+  @keyframes k111 { 0%{transform:translateY(-18px);opacity:0;} 35%{transform:translateY(3px);opacity:1;} 55%{transform:translateY(-2px);} 70%,100%{transform:translateY(0);opacity:1;} }
+  .la-111 { display:inline-block; animation: k111 2.6s ease-in-out infinite; animation-duration: calc(2.6s / var(--la-speed, 1)); }
+  @keyframes k112 { 0%,100%{box-shadow:0 0 0 0 rgba(0,82,204,0);transform:scale(1);} 50%{box-shadow:0 0 14px 3px rgba(0,82,204,0.45);transform:scale(1.03);} }
+  .la-112 { display:inline-block; border-radius:8px; animation: k112 2.4s ease-in-out infinite; animation-duration: calc(2.4s / var(--la-speed, 1)); }
+
+  /* 113: Split Meet — letters fly in from full mobile left/right edges */
+  .la-113-letters { display: inline-block; white-space: pre-wrap; overflow: visible; }
+  .la-113-char {
+    display: inline-block;
+    animation-name: k113meet;
+    animation-timing-function: cubic-bezier(.22,.8,.28,1);
+    animation-iteration-count: infinite;
+    will-change: transform, opacity;
+  }
+  @keyframes k113meet {
+    0% { transform: translateX(var(--from-x, -50vw)); opacity: 0; }
+    12% { opacity: 1; }
+    38% { transform: translateX(0); opacity: 1; }
+    62% { transform: translateX(0); opacity: 1; }
+    78% { opacity: 0; }
+    100% { transform: translateX(var(--from-x, -50vw)); opacity: 0; }
+  }
+  .la-113 { display: inline-block; animation: k113meet 3.4s ease-in-out infinite; animation-duration: calc(3.4s / var(--la-speed, 1)); }
+
+  /* 114: Ball Bounce Letter Drop — one letter at a time, bounce like a ball on land */
+  .la-114-letters { display: inline-block; white-space: pre-wrap; }
+  .la-114-char {
+    display: inline-block;
+    animation-name: k114bounce;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    will-change: transform, opacity;
+  }
+  @keyframes k114bounce {
+    0%   { transform: translateY(-1.6em) scale(1); opacity: 0; }
+    8%   { opacity: 1; }
+    28%  { transform: translateY(0) scale(1); opacity: 1; }
+    34%  { transform: translateY(-0.45em) scale(1.05, 0.92); }
+    42%  { transform: translateY(0) scale(1.08, 0.88); }
+    50%  { transform: translateY(-0.2em) scale(1); }
+    58%  { transform: translateY(0) scale(1); opacity: 1; }
+    72%  { transform: translateY(0) scale(1); opacity: 1; }
+    85%  { opacity: 0; transform: translateY(0.1em) scale(1); }
+    100% { opacity: 0; transform: translateY(-1.6em) scale(1); }
+  }
+  .la-114 { display: inline-block; animation: k114bounce 3.6s ease-in-out infinite; animation-duration: calc(3.6s / var(--la-speed, 1)); }
 
   .add-icon-btn {
     position: relative;
@@ -1123,11 +1251,18 @@ try {
 // (oldDate -> newDate), never from the real-world clock/today's date -- so
 // if you actually save the edit on 25 Aug but change the target date from
 // 10 Aug to 20 Aug, it shows "10 din" (20-10), not anything based on 25 Aug.
+function daysBetweenInclusive(oldDt, newDt) {
+  if (!oldDt || !newDt) return null;
+  const raw = Math.round((newDt - oldDt) / 86400000);
+  if (raw === 0) return 0;
+  return raw > 0 ? raw + 1 : raw - 1;
+}
+
 function logDateHistory(reminderKey, reminderName, oldDate, newDate) {
   if (!dateHistoryRef || oldDate === newDate) return;
   const oldDt = parseEventDateString(oldDate);
   const newDt = parseEventDateString(newDate);
-  const daysDiff = (oldDt && newDt) ? Math.round((newDt - oldDt) / 86400000) : null;
+  const daysDiff = daysBetweenInclusive(oldDt, newDt);
   dateHistoryRef.push({
     key: reminderKey,
     name: reminderName,
@@ -1173,17 +1308,28 @@ function renderHistoryList() {
     card.addEventListener("click", () => openHistoryDetail(e.key, e.name));
     // Apply the same event animations here so Animation Control on History
     // page actually shows the effect on these name cards.
-    const animIds = normalizeAnimationIds(e.animations, e.animation);
+    const animEntries = normalizeAnimationEntries(e.animations, e.animation);
     let node = card;
-    if (animIds.length > 0) {
-      animIds.slice().reverse().forEach((id) => {
+    const nonLetterH = animEntries.filter((en) => !LETTER_SPLIT_ANIM_IDS.has(en.id));
+    const letterH = animEntries.filter((en) => LETTER_SPLIT_ANIM_IDS.has(en.id));
+    if (nonLetterH.length > 0) {
+      nonLetterH.slice().reverse().forEach((entry) => {
         const wrap = document.createElement("div");
-        wrap.className = "la-" + id + " la-event-wrap";
+        wrap.className = "la-" + entry.id + " la-event-wrap";
+        wrap.style.setProperty("--la-speed", animSpeedMultiplier(entry.speed));
         wrap.appendChild(node);
         node = wrap;
       });
     }
     container.appendChild(node);
+    if (letterH.length) {
+      const nameEl = node.querySelector(".event-name");
+      if (nameEl) {
+        const t = nameEl.textContent;
+        nameEl.textContent = "";
+        nameEl.appendChild(buildLetterAnimNode(t, letterH[0]));
+      }
+    }
   });
 }
 
@@ -1246,12 +1392,9 @@ function renderHistoryDetailItems(items, name, reminderKey) {
     // daysDiff field, so every single change (1st, 5th, 10th, however
     // many times the date is edited) shows this line, not just the
     // latest one.
-    let daysDiff = e.daysDiff;
-    if (daysDiff === undefined || daysDiff === null) {
-      const oldDt = parseEventDateString(e.oldDate);
-      const newDt = parseEventDateString(e.newDate);
-      daysDiff = (oldDt && newDt) ? Math.round((newDt - oldDt) / 86400000) : null;
-    }
+    const oldDt = parseEventDateString(e.oldDate);
+    const newDt = parseEventDateString(e.newDate);
+    const daysDiff = daysBetweenInclusive(oldDt, newDt);
     let daysLine = "";
     if (daysDiff !== undefined && daysDiff !== null) {
       const n = Math.abs(daysDiff);
@@ -1441,11 +1584,109 @@ function getHeaderText() {
 // Normalizes an item's animation data to an array of animation ids, up to 3.
 // Supports both the new "animations" array field and the old single "animation" field
 // (from before multi-animation support was added) so nothing already saved breaks.
+function normalizeAnimationEntries(animationsField, legacyAnimationField) {
+  const entries = [];
+  const pushEntry = (id, speed) => {
+    if (id == null || id === "" || id === "none") return;
+    const spd = (speed && ANIM_SPEED_MULTIPLIERS[speed]) ? speed : "normal";
+    entries.push({ id: id, speed: spd });
+  };
+  if (Array.isArray(animationsField)) {
+    animationsField.forEach((item) => {
+      if (item == null || item === "none") return;
+      if (typeof item === "object") pushEntry(item.id, item.speed);
+      else pushEntry(item, "normal");
+    });
+  } else if (animationsField && typeof animationsField === "object") {
+    Object.keys(animationsField).sort((a,b) => Number(a) - Number(b)).forEach((k) => {
+      const item = animationsField[k];
+      if (item == null || item === "none") return;
+      if (typeof item === "object") pushEntry(item.id, item.speed);
+      else pushEntry(item, "normal");
+    });
+  } else if (legacyAnimationField) {
+    pushEntry(legacyAnimationField, "normal");
+  }
+  return entries.slice(0, 3);
+}
+
 function normalizeAnimationIds(animationsField, legacyAnimationField) {
-  let ids = [];
-  if (Array.isArray(animationsField)) ids = animationsField.slice();
-  else if (legacyAnimationField) ids = [legacyAnimationField];
-  return ids.filter((id) => id && id !== "none").slice(0, 3);
+  return normalizeAnimationEntries(animationsField, legacyAnimationField).map((e) => e.id);
+}
+
+function animSpeedMultiplier(speedKey) {
+  return ANIM_SPEED_MULTIPLIERS[speedKey] || 1;
+}
+
+const LETTER_SPLIT_ANIM_IDS = new Set([104, 113, 114]);
+
+function buildLetterDropNode(text, speed) {
+  const wrap = document.createElement("span");
+  wrap.className = "la-104-letters";
+  wrap.style.setProperty("--la-speed", animSpeedMultiplier(speed));
+  const chars = Array.from(String(text || ""));
+  const total = Math.max(chars.length, 1);
+  const cycle = (2.4 + total * 0.08).toFixed(2);
+  chars.forEach((ch, i) => {
+    const span = document.createElement("span");
+    span.className = "la-104-char";
+    span.textContent = ch === " " ? "\u00A0" : ch;
+    span.style.animationDelay = (i * 0.08) + "s";
+    span.style.animationDuration = "calc(" + cycle + "s / var(--la-speed, 1))";
+    wrap.appendChild(span);
+  });
+  return wrap;
+}
+
+// Half letters slide in from left, half from right, meet to form the word, then vanish.
+function buildSplitMeetNode(text, speed) {
+  const wrap = document.createElement("span");
+  wrap.className = "la-113-letters";
+  wrap.style.setProperty("--la-speed", animSpeedMultiplier(speed));
+  const chars = Array.from(String(text || ""));
+  const total = Math.max(chars.length, 1);
+  const mid = Math.ceil(total / 2);
+  const cycle = (2.8 + total * 0.06).toFixed(2);
+  chars.forEach((ch, i) => {
+    const span = document.createElement("span");
+    span.className = "la-113-char";
+    span.textContent = ch === " " ? "\u00A0" : ch;
+    const fromLeft = i < mid;
+    // Full mobile-screen edges (not just a small nudge)
+    span.style.setProperty("--from-x", fromLeft ? "-48vw" : "48vw");
+    // Outer letters lead so both sides cascade toward the center
+    const delay = fromLeft ? (i * 0.07) : ((total - 1 - i) * 0.07);
+    span.style.animationDelay = delay.toFixed(2) + "s";
+    span.style.animationDuration = "calc(" + cycle + "s / var(--la-speed, 1))";
+    wrap.appendChild(span);
+  });
+  return wrap;
+}
+
+function buildBallBounceNode(text, speed) {
+  const wrap = document.createElement("span");
+  wrap.className = "la-114-letters";
+  wrap.style.setProperty("--la-speed", animSpeedMultiplier(speed));
+  const chars = Array.from(String(text || ""));
+  const total = Math.max(chars.length, 1);
+  // Slow one-by-one fall; cycle long enough for every letter to bounce and settle
+  const cycle = (3.2 + total * 0.28).toFixed(2);
+  chars.forEach((ch, i) => {
+    const span = document.createElement("span");
+    span.className = "la-114-char";
+    span.textContent = ch === " " ? "\u00A0" : ch;
+    // Clear sequential delay so letter 2 starts after letter 1 has mostly landed
+    span.style.animationDelay = (i * 0.28) + "s";
+    span.style.animationDuration = "calc(" + cycle + "s / var(--la-speed, 1))";
+    wrap.appendChild(span);
+  });
+  return wrap;
+}
+
+function buildLetterAnimNode(text, entry) {
+  if (entry && entry.id === 113) return buildSplitMeetNode(text, entry.speed);
+  if (entry && entry.id === 114) return buildBallBounceNode(text, entry.speed);
+  return buildLetterDropNode(text, entry && entry.speed);
 }
 
 function buildEventDisplay(rawName, rawDate, rawType, rawAlertDays, rawKey, rawAnimation, rawAnimations) {
@@ -1457,7 +1698,7 @@ function buildEventDisplay(rawName, rawDate, rawType, rawAlertDays, rawKey, rawA
   const type = (rawType || "countdown").toLowerCase();
   const alertDays = (rawAlertDays !== undefined && rawAlertDays !== null && !isNaN(rawAlertDays)) ? Number(rawAlertDays) : null;
   const animation = rawAnimation || null;
-  const animations = normalizeAnimationIds(rawAnimations, rawAnimation);
+  const animations = normalizeAnimationEntries(rawAnimations, rawAnimation);
 
   if (type === "elapsed") {
     const elapsedDays = Math.max(0, Math.round((today - eventDate) / 86400000));
@@ -1712,16 +1953,27 @@ function renderEvents(container, events, allowActions) {
     // marker class (added below, defined after all la-N rules) forces the wrapper
     // back to a full-width block so the card's box always keeps its normal size,
     // no matter which animation is assigned — now or for any item added later.
-    const animIds = normalizeAnimationIds(e.animations, e.animation);
+    const animEntries = normalizeAnimationEntries(e.animations, e.animation);
     let mounted = item;
-    animIds.forEach((id) => {
+    // Letter-drop applies on text lines, not the whole card box
+    const nonLetter = animEntries.filter((en) => !LETTER_SPLIT_ANIM_IDS.has(en.id));
+    const letterEntries = animEntries.filter((en) => LETTER_SPLIT_ANIM_IDS.has(en.id));
+    nonLetter.forEach((entry) => {
       const wrap = document.createElement("div");
-      wrap.className = "la-" + id + " la-event-wrap";
+      wrap.className = "la-" + entry.id + " la-event-wrap";
+      wrap.style.setProperty("--la-speed", animSpeedMultiplier(entry.speed));
       wrap.appendChild(mounted);
       mounted = wrap;
     });
-
     container.appendChild(mounted);
+    if (letterEntries.length) {
+      const nameEl = mounted.querySelector(".event-name");
+      if (nameEl) {
+        const t = nameEl.textContent;
+        nameEl.textContent = "";
+        nameEl.appendChild(buildLetterAnimNode(t, letterEntries[0]));
+      }
+    }
   });
 }
 
@@ -1760,24 +2012,28 @@ function moveReminder(key, direction) {
   eventsRef.update(updates);
 }
 
-function applyLabelAnimClass(el, animIds) {
+function applyLabelAnimClass(el, animIdsOrEntries) {
   if (!el) return;
-  const ids = normalizeAnimationIds(animIds, null);
+  const entries = normalizeAnimationEntries(animIdsOrEntries, null);
   const text = el.textContent;
   el.className = el.className.split(" ").filter((c) => !c.startsWith("la-")).join(" ");
   el.textContent = "";
-  if (ids.length === 0) {
+  if (entries.length === 0) {
     el.textContent = text;
     return;
   }
-  // Same nested-wrapper technique as events: each id gets its own element
-  // and its own independent animation, so multiple animations combine cleanly.
   let mounted = document.createElement("span");
-  mounted.textContent = text;
-  ids.forEach((id) => {
+  const letterEntry = entries.find((e) => LETTER_SPLIT_ANIM_IDS.has(e.id));
+  if (letterEntry) {
+    mounted = buildLetterAnimNode(text, letterEntry);
+  } else {
+    mounted.textContent = text;
+  }
+  entries.filter((e) => !LETTER_SPLIT_ANIM_IDS.has(e.id)).forEach((entry) => {
     const wrap = document.createElement("span");
-    wrap.className = "la-" + id;
+    wrap.className = "la-" + entry.id;
     wrap.style.display = "inline-block";
+    wrap.style.setProperty("--la-speed", animSpeedMultiplier(entry.speed));
     wrap.appendChild(mounted);
     mounted = wrap;
   });
@@ -1792,14 +2048,15 @@ function applyLabelAnimClass(el, animIds) {
 // though nothing about the header itself had changed. Now the header (and
 // other labels) only get rebuilt when their own text or animation actually
 // changed, so unrelated list changes never touch them.
-function setLabelIfChanged(el, text, animIds) {
+function setLabelIfChanged(el, text, animIdsOrEntries) {
   if (!el) return;
-  const idsKey = normalizeAnimationIds(animIds, null).join(",");
+  const entries = normalizeAnimationEntries(animIdsOrEntries, null);
+  const idsKey = entries.map((e) => e.id + ":" + (e.speed || "normal")).join(",");
   const cacheKey = text + "||" + idsKey;
   if (el.dataset.laCache === cacheKey) return;
   el.dataset.laCache = cacheKey;
   el.textContent = text;
-  applyLabelAnimClass(el, animIds);
+  applyLabelAnimClass(el, entries);
 }
 
 function renderAll() {
@@ -2522,7 +2779,7 @@ function getListCountDisplayText(count) {
 function getLabelAnimations(key) {
   const label = cloudSettings.labels && cloudSettings.labels[key];
   if (!label) return [];
-  return normalizeAnimationIds(label.animations, label.animation);
+  return normalizeAnimationEntries(label.animations, label.animation);
 }
 
 function setLabelAnimations(key, animIds) {
@@ -2743,7 +3000,6 @@ const ANIMATIONS = [
   { id: 4, name: "Split-Letter Stagger" },
   { id: 5, name: "Elastic Slide" },
   { id: 6, name: "3D Flip-In" },
-  { id: 7, name: "Magnetic Snap" },
   { id: 8, name: "Curtain Reveal" },
   { id: 9, name: "Glitch-In" },
   { id: 10, name: "Liquid Morph-In" },
@@ -2757,19 +3013,16 @@ const ANIMATIONS = [
   { id: 18, name: "Aurora Background Shift" },
   { id: 19, name: "Chromatic Aberration Pulse" },
   { id: 20, name: "Wavy Text" },
-  { id: 21, name: "Tap Ripple Burst" },
   { id: 22, name: "Elastic Press" },
   { id: 23, name: "Magnetic Hover Pull" },
   { id: 24, name: "Confetti Burst" },
   { id: 25, name: "Haptic Shake" },
   { id: 26, name: "Long-Press Grow" },
   { id: 27, name: "Typewriter with Cursor Blink" },
-  { id: 28, name: "Word-by-Word Fade Cascade" },
   { id: 29, name: "Letter Spacing Expand" },
   { id: 30, name: "Bold-Weight Morph" },
   { id: 31, name: "Color Wipe Left-to-Right" },
   { id: 32, name: "Outline-to-Fill Text" },
-  { id: 33, name: "Scramble/Decode Text" },
   { id: 34, name: "Rolling Digits" },
   { id: 35, name: "Glassmorphism Shine Sweep" },
   { id: 36, name: "Neumorphic Press Depth" },
@@ -2783,7 +3036,6 @@ const ANIMATIONS = [
   { id: 44, name: "Soft Scale Breathe" },
   { id: 45, name: "Edge Glow Sweep" },
   { id: 46, name: "Particle Trail Follow" },
-  { id: 47, name: "Skeleton-to-Content Morph" },
   { id: 48, name: "Duotone Color Cycle" },
   { id: 49, name: "Aurora Gradient Border" },
   { id: 50, name: "Iridescent Sweep" },
@@ -2794,10 +3046,8 @@ const ANIMATIONS = [
   { id: 55, name: "Fade Slide Loop" },
   { id: 56, name: "Zoom Blur Pop" },
   { id: 57, name: "Corner Flip Peek" },
-  { id: 58, name: "Bounce Wave" },
   { id: 59, name: "Soft Zoom Fade" },
   { id: 60, name: "Shadow Drift Loop" },
-  { id: 61, name: "Neon Flicker Fast" },
   { id: 62, name: "Glow Ring Double Pulse" },
   { id: 63, name: "Halo Amber Glow" },
   { id: 64, name: "Icy Glow Shimmer" },
@@ -2810,7 +3060,6 @@ const ANIMATIONS = [
   { id: 71, name: "3D Cube Rotate" },
   { id: 72, name: "3D Tilt Card" },
   { id: 73, name: "Depth Pop Zoom" },
-  { id: 74, name: "Pendulum Swing 3D" },
   { id: 75, name: "Fold Reveal 3D" },
   { id: 76, name: "Orbit Spin" },
   { id: 77, name: "Diagonal Float 3D" },
@@ -2837,19 +3086,37 @@ const ANIMATIONS = [
   { id: 98, name: "Candy Pop Color Cycle" },
   { id: 99, name: "Duotone Wave Shift" },
   { id: 100, name: "Iridescent Border Sweep" },
-  { id: 101, name: "3D Spin" },
-  { id: 102, name: "Wavy" },
-  { id: 103, name: "Split Text" }
+  { id: 104, name: "Letter Drop Rain" },
+  { id: 105, name: "Elastic Bounce Pop" },
+  { id: 106, name: "Slide Fade Loop" },
+  { id: 107, name: "Soft Pulse Scale" },
+  { id: 108, name: "Chrome Shimmer Sweep" },
+  { id: 109, name: "Flip Vertical Reveal" },
+  { id: 110, name: "Typewriter Wipe" },
+  { id: 111, name: "Drop Bounce Settle" },
+  { id: 112, name: "Blue Glow Pulse" },
+  { id: 113, name: "Split Meet From Sides" },
+  { id: 114, name: "Ball Bounce Letters" }
 ];
 
 let currentAnimTarget = null;
-// Array of up to 3 animation ids, so any line/label/reminder can combine several
-// animations at once (e.g. Zoom Out + Zoom In together) instead of just one.
+// Array of up to 3 entries { id, speed }
 let currentAnimSelections = [];
 const MAX_ANIMATIONS_PER_ITEM = 3;
 let animControlReturnFlag = false;
 
 let currentAnimSpeedChoice = "normal";
+let currentAnimSpeedFocusId = null;
+
+function selectionIndexOf(id) {
+  return currentAnimSelections.findIndex((s) => (s && typeof s === "object" ? s.id : s) === id);
+}
+function getSelectionIds() {
+  return currentAnimSelections.map((s) => (s && typeof s === "object" ? s.id : s));
+}
+function ensureSelectionEntry(id, speed) {
+  return { id: id, speed: (speed && ANIM_SPEED_MULTIPLIERS[speed]) ? speed : "normal" };
+}
 
 function applyAnimSpeedToPage(speedKey) {
   const mult = ANIM_SPEED_MULTIPLIERS[speedKey] || 1;
@@ -2866,6 +3133,14 @@ function updateAnimSpeedUI() {
 
 function setAnimSpeedChoice(speedKey) {
   currentAnimSpeedChoice = speedKey;
+  if (currentAnimSpeedFocusId != null) {
+    const idx = selectionIndexOf(currentAnimSpeedFocusId);
+    if (idx !== -1) {
+      const cur = currentAnimSelections[idx];
+      const id = (cur && typeof cur === "object") ? cur.id : cur;
+      currentAnimSelections[idx] = ensureSelectionEntry(id, speedKey);
+    }
+  }
   applyAnimSpeedToPage(speedKey);
   updateAnimSpeedUI();
 }
@@ -2873,22 +3148,44 @@ function setAnimSpeedChoice(speedKey) {
 function openAnimationPage(type, key, currentAnimIds) {
   currentAnimTarget = type ? { type, key } : null;
   if (type === "label") {
-    currentAnimSelections = getLabelAnimations(key);
+    currentAnimSelections = getLabelAnimations(key).map((e) => ensureSelectionEntry(e.id, e.speed));
   } else if (type === "event") {
-    currentAnimSelections = normalizeAnimationIds(currentAnimIds, null);
+    currentAnimSelections = normalizeAnimationEntries(currentAnimIds, null).map((e) => ensureSelectionEntry(e.id, e.speed));
   } else {
     currentAnimSelections = [];
   }
-  currentAnimSpeedChoice = (cloudSettings.animSpeed) || "normal";
+  if (currentAnimSelections.length > 0) {
+    const last = currentAnimSelections[currentAnimSelections.length - 1];
+    currentAnimSpeedFocusId = last.id;
+    currentAnimSpeedChoice = last.speed || "normal";
+  } else {
+    currentAnimSpeedFocusId = null;
+    currentAnimSpeedChoice = "normal";
+  }
   updateAnimSpeedUI();
+  applyAnimSpeedToPage(currentAnimSpeedChoice);
   exitAnimManagementMode();
   renderAnimPickerList();
   document.getElementById("animationOverlay").classList.add("open");
+  requestAnimationFrame(() => {
+    const listEl = document.getElementById("animPickerList");
+    const panelEl = document.querySelector("#animationOverlay .settings-panel");
+    if (listEl) listEl.scrollTop = 0;
+    if (panelEl) panelEl.scrollTop = 0;
+    setTimeout(() => {
+      if (listEl) listEl.scrollTop = 0;
+      if (panelEl) panelEl.scrollTop = 0;
+    }, 0);
+  });
   hideAllActions();
 }
 
 function closeAnimationPage() {
   exitAnimManagementMode();
+  const listEl = document.getElementById("animPickerList");
+  const panelEl = document.querySelector("#animationOverlay .settings-panel");
+  if (listEl) listEl.scrollTop = 0;
+  if (panelEl) panelEl.scrollTop = 0;
   document.getElementById("animationOverlay").classList.remove("open");
   if (animControlReturnFlag) {
     animControlReturnFlag = false;
@@ -3315,19 +3612,26 @@ function renderAnimPickerList() {
   // anything the person deleted from the list filtered out (unless it's
   // still applied to this line, so they can always find and remove it).
   const noneItem = ANIMATIONS.find((a) => a.id === "none");
+  const selectedIds = getSelectionIds();
   const selectedItems = currentAnimSelections
-    .map((id) => ANIMATIONS.find((a) => a.id === id))
+    .map((s) => ANIMATIONS.find((a) => a.id === (s && typeof s === "object" ? s.id : s)))
     .filter(Boolean);
   const favItems = ANIMATIONS.filter(
-    (a) => a.id !== "none" && favIds.includes(a.id) && !currentAnimSelections.includes(a.id)
+    (a) => a.id !== "none" && favIds.includes(a.id) && !selectedIds.includes(a.id)
+  );
+  // New animations (104+) — shown in their own "New" section so they are easy to find
+  const isNewAnim = (a) => typeof a.id === "number" && a.id >= 114;
+  const newItems = ANIMATIONS.filter(
+    (a) => a.id !== "none" && isNewAnim(a) && !selectedIds.includes(a.id) && !favIds.includes(a.id) && !hiddenIds.includes(a.id)
   );
   const remainingItems = ANIMATIONS.filter(
-    (a) => a.id !== "none" && !currentAnimSelections.includes(a.id) && !favIds.includes(a.id) && !hiddenIds.includes(a.id)
+    (a) => a.id !== "none" && !isNewAnim(a) && !selectedIds.includes(a.id) && !favIds.includes(a.id) && !hiddenIds.includes(a.id)
   );
 
   const sections = [];
   if (noneItem) sections.push({ items: [noneItem] });
   if (selectedItems.length) sections.push({ items: selectedItems });
+  if (newItems.length) sections.push({ label: "✦ New", items: newItems, isNew: true });
   if (favItems.length) sections.push({ label: "★ Favorites", items: favItems });
   sections.push({ items: remainingItems });
 
@@ -3336,23 +3640,27 @@ function renderAnimPickerList() {
     if (!section.items.length) return;
     if (section.label) {
       const labelEl = document.createElement("div");
-      labelEl.className = "anim-pick-section-label";
+      labelEl.className = "anim-pick-section-label" + (section.isNew ? " is-new" : "");
       labelEl.textContent = section.label;
       listEl.appendChild(labelEl);
     }
     section.items.forEach((a) => {
-      listIdx += 1;
+      // None has no serial number — numbering starts at 1 from the first real animation
+      const serialNum = (a.id === "none") ? null : (++listIdx);
       const row = document.createElement("div");
-      const selectedIndex = currentAnimSelections.indexOf(a.id);
+      const selectedIndex = selectionIndexOf(a.id);
       const isSelected = a.id === "none" ? currentAnimSelections.length === 0 : selectedIndex !== -1;
       const isManageSelected = animManageSelections.has(a.id);
-      row.className = "anim-pick-row" + (isSelected ? " selected" : "") + (isManageSelected ? " manage-selected" : "");
+      const isSpeedFocus = isSelected && a.id !== "none" && currentAnimSpeedFocusId === a.id;
+      row.className = "anim-pick-row" + (isSelected ? " selected" : "") + (isManageSelected ? " manage-selected" : "") + (isSpeedFocus ? " speed-focus" : "");
       const previewCls = a.id === "none" ? "anim-pick-preview" : ("anim-pick-preview la-" + a.id);
+      const previewText = a.id === "none" ? "None" : "Aa";
       const orderBadge = (a.id !== "none" && selectedIndex !== -1) ? `<span class="anim-pick-order">${selectedIndex + 1}</span>` : "";
-      const serialLabel = `<span class="anim-pick-serial">${listIdx}</span>`;
+      const serialLabel = serialNum != null ? `<span class="anim-pick-serial">${serialNum}</span>` : "";
       const favStar = (a.id !== "none" && favIds.includes(a.id)) ? `<span class="anim-pick-fav-star">★</span>` : "";
+      const newBadge = (a.id !== "none" && isNewAnim(a)) ? `<span class="anim-pick-new-badge">NEW</span>` : "";
       const checkmark = a.id !== "none" ? `<span class="anim-pick-checkmark">${isManageSelected ? "✓" : ""}</span>` : "";
-      row.innerHTML = `${favStar}${serialLabel}<span class="anim-pick-center">${orderBadge}<span class="${previewCls}">Aa</span></span>${checkmark}`;
+      row.innerHTML = `${favStar}${serialLabel}<span class="anim-pick-center">${orderBadge}<span class="${previewCls}">${previewText}</span></span>${newBadge}${checkmark}`;
 
       row.addEventListener("click", () => {
         if (animLongPressTriggered) { animLongPressTriggered = false; return; }
@@ -3363,11 +3671,35 @@ function renderAnimPickerList() {
         }
         if (a.id === "none") {
           currentAnimSelections = [];
-        } else if (currentAnimSelections.includes(a.id)) {
-          currentAnimSelections = currentAnimSelections.filter((id) => id !== a.id);
+          currentAnimSpeedFocusId = null;
+          currentAnimSpeedChoice = "normal";
+          updateAnimSpeedUI();
+          applyAnimSpeedToPage(currentAnimSpeedChoice);
+        } else if (selectionIndexOf(a.id) !== -1) {
+          if (currentAnimSpeedFocusId === a.id) {
+            currentAnimSelections = currentAnimSelections.filter((s) => (s && typeof s === "object" ? s.id : s) !== a.id);
+            if (currentAnimSelections.length) {
+              const last = currentAnimSelections[currentAnimSelections.length - 1];
+              currentAnimSpeedFocusId = last.id;
+              currentAnimSpeedChoice = last.speed || "normal";
+            } else {
+              currentAnimSpeedFocusId = null;
+              currentAnimSpeedChoice = "normal";
+            }
+            updateAnimSpeedUI();
+            applyAnimSpeedToPage(currentAnimSpeedChoice);
+          } else {
+            currentAnimSpeedFocusId = a.id;
+            const entry = currentAnimSelections[selectionIndexOf(a.id)];
+            currentAnimSpeedChoice = (entry && entry.speed) || "normal";
+            updateAnimSpeedUI();
+            applyAnimSpeedToPage(currentAnimSpeedChoice);
+          }
         } else {
           if (currentAnimSelections.length >= MAX_ANIMATIONS_PER_ITEM) currentAnimSelections.shift();
-          currentAnimSelections.push(a.id);
+          currentAnimSelections.push(ensureSelectionEntry(a.id, currentAnimSpeedChoice || "normal"));
+          currentAnimSpeedFocusId = a.id;
+          updateAnimSpeedUI();
         }
         renderAnimPickerList();
       });
@@ -3413,7 +3745,10 @@ function renderAnimPickerList() {
 // (optimistic update) instead of waiting on the network, and any real failure
 // is shown to you instead of failing silently.
 async function applyAnimationChoice() {
-  const animIds = currentAnimSelections.slice();
+  const animEntries = currentAnimSelections.map((s) => ensureSelectionEntry(
+    (s && typeof s === "object") ? s.id : s,
+    (s && typeof s === "object") ? s.speed : currentAnimSpeedChoice
+  ));
   cloudSettings.animSpeed = currentAnimSpeedChoice;
   applyAnimSpeedToPage(currentAnimSpeedChoice);
 
@@ -3432,15 +3767,15 @@ async function applyAnimationChoice() {
     if (currentAnimTarget && currentAnimTarget.type === "event" && eventsRef && currentAnimTarget.key) {
       const idx = latestRawEvents.findIndex((ev) => ev.key === currentAnimTarget.key);
       if (idx !== -1) {
-        latestRawEvents[idx] = { ...latestRawEvents[idx], animations: animIds, animation: null };
+        latestRawEvents[idx] = { ...latestRawEvents[idx], animations: animEntries, animation: null };
         renderAll();
       }
-      await eventsRef.child(currentAnimTarget.key).update({ animations: animIds, animation: null });
+      await eventsRef.child(currentAnimTarget.key).update({ animations: animEntries, animation: null });
       await saveCloudSettings(cloudSettings);
     } else if (currentAnimTarget && currentAnimTarget.type === "label") {
       if (!cloudSettings.labels) cloudSettings.labels = defaultLabels();
       const existing = cloudSettings.labels[currentAnimTarget.key] || { text: null, hidden: false };
-      cloudSettings.labels[currentAnimTarget.key] = { text: existing.text, hidden: existing.hidden, animations: animIds, animation: null };
+      cloudSettings.labels[currentAnimTarget.key] = { text: existing.text, hidden: existing.hidden, animations: animEntries, animation: null };
       renderAll();
       await saveCloudSettings(cloudSettings);
     } else {
