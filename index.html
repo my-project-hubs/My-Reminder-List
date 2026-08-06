@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="build-id" content="2026-08-06-09v">
+<meta name="build-id" content="2026-08-06-19v">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -103,8 +103,94 @@
   .history-back-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.3); color: #fff; width: 34px; height: 34px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
   /* History page cards are just the List page's own event cards, reused
      as-is, tappable to open that reminder's change-history popup. */
-  #list-history .history-card { cursor: pointer; }
-  #list-history .history-card:active { background: rgba(255,255,255,0.07); }
+  #list-history .history-card { cursor: pointer; transition: background 0.2s ease, transform 0.18s ease; }
+  #list-history .history-card:active { background: rgba(255,255,255,0.07); transform: scale(0.98); }
+  @keyframes historyListCardIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  #list-history .history-card,
+  #list-history .la-event-wrap {
+    animation: historyListCardIn 0.4s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+  }
+  #list-history .la-event-wrap:nth-child(1),
+  #list-history > .history-card:nth-child(1) { animation-delay: 0.03s; }
+  #list-history .la-event-wrap:nth-child(2),
+  #list-history > .history-card:nth-child(2) { animation-delay: 0.08s; }
+  #list-history .la-event-wrap:nth-child(3),
+  #list-history > .history-card:nth-child(3) { animation-delay: 0.13s; }
+  #list-history .la-event-wrap:nth-child(4),
+  #list-history > .history-card:nth-child(4) { animation-delay: 0.18s; }
+  #list-history .la-event-wrap:nth-child(5),
+  #list-history > .history-card:nth-child(5) { animation-delay: 0.23s; }
+  #list-history .la-event-wrap:nth-child(n+6),
+  #list-history > .history-card:nth-child(n+6) { animation-delay: 0.28s; }
+  .plan-status {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    padding: 0;
+    border-radius: 0;
+    margin-bottom: 0;
+    line-height: 1.2;
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  /* Pure 100% colors — no light/dark tint */
+  .plan-status-active {
+    color: #00B300;
+  }
+  .plan-status-expired {
+    color: #FF0000;
+  }
+  .plan-status-upcoming {
+    color: #FF8C00;
+  }
+  .history-detail-status-wrap {
+    text-align: center;
+    margin: 0 0 18px;
+  }
+  .history-detail-status-wrap .plan-status {
+    font-size: 15px;
+    padding: 6px 18px;
+  }
+  .plan-segment-card {
+    background: #f7f8fa;
+    border: 1px solid #e8e9ef;
+    border-radius: 18px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    text-align: left;
+  }
+  .plan-segment-card .plan-status { margin-bottom: 10px; }
+  .plan-segment-card .history-entry-dates { margin-top: 2px; }
+  .plan-segment-card .history-entry-days { margin-top: 10px; }
+  .history-entry-status-label {
+    display: block;
+    text-align: left;
+    margin: 0 0 10px 0;
+    animation: historyStatusIn 0.4s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+    animation-delay: 0.12s;
+  }
+  .history-entry-status-label .plan-status {
+    margin-bottom: 0;
+  }
+  .plan-status {
+    transition: color 0.25s ease, opacity 0.25s ease;
+  }
+  .history-upcoming-block {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px dashed #d8dbe3;
+  }
+  .history-upcoming-block .plan-status {
+    margin-bottom: 10px;
+    margin-right: 8px;
+  }
+  .history-upcoming-block .history-entry-days { margin-top: 10px; }
   #historyDetailBody .empty-state { margin-top: 20px; }
   /* History detail opens nearly full-screen so text is easy to read */
   #historyDetailOverlay { align-items: center; }
@@ -131,7 +217,35 @@
     -webkit-overflow-scrolling: touch;
     padding-bottom: 8px;
   }
-  .history-entry { margin-bottom: 18px; background: #f7f8fa; border: 1px solid #e8e9ef; border-radius: 18px; padding: 20px 20px; position: relative; cursor: pointer; }
+  @keyframes historyCardIn {
+    from { opacity: 0; transform: translateY(14px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes historyStatusIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  .history-entry {
+    margin-bottom: 18px;
+    background: #f7f8fa;
+    border: 1px solid #e8e9ef;
+    border-radius: 18px;
+    padding: 20px 20px;
+    position: relative;
+    cursor: pointer;
+    animation: historyCardIn 0.45s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+    transition: transform 0.2s ease, box-shadow 0.25s ease, background 0.2s ease;
+  }
+  .history-entry:nth-child(1) { animation-delay: 0.04s; }
+  .history-entry:nth-child(2) { animation-delay: 0.10s; }
+  .history-entry:nth-child(3) { animation-delay: 0.16s; }
+  .history-entry:nth-child(4) { animation-delay: 0.22s; }
+  .history-entry:nth-child(5) { animation-delay: 0.28s; }
+  .history-entry:nth-child(n+6) { animation-delay: 0.32s; }
+  .history-entry:active {
+    transform: scale(0.985);
+    background: #f0f1f5;
+  }
   .history-entry-delete-popup { position: absolute; top: 12px; right: 12px; opacity: 0; pointer-events: none; transition: opacity 0.15s ease; }
   .history-entry.actions-visible .history-entry-delete-popup { opacity: 1; pointer-events: auto; }
   .history-entry-delete-popup button { background: rgba(255,80,80,0.12); border: 1px solid rgba(255,80,80,0.4); color: #ff4d4d; font-size: 15px; font-weight: 700; padding: 8px 16px; border-radius: 999px; cursor: pointer; }
@@ -1367,7 +1481,14 @@ let historyEntryHideTimer = null;
 function renderHistoryDetailItems(items, name, reminderKey) {
   const body = document.getElementById("historyDetailBody");
   if (items.length === 0) {
-    body.innerHTML = '<div class="empty-state">No History</div>';
+    let emptyStatus = "";
+    try {
+      const liveEv = (typeof latestRawEvents !== "undefined" && Array.isArray(latestRawEvents))
+        ? latestRawEvents.find((ev) => (reminderKey && ev.key === reminderKey) || (name && ev.name === name))
+        : null;
+      if (liveEv && liveEv.date) emptyStatus = `<div class="history-detail-status-wrap">${planStatusHtml(liveEv.date)}</div>`;
+    } catch (e0) {}
+    body.innerHTML = emptyStatus + '<div class="empty-state">No History</div>';
     return;
   }
   const isGasCylinder = (name || "").trim().toLowerCase() === "gas cylinder";
@@ -1384,9 +1505,33 @@ function renderHistoryDetailItems(items, name, reminderKey) {
       priceText = /₹|rs\.?|inr/i.test(rawPrice) ? rawPrice : ("₹ " + rawPrice);
     }
   } catch (ePrice) {}
-  items.sort((a, b) => (b.changedAt || 0) - (a.changedAt || 0));
-  body.innerHTML = items.map((e) => {
-    const when = e.changedAt ? new Date(e.changedAt).toLocaleString() : "";
+  // Live target date for Active / Expired / Upcoming (same rule for every list).
+  let liveDate = "";
+  try {
+    const liveEv = (typeof latestRawEvents !== "undefined" && Array.isArray(latestRawEvents))
+      ? latestRawEvents.find((ev) => (reminderKey && ev.key === reminderKey) || (name && ev.name === name))
+      : null;
+    if (liveEv && liveEv.date) liveDate = liveEv.date;
+  } catch (eLive) {}
+  // Order: Active (top) → Upcoming (2nd) → Expired / rest (below), then by changedAt desc within group
+  items.sort((a, b) => {
+    const rank = (entry) => {
+      if (isGasCylinder) return 2;
+      const st = getHistoryEntryStatus(entry, items, liveDate);
+      if (st === "Active") return 0;
+      if (st === "Upcoming") return 1;
+      return 2;
+    };
+    const ra = rank(a);
+    const rb = rank(b);
+    if (ra !== rb) return ra - rb;
+    return (b.changedAt || 0) - (a.changedAt || 0);
+  });
+  const statusTop = liveDate
+    ? buildPlanStatusSummaryHtml(items, liveDate, isGasCylinder, priceText)
+    : "";
+  body.innerHTML = statusTop + items.map((e) => {
+    const when = e.changedAt ? formatHistoryTimestamp(e.changedAt) : "";
     // Always work out the days-forward/backward directly from this
     // entry's own old/new dates — never rely purely on a stored
     // daysDiff field, so every single change (1st, 5th, 10th, however
@@ -1413,14 +1558,32 @@ function renderHistoryDetailItems(items, name, reminderKey) {
       const p = priceText.replace(/^₹\s*/, "").trim();
       daysLine = `<div class="history-entry-days">₹ ${escapeHtml(p)}</div>`;
     }
+    const oldDateDisp = oldDt ? formatDisplayDate(oldDt) : (e.oldDate || "");
+    const newDateDisp = newDt ? formatDisplayDate(newDt) : (e.newDate || "");
+    const upcomingBlock = getUpcomingBlockForEntry(e, items, isGasCylinder, priceText);
+    // One status at top-left of this card: Active (green) / Expired (red) / Upcoming (orange).
+    // Date line starts on the next line below.
+    let statusLabel = "";
+    if (!isGasCylinder) {
+      const st = getHistoryEntryStatus(e, items, liveDate);
+      if (st === "Active") {
+        statusLabel = `<div class="history-entry-status-label"><span class="plan-status plan-status-active">Active</span></div>`;
+      } else if (st === "Expired") {
+        statusLabel = `<div class="history-entry-status-label"><span class="plan-status plan-status-expired">Expired</span></div>`;
+      } else if (st === "Upcoming") {
+        statusLabel = `<div class="history-entry-status-label"><span class="plan-status plan-status-upcoming">Upcoming</span></div>`;
+      }
+    }
     return `<div class="history-entry" data-fbkey="${escapeHtml(e._fbKey || "")}">
+      ${statusLabel}
       <div class="history-entry-dates">
-        <span class="history-entry-old">${escapeHtml(e.oldDate || "")}</span>
+        <span class="history-entry-old">${escapeHtml(oldDateDisp)}</span>
         <span class="history-entry-arrow">→</span>
-        <span class="history-entry-new">${escapeHtml(e.newDate || "")}</span>
+        <span class="history-entry-new">${escapeHtml(newDateDisp)}</span>
       </div>
       ${daysLine}
       <div class="history-entry-time">${when}</div>
+      ${upcomingBlock}
       <div class="history-entry-delete-popup">
         <button type="button" onclick="event.stopPropagation();deleteHistoryEntry(this)">Delete</button>
       </div>
@@ -1561,6 +1724,98 @@ function formatDisplayDate(dt) {
   const m = String(dt.getMonth() + 1).padStart(2, "0");
   const y = dt.getFullYear();
   return `${d}/${m}/${y}`;
+}
+
+// History change-time: always DD/MM/YYYY (day first, then month, then year)
+// so it never flips to US-style MM/DD based on browser locale.
+function formatHistoryTimestamp(ms) {
+  const dt = new Date(ms);
+  if (isNaN(dt.getTime())) return "";
+  const d = String(dt.getDate()).padStart(2, "0");
+  const m = String(dt.getMonth() + 1).padStart(2, "0");
+  const y = dt.getFullYear();
+  const hh = String(dt.getHours()).padStart(2, "0");
+  const mm = String(dt.getMinutes()).padStart(2, "0");
+  const ss = String(dt.getSeconds()).padStart(2, "0");
+  return `${d}/${m}/${y}, ${hh}:${mm}:${ss}`;
+}
+
+// History page only: Active vs Expired based purely on the plan's target date.
+// Target date today or future → Active (green). Target date already past → Expired (orange).
+// Works for every list (recharge, gas cylinder, and any list added later).
+function getPlanStatusFromDate(rawDate) {
+  const eventDate = parseEventDateString(rawDate);
+  if (!eventDate) return { label: "Active", css: "plan-status-active" };
+  const today = getTodayMidnight();
+  if (eventDate >= today) return { label: "Active", css: "plan-status-active" };
+  return { label: "Expired", css: "plan-status-expired" };
+}
+
+function planStatusHtml(rawDate) {
+  const s = getPlanStatusFromDate(rawDate);
+  return `<span class="plan-status ${s.css}">${s.label}</span>`;
+}
+
+// When an Active plan is still running AND a further recharge already pushed
+// the end date past that active end, show Active + Upcoming (same card style).
+// If no stacked future segment exists, only Active (or Expired) is shown.
+function buildPlanStatusSummaryHtml(items, liveDate, isGasCylinder, priceText) {
+  // Gas Cylinder: no status. Active is shown on the card itself (top-left).
+  // Top area only shows Expired when the live target date is already past.
+  if (isGasCylinder) return "";
+  const eventDate = parseEventDateString(liveDate);
+  if (!eventDate) return "";
+  const today = getTodayMidnight();
+  if (eventDate < today) {
+    return `<div class="history-detail-status-wrap"><span class="plan-status plan-status-expired">Expired</span></div>`;
+  }
+  return "";
+}
+
+// This history row is the currently running plan if today falls in [oldDate, newDate].
+// Which label this history card gets (top-left): Active / Expired / Upcoming / "" .
+// Active  = today is inside this row's date range (plan running now)
+// Upcoming = this row starts after today AND is an extension made while a previous plan was still active
+// Expired = this row's end date is already past (and it is not Upcoming)
+function getHistoryEntryStatus(entry, allItems, liveDate) {
+  const today = getTodayMidnight();
+  const thisOld = parseEventDateString(entry.oldDate);
+  const thisNew = parseEventDateString(entry.newDate);
+  if (!thisOld || !thisNew) return "";
+
+  // Currently running segment
+  if (thisOld.getTime() <= today.getTime() && today.getTime() <= thisNew.getTime()) {
+    return "Active";
+  }
+
+  // Future segment that was stacked on top of a still-running plan → Upcoming
+  if (thisOld.getTime() > today.getTime()) {
+    const thisOldNorm = formatDisplayDate(thisOld);
+    const prior = (allItems || []).find((other) => {
+      if ((other.changedAt || 0) >= (entry.changedAt || 0)) return false;
+      const oNew = parseEventDateString(other.newDate);
+      return oNew && formatDisplayDate(oNew) === thisOldNorm;
+    });
+    if (prior) {
+      const priorNew = parseEventDateString(prior.newDate);
+      // Prior end was still in the future when this extension exists and is still future from today
+      if (priorNew && priorNew.getTime() >= today.getTime()) return "Upcoming";
+    }
+  }
+
+  // Past segment
+  if (thisNew.getTime() < today.getTime()) return "Expired";
+
+  return "";
+}
+
+function isCurrentlyActiveHistoryEntry(entry, liveDate) {
+  return getHistoryEntryStatus(entry, [], liveDate) === "Active";
+}
+
+function getUpcomingBlockForEntry(entry, allItems, isGasCylinder, priceText) {
+  // Upcoming is only the top-left label on the future stacked card — no extra block under the card.
+  return "";
 }
 
 function getTodayMidnight() {
