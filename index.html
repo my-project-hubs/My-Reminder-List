@@ -103,8 +103,56 @@
   .history-back-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.3); color: #fff; width: 34px; height: 34px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
   /* History page cards are just the List page's own event cards, reused
      as-is, tappable to open that reminder's change-history popup. */
-  #list-history .history-card { cursor: pointer; }
+  #list-history .history-card {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
   #list-history .history-card:active { background: rgba(255,255,255,0.07); }
+  #list-history .history-card .event-name {
+    margin-bottom: 0;
+    flex: 1;
+    min-width: 0;
+  }
+  #list-history .history-card-meta {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #list-history .history-recency {
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    opacity: 0.9;
+  }
+  #list-history .history-count {
+    flex: none;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 9px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    letter-spacing: 0.2px;
+  }
+  #list-history .history-count.is-zero {
+    opacity: 0.45;
+    border-color: rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.7);
+    background: rgba(255,255,255,0.05);
+  }
   .plan-status {
     display: inline-block;
     font-size: 14px;
@@ -183,11 +231,7 @@
     margin-right: 8px;
   }
   .history-upcoming-block .history-entry-days { margin-top: 10px; }
-  #historyDetailBody .empty-state {
-    margin: auto;
-    text-align: center;
-    width: 100%;
-  }
+  #historyDetailBody .empty-state { margin-top: 20px; }
   /* History detail opens nearly full-screen so text is easy to read */
   #historyDetailOverlay { align-items: center; }
   #historyDetailOverlay .settings-panel {
@@ -212,91 +256,8 @@
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 8px;
-    display: flex;
-    flex-direction: column;
   }
-  .history-detail-footer {
-    flex: none;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    padding: 10px 4px 0;
-  }
-  .history-detail-dl-btn {
-    padding: 6px 14px;
-    font-size: 13px;
-    font-weight: 700;
-    color: #ffffff;
-    background: #0052cc;
-    border: none;
-    border-radius: 999px;
-    cursor: pointer;
-    letter-spacing: 0.2px;
-    line-height: 1.2;
-  }
-  .history-detail-dl-btn:active { background: #003d99; transform: scale(0.96); }
-  .history-dl-years-label {
-    font-size: 13px; font-weight: 800; color: #6b7280;
-    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;
-  }
-  .history-dl-years-list {
-    display: flex; flex-direction: column; gap: 8px;
-    margin-bottom: 16px; max-height: 40vh; overflow-y: auto;
-  }
-  .history-dl-years-list label {
-    display: flex; align-items: center; gap: 10px;
-    font-size: 15px; font-weight: 600; color: #14151a;
-    padding: 10px 14px; background: #f7f8fa;
-    border: 1.5px solid #ececf1; border-radius: 14px; cursor: pointer;
-  }
-  .history-dl-years-list label.active {
-    border-color: #0052cc;
-    background: linear-gradient(135deg, #f2f7ff, #ffffff);
-    box-shadow: 0 2px 10px rgba(0,82,204,0.12);
-  }
-  .history-dl-years-list input[type="checkbox"] {
-    accent-color: #0052cc; width: 18px; height: 18px;
-  }
-  #historyPdfRender {
-    position: fixed; left: -9999px; top: 0; width: 400px;
-    background: #ffffff; padding: 28px 22px 24px;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    z-index: -1; pointer-events: none;
-  }
-  #historyPdfRender .pdf-title { font-size: 20px; font-weight: 800; color: #14151a; margin-bottom: 6px; }
-  #historyPdfRender .pdf-meta { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
-  #historyPdfRender .pdf-line { height: 2px; background: #0052cc; margin: 14px 0 18px; border-radius: 2px; }
-  #historyPdfRender .pdf-year-head {
-    font-size: 18px; font-weight: 800; color: #0052cc;
-    margin: 18px 0 10px; padding-bottom: 6px; border-bottom: 2px solid #e8e9ef;
-  }
-  #historyPdfRender .pdf-year-head:first-of-type { margin-top: 0; }
-  #historyPdfRender .pdf-month-head {
-    font-size: 15px; font-weight: 800; color: #14151a;
-    margin: 14px 0 8px; letter-spacing: 0.2px;
-  }
-  #historyPdfRender .pdf-card {
-    background: #f7f8fa;
-    border: 1.5px solid #c4b5fd;
-    border-radius: 18px;
-    padding: 16px 18px;
-    margin-bottom: 12px;
-    text-align: left;
-  }
-  #historyPdfRender .pdf-status { font-size: 12px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 8px; }
-  #historyPdfRender .pdf-status.active { color: #00B300; }
-  #historyPdfRender .pdf-status.upcoming { color: #FF8C00; }
-  #historyPdfRender .pdf-status.expired { color: #FF0000; }
-  #historyPdfRender .pdf-dates { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
-  #historyPdfRender .pdf-old { color: #e04545; }
-  #historyPdfRender .pdf-arrow { color: #888; margin: 0 8px; }
-  #historyPdfRender .pdf-new { color: #d97706; }
-  #historyPdfRender .pdf-days-label { color: #0052cc; font-size: 16px; font-weight: 700; margin-bottom: 2px; }
-  #historyPdfRender .pdf-days-detail { color: #0052cc; font-size: 18px; font-weight: 700; margin-bottom: 6px; }
-  #historyPdfRender .pdf-time { color: #6b7280; font-size: 13px; }
-  #historyPdfRender .pdf-empty { color: #9a9ea6; font-size: 14px; font-style: italic; padding: 20px 0; }
-  /* Website History detail cards — light purple border */
-  .history-entry { margin-bottom: 18px; background: #f7f8fa; border: 1.5px solid #c4b5fd; border-radius: 18px; padding: 20px 20px; position: relative; cursor: pointer; }
+  .history-entry { margin-bottom: 18px; background: #f7f8fa; border: 1px solid #e8e9ef; border-radius: 18px; padding: 20px 20px; position: relative; cursor: pointer; }
   .history-entry-delete-popup { position: absolute; top: 12px; right: 12px; opacity: 0; pointer-events: none; transition: opacity 0.15s ease; }
   .history-entry.actions-visible .history-entry-delete-popup { opacity: 1; pointer-events: auto; }
   .history-entry-delete-popup button { background: rgba(255,80,80,0.12); border: 1px solid rgba(255,80,80,0.4); color: #ff4d4d; font-size: 15px; font-weight: 700; padding: 8px 16px; border-radius: 999px; cursor: pointer; }
@@ -1156,7 +1117,7 @@
   .cylinder .indian-gas-container { position:absolute; top:44px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:4; width:100%; }
   .cylinder .indian-text { font-family:'Inter', sans-serif; font-weight:700; font-size:9px; letter-spacing:0.4px; color:#ffffff; line-height:1; text-shadow:0 1px 2px rgba(0,0,0,0.8); }
   .cylinder .cyl-foot{ position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:42px; height:10px; background:linear-gradient(180deg, #d32020, #a81616); border-radius:0 0 6px 6px; border-top:1.5px solid #820e0e; display:flex; justify-content:space-around; align-items:flex-end; padding-bottom:2px; }
-  .cylinder .cyl-foot-hole { width:7px; height:3px; background:#08080f; border-radius:2px 2px 0 0; }
+  .cylinder .cyl-foot-hole { width:7px; height:3px; background:#f8f9fa; border-radius:2px 2px 0 0; }
 
   /* Gas Cylinder move popup */
   .cyl-move-popup{ position:fixed; z-index:60; background:#ffffff; border-radius:26px; padding:10px 14px; display:none; flex-direction:row; align-items:center; gap:10px; box-shadow:0 4px 18px rgba(0,0,0,0.28); }
@@ -1338,25 +1299,8 @@
   <div class="settings-panel">
     <div class="settings-title"><span id="historyDetailTitle"></span><button onclick="closeHistoryDetail()">✕</button></div>
     <div id="historyDetailBody"></div>
-    <div class="history-detail-footer">
-      <button type="button" class="history-detail-dl-btn" id="historyDetailDownloadBtn" onclick="event.stopPropagation();openHistoryDownloadFromDetail()">Download</button>
-    </div>
   </div>
 </div>
-
-<div id="historyDownloadOverlay" class="settings-overlay">
-  <div class="settings-panel">
-    <div class="settings-title"><span id="historyDownloadTitle">Download PDF</span><button onclick="closeHistoryDownload()">✕</button></div>
-    <div class="history-dl-years-label">Select Year(s)</div>
-    <div class="history-dl-years-list" id="historyDlYearsList"></div>
-    <div class="settings-actions">
-      <button class="settings-reset" onclick="closeHistoryDownload()">Cancel</button>
-      <button class="settings-apply" id="historyDlConfirmBtn" onclick="confirmHistoryDownload()">Download</button>
-    </div>
-  </div>
-</div>
-
-<div id="historyPdfRender" aria-hidden="true"></div>
 
 <div id="addReminderOverlay" class="settings-overlay">
   <div class="settings-panel">
@@ -1398,8 +1342,6 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 let cloudSettings = { alerts: {}, data: {}, labels: { header: { text: null, hidden: false }, listCount: { text: null, hidden: false }, alertTitle: { text: null, hidden: false }, historyTitle: { text: null, hidden: false } }, animFavorites: [], animHidden: [] };
 const ANIM_SPEED_MULTIPLIERS = { slow: 0.6, normal: 1, medium: 1.5, high: 2.2 };
@@ -1454,20 +1396,74 @@ function logDateHistory(reminderKey, reminderName, oldDate, newDate) {
     newDate: newDate,
     daysDiff: daysDiff,
     changedAt: Date.now()
+  }).then(() => {
+    refreshHistoryMeta(true);
   }).catch((err) => {
     console.error("Date history save failed:", err);
   });
 }
 
-// History page list: shows every CURRENT reminder (same live data, same
-// order, same green/cyan/yellow card look as the List page) — not just
-// ones that happen to have a logged change. As reminders are added or
-// removed on the List page, this list updates automatically right along
-// with it, since it's built from the exact same live events data.
-// Tapping a card opens a popup box with that reminder's full Target-Date
-// change history (or "No History" if it has never changed).
+// Per-reminder history meta: count (always) + latest changedAt (for recency label)
+// Label: Today → Yesterday → 2d ago … 7d ago → hidden from day 8
+let historyMetaCache = { byKey: {}, byName: {} };
+
+function getHistoryMetaForReminder(key, name) {
+  if (key && historyMetaCache.byKey[key]) return historyMetaCache.byKey[key];
+  if (name && historyMetaCache.byName[name]) return historyMetaCache.byName[name];
+  return { count: 0, latestAt: 0 };
+}
+
+function formatHistoryRecency(latestAt) {
+  if (!latestAt) return "";
+  const now = new Date();
+  const then = new Date(latestAt);
+  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const startThen = new Date(then.getFullYear(), then.getMonth(), then.getDate()).getTime();
+  const days = Math.round((startToday - startThen) / 86400000);
+  if (days <= 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days >= 2 && days <= 7) return days + "d ago";
+  return ""; // day 8+ → hide
+}
+
+function rebuildHistoryMetaCache(snapshot) {
+  const byKey = {};
+  const byName = {};
+  const bump = (map, id, t) => {
+    if (!id) return;
+    if (!map[id]) map[id] = { count: 0, latestAt: 0 };
+    map[id].count += 1;
+    if (t > map[id].latestAt) map[id].latestAt = t;
+  };
+  if (snapshot) {
+    snapshot.forEach((child) => {
+      const v = child.val();
+      if (!v) return;
+      const t = v.changedAt || 0;
+      if (v.key) bump(byKey, v.key, t);
+      if (v.name) bump(byName, v.name, t);
+    });
+  }
+  historyMetaCache = { byKey: byKey, byName: byName };
+}
+
+function refreshHistoryMeta(thenRender) {
+  if (!dateHistoryRef) {
+    historyMetaCache = { byKey: {}, byName: {} };
+    if (thenRender) renderHistoryList();
+    return;
+  }
+  dateHistoryRef.once("value", (snapshot) => {
+    rebuildHistoryMetaCache(snapshot);
+    if (thenRender) renderHistoryList();
+  }, () => {
+    if (thenRender) renderHistoryList();
+  });
+}
+
+// History page list: name + optional recency (max 7d) + always-visible count
 function renderHistory() {
-  renderHistoryList();
+  refreshHistoryMeta(true);
 }
 
 function renderHistoryList() {
@@ -1481,17 +1477,21 @@ function renderHistoryList() {
     container.innerHTML = '<div class="refreshing-state">Refreshing <span class="dots-bold">. . .</span></div>';
     return;
   }
-  // Only the name line — no "Day Left" countdown, no target date — per
-  // reminder, same card look as the List page but stripped down to just
-  // the name.
   container.innerHTML = "";
   events.forEach((e) => {
     const card = document.createElement("div");
     card.className = "event history-card";
-    card.innerHTML = `<div class="event-name">${e.name}</div>`;
+    const meta = getHistoryMetaForReminder(e.key, e.name);
+    const count = meta.count || 0;
+    const recency = formatHistoryRecency(meta.latestAt);
+    const zeroClass = count === 0 ? " is-zero" : "";
+    const recencyHtml = recency
+      ? `<span class="history-recency">${recency}</span>`
+      : "";
+    card.innerHTML =
+      `<div class="event-name">${e.name}</div>` +
+      `<div class="history-card-meta">${recencyHtml}<div class="history-count${zeroClass}">${count}</div></div>`;
     card.addEventListener("click", () => openHistoryDetail(e.key, e.name));
-    // Apply the same event animations here so Animation Control on History
-    // page actually shows the effect on these name cards.
     const animEntries = normalizeAnimationEntries(e.animations, e.animation);
     let node = card;
     const nonLetterH = animEntries.filter((en) => !LETTER_SPLIT_ANIM_IDS.has(en.id));
@@ -1520,10 +1520,7 @@ function renderHistoryList() {
 // Popup box with a single reminder's full change history — old date ->
 // new date, for every time its Target Date was edited. Shows "No History"
 // when this reminder has never had a change logged.
-let currentHistoryDetail = null;
-
 function openHistoryDetail(key, name) {
-  currentHistoryDetail = { key: key, name: name };
   document.getElementById("historyDetailTitle").textContent = (name ? name + " (History)" : "History");
   const body = document.getElementById("historyDetailBody");
   body.innerHTML = '<div class="loading">Loading...</div>';
@@ -1700,6 +1697,7 @@ function deleteHistoryEntry(btnEl) {
     if (!body.querySelector(".history-entry")) {
       body.innerHTML = '<div class="empty-state">No History</div>';
     }
+    refreshHistoryMeta(true);
   }).catch((err) => {
     alert("Delete nahi ho paya.\n\nReason: " + ((err && err.message) ? err.message : "unknown error"));
   });
@@ -1707,261 +1705,6 @@ function deleteHistoryEntry(btnEl) {
 
 function closeHistoryDetail() {
   document.getElementById("historyDetailOverlay").classList.remove("open");
-  currentHistoryDetail = null;
-}
-
-const HISTORY_DL_MIN_YEAR = 2026;
-const HISTORY_DL_MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
-];
-let historyDownloadTarget = null;
-
-function openHistoryDownloadFromDetail() {
-  if (!currentHistoryDetail) return;
-  openHistoryDownload(currentHistoryDetail.key, currentHistoryDetail.name);
-}
-
-function fillHistoryDlYearCheckboxes() {
-  const list = document.getElementById("historyDlYearsList");
-  if (!list) return;
-  const yearNow = new Date().getFullYear();
-  const top = Math.max(yearNow, HISTORY_DL_MIN_YEAR);
-  let html = "";
-  for (let y = top; y >= HISTORY_DL_MIN_YEAR; y--) {
-    const checked = y === yearNow || (yearNow < HISTORY_DL_MIN_YEAR && y === HISTORY_DL_MIN_YEAR) ? " checked" : "";
-    const active = checked ? " active" : "";
-    html += `<label class="${active}"><input type="checkbox" name="historyDlYear" value="${y}"${checked} onchange="updateHistoryDlYearUI()"> ${y}</label>`;
-  }
-  list.innerHTML = html || `<label class="active"><input type="checkbox" name="historyDlYear" value="${HISTORY_DL_MIN_YEAR}" checked onchange="updateHistoryDlYearUI()"> ${HISTORY_DL_MIN_YEAR}</label>`;
-}
-
-function updateHistoryDlYearUI() {
-  document.querySelectorAll("#historyDlYearsList label").forEach((lab) => {
-    const inp = lab.querySelector("input");
-    lab.classList.toggle("active", !!(inp && inp.checked));
-  });
-}
-
-function openHistoryDownload(key, name) {
-  historyDownloadTarget = { key: key, name: name };
-  const titleEl = document.getElementById("historyDownloadTitle");
-  if (titleEl) titleEl.textContent = (name ? name + " — Download PDF" : "Download PDF");
-  fillHistoryDlYearCheckboxes();
-  document.getElementById("historyDownloadOverlay").classList.add("open");
-}
-
-function closeHistoryDownload() {
-  document.getElementById("historyDownloadOverlay").classList.remove("open");
-  historyDownloadTarget = null;
-}
-
-function getSelectedHistoryYears() {
-  const boxes = document.querySelectorAll('input[name="historyDlYear"]:checked');
-  const years = [];
-  boxes.forEach((b) => {
-    const y = parseInt(b.value, 10);
-    if (!isNaN(y) && y >= HISTORY_DL_MIN_YEAR) years.push(y);
-  });
-  years.sort((a, b) => a - b);
-  return years;
-}
-
-function confirmHistoryDownload() {
-  if (!historyDownloadTarget) return;
-  const years = getSelectedHistoryYears();
-  if (!years.length) {
-    alert("Please select at least one year.");
-    return;
-  }
-  const btn = document.getElementById("historyDlConfirmBtn");
-  if (btn) { btn.disabled = true; btn.textContent = "Preparing..."; }
-  const key = historyDownloadTarget.key;
-  const name = historyDownloadTarget.name;
-  if (!dateHistoryRef) {
-    if (btn) { btn.disabled = false; btn.textContent = "Download"; }
-    alert("Not connected to the database right now.");
-    return;
-  }
-  const start = new Date(years[0], 0, 1, 0, 0, 0, 0).getTime();
-  const end = new Date(years[years.length - 1], 11, 31, 23, 59, 59, 999).getTime();
-  const yearSet = new Set(years);
-  const periodLabel = years.length === 1 ? String(years[0]) : (years[0] + " – " + years[years.length - 1]);
-
-  dateHistoryRef.orderByChild("changedAt").once("value", async (snapshot) => {
-    const items = [];
-    snapshot.forEach((child) => {
-      const v = child.val();
-      if (!v) return;
-      const matches = v.key ? v.key === key : v.name === name;
-      if (!matches) return;
-      const t = v.changedAt || 0;
-      if (t < start || t > end) return;
-      const dt = new Date(t);
-      if (!yearSet.has(dt.getFullYear())) return;
-      items.push(Object.assign({ _fbKey: child.key }, v));
-    });
-    let liveDate = "";
-    try {
-      const liveEv = (typeof latestRawEvents !== "undefined" && Array.isArray(latestRawEvents))
-        ? latestRawEvents.find((ev) => (key && ev.key === key) || (name && ev.name === name))
-        : null;
-      if (liveEv && liveEv.date) liveDate = liveEv.date;
-    } catch (eLive) {}
-    items.sort((a, b) => (a.changedAt || 0) - (b.changedAt || 0));
-    try {
-      await generateHistoryPdf(name, items, periodLabel, key, liveDate, years);
-    } catch (err) {
-      alert("PDF bana nahi paya.\n\nReason: " + ((err && err.message) ? err.message : "unknown error"));
-    }
-    if (btn) { btn.disabled = false; btn.textContent = "Download"; }
-    closeHistoryDownload();
-  }, () => {
-    if (btn) { btn.disabled = false; btn.textContent = "Download"; }
-    alert("History load nahi ho payi.");
-  });
-}
-
-function buildHistoryPdfCardHtml(e, items, isGasCylinder, priceText, liveDate) {
-  const oldDt = parseEventDateString(e.oldDate);
-  const newDt = parseEventDateString(e.newDate);
-  let statusForDates = "";
-  if (!isGasCylinder) statusForDates = getHistoryEntryStatus(e, items, liveDate);
-  const displayOldDt = (statusForDates === "Upcoming" && oldDt) ? addOneDay(oldDt) : oldDt;
-  const daysDiff = daysBetweenInclusive(displayOldDt, newDt);
-  const oldDateDisp = displayOldDt ? formatDisplayDate(displayOldDt) : (e.oldDate || "");
-  const newDateDisp = newDt ? formatDisplayDate(newDt) : (e.newDate || "");
-  let daysLabel = "", daysDetail = "";
-  if (daysDiff !== undefined && daysDiff !== null) {
-    const n = Math.abs(daysDiff);
-    daysLabel = isGasCylinder ? "The gas cylinder lasted" : "The recharge will last";
-    const p = priceText ? priceText.replace(/^₹\s*/, "").trim() : "";
-    daysDetail = p ? (n + " days - ₹ " + p) : (n + " days");
-  } else if (priceText) {
-    daysDetail = "₹ " + priceText.replace(/^₹\s*/, "").trim();
-  }
-  const when = e.changedAt ? formatHistoryTimestamp(e.changedAt) : "";
-  let statusHtml = "";
-  if (!isGasCylinder && statusForDates) {
-    const cls = statusForDates === "Active" ? "active" : (statusForDates === "Upcoming" ? "upcoming" : "expired");
-    const label = statusForDates === "Active" ? "● ACTIVE" : (statusForDates === "Upcoming" ? "UPCOMING" : "EXPIRED");
-    statusHtml = `<div class="pdf-status ${cls}">${label}</div>`;
-  }
-  return `<div class="pdf-card">
-    ${statusHtml}
-    <div class="pdf-dates"><span class="pdf-old">${escapeHtml(oldDateDisp)}</span><span class="pdf-arrow">→</span><span class="pdf-new">${escapeHtml(newDateDisp)}</span></div>
-    ${daysLabel ? `<div class="pdf-days-label">${escapeHtml(daysLabel)}</div>` : ""}
-    ${daysDetail ? `<div class="pdf-days-detail">${escapeHtml(daysDetail)}</div>` : ""}
-    ${when ? `<div class="pdf-time">${escapeHtml(when)}</div>` : ""}
-  </div>`;
-}
-
-async function generateHistoryPdf(name, items, periodLabel, reminderKey, liveDate, selectedYears) {
-  if (typeof html2canvas === "undefined") throw new Error("PDF library (html2canvas) not loaded. Check internet and try again.");
-  const JsPDF = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : window.jsPDF;
-  if (!JsPDF) throw new Error("PDF library (jsPDF) not loaded. Check internet and try again.");
-
-  const isGasCylinder = (name || "").trim().toLowerCase() === "gas cylinder";
-  let priceText = "";
-  try {
-    const live = (typeof latestRawEvents !== "undefined" && Array.isArray(latestRawEvents))
-      ? latestRawEvents.find((ev) => (reminderKey && ev.key === reminderKey) || (name && ev.name === name))
-      : null;
-    const rawPrice = live && live.price !== undefined && live.price !== null ? String(live.price).trim() : "";
-    if (rawPrice !== "") priceText = /₹|rs\.?|inr/i.test(rawPrice) ? rawPrice : ("₹ " + rawPrice);
-  } catch (eP) {}
-
-  const renderEl = document.getElementById("historyPdfRender");
-  if (!renderEl) throw new Error("PDF render area missing.");
-
-  const years = (selectedYears && selectedYears.length) ? selectedYears.slice().sort((a, b) => a - b) : [];
-  let bodyHtml = "";
-
-  if (!items.length) {
-    bodyHtml = `<div class="pdf-empty">No history found for this period.</div>`;
-  } else {
-    const byYearMonth = {};
-    items.forEach((e) => {
-      const dt = new Date(e.changedAt || 0);
-      const y = dt.getFullYear();
-      const m = dt.getMonth();
-      if (!byYearMonth[y]) byYearMonth[y] = {};
-      if (!byYearMonth[y][m]) byYearMonth[y][m] = [];
-      byYearMonth[y][m].push(e);
-    });
-    const yearList = years.length ? years : Object.keys(byYearMonth).map(Number).sort((a, b) => a - b);
-    yearList.forEach((y) => {
-      const months = byYearMonth[y];
-      if (!months) return;
-      bodyHtml += `<div class="pdf-year-head">${y}</div>`;
-      for (let m = 0; m < 12; m++) {
-        const list = months[m];
-        if (!list || !list.length) continue;
-        bodyHtml += `<div class="pdf-month-head">${HISTORY_DL_MONTH_NAMES[m]}</div>`;
-        const sorted = list.slice().sort((a, b) => {
-          const rank = (entry) => {
-            if (isGasCylinder) return 2;
-            const st = getHistoryEntryStatus(entry, items, liveDate);
-            if (st === "Active") return 0;
-            if (st === "Upcoming") return 1;
-            return 2;
-          };
-          const ra = rank(a), rb = rank(b);
-          if (ra !== rb) return ra - rb;
-          return (b.changedAt || 0) - (a.changedAt || 0);
-        });
-        sorted.forEach((e) => {
-          bodyHtml += buildHistoryPdfCardHtml(e, items, isGasCylinder, priceText, liveDate);
-        });
-      }
-    });
-    if (!bodyHtml) bodyHtml = `<div class="pdf-empty">No history found for this period.</div>`;
-  }
-
-  renderEl.innerHTML = `
-    <div class="pdf-title">${escapeHtml(String(name || "History"))} (History)</div>
-    <div class="pdf-meta">Period: ${escapeHtml(periodLabel)}</div>
-    <div class="pdf-meta">Generated: ${escapeHtml(formatHistoryTimestamp(Date.now()))}</div>
-    <div class="pdf-line"></div>
-    ${bodyHtml}
-  `;
-  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-
-  const canvas = await html2canvas(renderEl, { scale: 2, backgroundColor: "#ffffff", useCORS: true, logging: false });
-  const doc = new JsPDF({ unit: "pt", format: "a4" });
-  const pageW = doc.internal.pageSize.getWidth();
-  const pageH = doc.internal.pageSize.getHeight();
-  const margin = 28;
-  const maxW = pageW - margin * 2;
-  const maxH = pageH - margin * 2;
-  const imgW = canvas.width, imgH = canvas.height;
-  const ratio = Math.min(maxW / imgW, 1);
-  const drawW = imgW * ratio, drawH = imgH * ratio;
-
-  if (drawH <= maxH) {
-    doc.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", margin, margin, drawW, drawH);
-  } else {
-    const pageCanvasH = Math.floor((maxH / drawH) * imgH);
-    let srcY = 0, pageIndex = 0;
-    while (srcY < imgH) {
-      const sliceH = Math.min(pageCanvasH, imgH - srcY);
-      const slice = document.createElement("canvas");
-      slice.width = imgW; slice.height = sliceH;
-      const ctx = slice.getContext("2d");
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, slice.width, slice.height);
-      ctx.drawImage(canvas, 0, srcY, imgW, sliceH, 0, 0, imgW, sliceH);
-      if (pageIndex > 0) doc.addPage();
-      doc.addImage(slice.toDataURL("image/jpeg", 0.95), "JPEG", margin, margin, drawW, (sliceH / imgH) * drawH);
-      srcY += sliceH;
-      pageIndex++;
-    }
-  }
-
-  const safeName = String(name || "History").replace(/[^\w\s\-]+/g, "").trim() || "History";
-  const fileBase = (safeName + "_" + String(periodLabel || "").replace(/\s+/g, "_")).replace(/[^\w\-]+/g, "_");
-  doc.save(fileBase + ".pdf");
-  renderEl.innerHTML = "";
 }
 
 function escapeHtml(str) {
