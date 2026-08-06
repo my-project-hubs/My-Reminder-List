@@ -100,6 +100,7 @@
     -webkit-user-select: none;
   }
   #lw-history-title:active { cursor: grabbing; }
+
   .history-back-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.3); color: #fff; width: 34px; height: 34px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
   /* History page cards are just the List page's own event cards, reused
      as-is, tappable to open that reminder's change-history popup. */
@@ -111,16 +112,22 @@
     gap: 10px;
   }
   #list-history .history-card:active { background: rgba(255,255,255,0.07); }
+  /* Only History list cards (photo page). Name truncates; meta stays fixed.
+     Does NOT affect History detail popup. */
   #list-history .history-card .event-name {
     margin-bottom: 0;
-    flex: 1;
+    flex: 1 1 0;
     min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   #list-history .history-card-meta {
-    flex: none;
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
     gap: 8px;
+    max-width: 42%;
   }
   #list-history .history-recency {
     color: #ffffff;
@@ -129,6 +136,9 @@
     letter-spacing: 0.2px;
     white-space: nowrap;
     opacity: 0.9;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 9em;
   }
   #list-history .history-count {
     flex: none;
@@ -1003,6 +1013,89 @@
     100% { opacity: 0; transform: translateY(-1.6em) scale(1); }
   }
   .la-114 { display: inline-block; animation: k114bounce 3.6s ease-in-out infinite; animation-duration: calc(3.6s / var(--la-speed, 1)); }
+
+
+  /* ===== PowerPoint-style letter anims 115–118 (mobile) ===== */
+  /* 115: One-by-one from LEFT → hold ~2s → exit RIGHT → loop */
+  .la-115-letters { display: inline-block; white-space: pre-wrap; overflow: visible; }
+  .la-115-char {
+    display: inline-block;
+    animation-name: k115left;
+    animation-timing-function: cubic-bezier(.22,.8,.28,1);
+    animation-iteration-count: infinite;
+    will-change: transform, opacity;
+  }
+  @keyframes k115left {
+    0%   { transform: translateX(-55vw); opacity: 0; }
+    2%   { opacity: 1; }
+    14%  { transform: translateX(0); opacity: 1; }
+    22%  { transform: translateX(0); opacity: 1; }
+    82%  { transform: translateX(0); opacity: 1; }
+    92%  { transform: translateX(55vw); opacity: 0; }
+    100% { transform: translateX(55vw); opacity: 0; }
+  }
+  .la-115 { display: inline-block; animation: k115left 4s ease-in-out infinite; animation-duration: calc(4s / var(--la-speed, 1)); }
+
+  /* 116: One-by-one from RIGHT → hold ~2s → exit LEFT → loop (like ball-drop timing) */
+  .la-116-letters { display: inline-block; white-space: pre-wrap; overflow: visible; }
+  .la-116-char {
+    display: inline-block;
+    animation-name: k116right;
+    animation-timing-function: cubic-bezier(.22,.8,.28,1);
+    animation-iteration-count: infinite;
+    will-change: transform, opacity;
+  }
+  @keyframes k116right {
+    0%   { transform: translateX(55vw); opacity: 0; }
+    2%   { opacity: 1; }
+    14%  { transform: translateX(0); opacity: 1; }
+    22%  { transform: translateX(0); opacity: 1; }
+    82%  { transform: translateX(0); opacity: 1; }
+    92%  { transform: translateX(-55vw); opacity: 0; }
+    100% { transform: translateX(-55vw); opacity: 0; }
+  }
+  .la-116 { display: inline-block; animation: k116right 4s ease-in-out infinite; animation-duration: calc(4s / var(--la-speed, 1)); }
+
+  /* 117: Ball drop from TOP one-by-one → full line → vanish → repeat */
+  .la-117-letters { display: inline-block; white-space: pre-wrap; overflow: visible; }
+  .la-117-char {
+    display: inline-block;
+    animation-name: k117rain;
+    animation-timing-function: cubic-bezier(.2,.85,.3,1);
+    animation-iteration-count: infinite;
+    will-change: transform, opacity;
+  }
+  @keyframes k117rain {
+    0%   { transform: translateY(-55vh) scale(0.9); opacity: 0; }
+    2%   { opacity: 1; }
+    10%  { transform: translateY(0) scale(1); opacity: 1; }
+    13%  { transform: translateY(-0.38em) scale(1.05, 0.9); }
+    16%  { transform: translateY(0) scale(1.08, 0.88); }
+    19%  { transform: translateY(-0.12em) scale(1); }
+    22%  { transform: translateY(0) scale(1); opacity: 1; }
+    82%  { transform: translateY(0) scale(1); opacity: 1; }
+    92%  { transform: translateY(0.1em) scale(1); opacity: 0; }
+    100% { transform: translateY(-55vh) scale(0.9); opacity: 0; }
+  }
+  .la-117 { display: inline-block; animation: k117rain 4s ease-in-out infinite; animation-duration: calc(4s / var(--la-speed, 1)); }
+
+  /* 118: Typewriter one letter at a time from left, hold, wipe away, repeat */
+  .la-118-letters { display: inline-block; white-space: pre-wrap; overflow: visible; }
+  .la-118-char {
+    display: inline-block;
+    animation-name: k118type;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    will-change: transform, opacity;
+  }
+  @keyframes k118type {
+    0%   { transform: translateX(-12px); opacity: 0; }
+    12%  { transform: translateX(0); opacity: 1; }
+    62%  { transform: translateX(0); opacity: 1; }
+    78%  { transform: translateX(8px); opacity: 0; }
+    100% { transform: translateX(-12px); opacity: 0; }
+  }
+  .la-118 { display: inline-block; animation: k118type 3.2s ease-in-out infinite; animation-duration: calc(3.2s / var(--la-speed, 1)); }
 
   .add-icon-btn {
     position: relative;
@@ -1959,7 +2052,7 @@ function animSpeedMultiplier(speedKey) {
   return ANIM_SPEED_MULTIPLIERS[speedKey] || 1;
 }
 
-const LETTER_SPLIT_ANIM_IDS = new Set([104, 113, 114]);
+const LETTER_SPLIT_ANIM_IDS = new Set([104, 113, 114, 115, 116, 117, 118]);
 
 function buildLetterDropNode(text, speed) {
   const wrap = document.createElement("span");
@@ -2024,9 +2117,100 @@ function buildBallBounceNode(text, speed) {
   return wrap;
 }
 
+function buildLettersFromLeftNode(text, speed) {
+  const wrap = document.createElement("span");
+  wrap.className = "la-115-letters";
+  wrap.style.setProperty("--la-speed", animSpeedMultiplier(speed));
+  const chars = Array.from(String(text || ""));
+  const total = Math.max(chars.length, 1);
+  const gap = 0.65;
+  const landSec = 1.0;
+  const holdSec = 2.0;
+  const vanishSec = 0.9;
+  const cycle = ((total - 1) * gap + landSec + holdSec + vanishSec).toFixed(2);
+  chars.forEach((ch, i) => {
+    const span = document.createElement("span");
+    span.className = "la-115-char";
+    span.textContent = ch === " " ? "\u00A0" : ch;
+    span.style.animationDelay = (i * gap).toFixed(2) + "s";
+    span.style.animationDuration = "calc(" + cycle + "s / var(--la-speed, 1))";
+    wrap.appendChild(span);
+  });
+  return wrap;
+}
+
+function buildLettersFromRightNode(text, speed) {
+  const wrap = document.createElement("span");
+  wrap.className = "la-116-letters";
+  wrap.style.setProperty("--la-speed", animSpeedMultiplier(speed));
+  const chars = Array.from(String(text || ""));
+  const total = Math.max(chars.length, 1);
+  // One-by-one from right, full line holds ~2s, exit left, loop
+  const gap = 0.65;
+  const landSec = 1.0;
+  const holdSec = 2.0;
+  const vanishSec = 0.9;
+  const cycle = ((total - 1) * gap + landSec + holdSec + vanishSec).toFixed(2);
+  chars.forEach((ch, i) => {
+    const span = document.createElement("span");
+    span.className = "la-116-char";
+    span.textContent = ch === " " ? "\u00A0" : ch;
+    // first letter of word leads (leftmost starts first for readable order)
+    span.style.animationDelay = (i * gap).toFixed(2) + "s";
+    span.style.animationDuration = "calc(" + cycle + "s / var(--la-speed, 1))";
+    wrap.appendChild(span);
+  });
+  return wrap;
+}
+
+function buildBallDropTopNode(text, speed) {
+  const wrap = document.createElement("span");
+  wrap.className = "la-117-letters";
+  wrap.style.setProperty("--la-speed", animSpeedMultiplier(speed));
+  const chars = Array.from(String(text || ""));
+  const total = Math.max(chars.length, 1);
+  // One-by-one fall, then full word holds ~2s, then vanish and loop
+  const gap = 0.65;
+  const landSec = 1.0;
+  const holdSec = 2.0;
+  const vanishSec = 0.9;
+  const cycle = ((total - 1) * gap + landSec + holdSec + vanishSec).toFixed(2);
+  chars.forEach((ch, i) => {
+    const span = document.createElement("span");
+    span.className = "la-117-char";
+    span.textContent = ch === " " ? "\u00A0" : ch;
+    span.style.animationDelay = (i * gap).toFixed(2) + "s";
+    span.style.animationDuration = "calc(" + cycle + "s / var(--la-speed, 1))";
+    wrap.appendChild(span);
+  });
+  return wrap;
+}
+
+function buildTypewriterLetterNode(text, speed) {
+  const wrap = document.createElement("span");
+  wrap.className = "la-118-letters";
+  wrap.style.setProperty("--la-speed", animSpeedMultiplier(speed));
+  const chars = Array.from(String(text || ""));
+  const total = Math.max(chars.length, 1);
+  const cycle = (2.8 + total * 0.1).toFixed(2);
+  chars.forEach((ch, i) => {
+    const span = document.createElement("span");
+    span.className = "la-118-char";
+    span.textContent = ch === " " ? "\u00A0" : ch;
+    span.style.animationDelay = (i * 0.09).toFixed(2) + "s";
+    span.style.animationDuration = "calc(" + cycle + "s / var(--la-speed, 1))";
+    wrap.appendChild(span);
+  });
+  return wrap;
+}
+
 function buildLetterAnimNode(text, entry) {
   if (entry && entry.id === 113) return buildSplitMeetNode(text, entry.speed);
   if (entry && entry.id === 114) return buildBallBounceNode(text, entry.speed);
+  if (entry && entry.id === 115) return buildLettersFromLeftNode(text, entry.speed);
+  if (entry && entry.id === 116) return buildLettersFromRightNode(text, entry.speed);
+  if (entry && entry.id === 117) return buildBallDropTopNode(text, entry.speed);
+  if (entry && entry.id === 118) return buildTypewriterLetterNode(text, entry.speed);
   return buildLetterDropNode(text, entry && entry.speed);
 }
 
@@ -3437,7 +3621,11 @@ const ANIMATIONS = [
   { id: 111, name: "Drop Bounce Settle" },
   { id: 112, name: "Blue Glow Pulse" },
   { id: 113, name: "Split Meet From Sides" },
-  { id: 114, name: "Ball Bounce Letters" }
+  { id: 114, name: "Ball Bounce Letters" },
+  { id: 115, name: "Letters From Left" },
+  { id: 116, name: "Letters From Right" },
+  { id: 117, name: "Ball Drop From Top" },
+  { id: 118, name: "Typewriter Letter In" }
 ];
 
 let currentAnimTarget = null;
@@ -3961,7 +4149,7 @@ function renderAnimPickerList() {
     (a) => a.id !== "none" && favIds.includes(a.id) && !selectedIds.includes(a.id)
   );
   // New animations (104+) — shown in their own "New" section so they are easy to find
-  const isNewAnim = (a) => typeof a.id === "number" && a.id >= 114;
+  const isNewAnim = (a) => typeof a.id === "number" && a.id >= 115;
   const newItems = ANIMATIONS.filter(
     (a) => a.id !== "none" && isNewAnim(a) && !selectedIds.includes(a.id) && !favIds.includes(a.id) && !hiddenIds.includes(a.id)
   );
