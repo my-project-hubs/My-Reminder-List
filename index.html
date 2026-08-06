@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="build-id" content="2026-08-06-19v">
+<meta name="build-id" content="2026-08-06-30v">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -103,28 +103,8 @@
   .history-back-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.3); color: #fff; width: 34px; height: 34px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
   /* History page cards are just the List page's own event cards, reused
      as-is, tappable to open that reminder's change-history popup. */
-  #list-history .history-card { cursor: pointer; transition: background 0.2s ease, transform 0.18s ease; }
-  #list-history .history-card:active { background: rgba(255,255,255,0.07); transform: scale(0.98); }
-  @keyframes historyListCardIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  #list-history .history-card,
-  #list-history .la-event-wrap {
-    animation: historyListCardIn 0.4s cubic-bezier(0.22, 0.9, 0.3, 1) both;
-  }
-  #list-history .la-event-wrap:nth-child(1),
-  #list-history > .history-card:nth-child(1) { animation-delay: 0.03s; }
-  #list-history .la-event-wrap:nth-child(2),
-  #list-history > .history-card:nth-child(2) { animation-delay: 0.08s; }
-  #list-history .la-event-wrap:nth-child(3),
-  #list-history > .history-card:nth-child(3) { animation-delay: 0.13s; }
-  #list-history .la-event-wrap:nth-child(4),
-  #list-history > .history-card:nth-child(4) { animation-delay: 0.18s; }
-  #list-history .la-event-wrap:nth-child(5),
-  #list-history > .history-card:nth-child(5) { animation-delay: 0.23s; }
-  #list-history .la-event-wrap:nth-child(n+6),
-  #list-history > .history-card:nth-child(n+6) { animation-delay: 0.28s; }
+  #list-history .history-card { cursor: pointer; }
+  #list-history .history-card:active { background: rgba(255,255,255,0.07); }
   .plan-status {
     display: inline-block;
     font-size: 14px;
@@ -142,6 +122,23 @@
   /* Pure 100% colors — no light/dark tint */
   .plan-status-active {
     color: #00B300;
+  }
+  /* Small green status dot — half size, blinks like a room bulb */
+  @keyframes activeBulbBlink {
+    0%, 100% { opacity: 1; box-shadow: 0 0 4px 1px rgba(0, 179, 0, 0.85); }
+    50%      { opacity: 0.25; box-shadow: 0 0 1px 0 rgba(0, 179, 0, 0.25); }
+  }
+  .active-bulb-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: #00B300;
+    vertical-align: middle;
+    position: relative;
+    top: -1px;
+    animation: activeBulbBlink 1.4s ease-in-out infinite;
   }
   .plan-status-expired {
     color: #FF0000;
@@ -172,14 +169,9 @@
     display: block;
     text-align: left;
     margin: 0 0 10px 0;
-    animation: historyStatusIn 0.4s cubic-bezier(0.22, 0.9, 0.3, 1) both;
-    animation-delay: 0.12s;
   }
   .history-entry-status-label .plan-status {
     margin-bottom: 0;
-  }
-  .plan-status {
-    transition: color 0.25s ease, opacity 0.25s ease;
   }
   .history-upcoming-block {
     margin-top: 16px;
@@ -217,42 +209,14 @@
     -webkit-overflow-scrolling: touch;
     padding-bottom: 8px;
   }
-  @keyframes historyCardIn {
-    from { opacity: 0; transform: translateY(14px) scale(0.98); }
-    to   { opacity: 1; transform: translateY(0) scale(1); }
-  }
-  @keyframes historyStatusIn {
-    from { opacity: 0; transform: translateX(-8px); }
-    to   { opacity: 1; transform: translateX(0); }
-  }
-  .history-entry {
-    margin-bottom: 18px;
-    background: #f7f8fa;
-    border: 1px solid #e8e9ef;
-    border-radius: 18px;
-    padding: 20px 20px;
-    position: relative;
-    cursor: pointer;
-    animation: historyCardIn 0.45s cubic-bezier(0.22, 0.9, 0.3, 1) both;
-    transition: transform 0.2s ease, box-shadow 0.25s ease, background 0.2s ease;
-  }
-  .history-entry:nth-child(1) { animation-delay: 0.04s; }
-  .history-entry:nth-child(2) { animation-delay: 0.10s; }
-  .history-entry:nth-child(3) { animation-delay: 0.16s; }
-  .history-entry:nth-child(4) { animation-delay: 0.22s; }
-  .history-entry:nth-child(5) { animation-delay: 0.28s; }
-  .history-entry:nth-child(n+6) { animation-delay: 0.32s; }
-  .history-entry:active {
-    transform: scale(0.985);
-    background: #f0f1f5;
-  }
+  .history-entry { margin-bottom: 18px; background: #f7f8fa; border: 1px solid #e8e9ef; border-radius: 18px; padding: 20px 20px; position: relative; cursor: pointer; }
   .history-entry-delete-popup { position: absolute; top: 12px; right: 12px; opacity: 0; pointer-events: none; transition: opacity 0.15s ease; }
   .history-entry.actions-visible .history-entry-delete-popup { opacity: 1; pointer-events: auto; }
   .history-entry-delete-popup button { background: rgba(255,80,80,0.12); border: 1px solid rgba(255,80,80,0.4); color: #ff4d4d; font-size: 15px; font-weight: 700; padding: 8px 16px; border-radius: 999px; cursor: pointer; }
   .history-entry-delete-popup button:active { background: rgba(255,80,80,0.25); }
   .history-entry-name { color: #14151a; font-size: 20px; font-weight: 700; margin-bottom: 10px; }
   .history-entry-dates { display: flex; align-items: center; gap: 12px; font-size: 24px; color: #555; flex-wrap: wrap; }
-  .history-entry-old { color: #e04545; text-decoration: line-through; font-weight: 700; }
+  .history-entry-old { color: #e04545; text-decoration: none; font-weight: 700; }
   .history-entry-arrow { color: #888; font-size: 24px; }
   .history-entry-new { color: #d97706; font-weight: 700; }
   .history-entry-days { color: #0052cc; font-size: 22px; font-weight: 700; margin-top: 14px; line-height: 1.35; }
@@ -1105,13 +1069,82 @@
   .cylinder .indian-gas-container { position:absolute; top:44px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:4; width:100%; }
   .cylinder .indian-text { font-family:'Inter', sans-serif; font-weight:700; font-size:9px; letter-spacing:0.4px; color:#ffffff; line-height:1; text-shadow:0 1px 2px rgba(0,0,0,0.8); }
   .cylinder .cyl-foot{ position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:42px; height:10px; background:linear-gradient(180deg, #d32020, #a81616); border-radius:0 0 6px 6px; border-top:1.5px solid #820e0e; display:flex; justify-content:space-around; align-items:flex-end; padding-bottom:2px; }
-  .cylinder .cyl-foot-hole { width:7px; height:3px; background:#f8f9fa; border-radius:2px 2px 0 0; }
+  .cylinder .cyl-foot-hole { width:7px; height:3px; background:#08080f; border-radius:2px 2px 0 0; }
 
   /* Gas Cylinder move popup */
   .cyl-move-popup{ position:fixed; z-index:60; background:#ffffff; border-radius:26px; padding:10px 14px; display:none; flex-direction:row; align-items:center; gap:10px; box-shadow:0 4px 18px rgba(0,0,0,0.28); }
   .cyl-move-popup.open{ display:flex; }
   .cyl-move-popup button{ width:44px; height:44px; border:none; border-radius:8px; background:#f2f2f2; color:#333333; font-size:20px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
   .cyl-move-popup button:active{ background:#dddddd; }
+
+  /* History card download button — small, blue, bottom of each card */
+  .history-download-btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #ffffff;
+    background: linear-gradient(135deg, #4d94ff, #0052cc);
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    line-height: 1.2;
+    box-shadow: 0 2px 8px rgba(0,82,204,0.3);
+  }
+  .history-download-btn:active {
+    transform: scale(0.96);
+    background: linear-gradient(135deg, #3d7fe0, #0040a0);
+  }
+  .history-dl-mode-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .history-dl-mode-row label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #14151a;
+    padding: 10px 14px;
+    background: #f7f8fa;
+    border: 1.5px solid #ececf1;
+    border-radius: 14px;
+    cursor: pointer;
+  }
+  .history-dl-mode-row label.active {
+    border-color: #0052cc;
+    background: linear-gradient(135deg, #f2f7ff, #ffffff);
+    box-shadow: 0 2px 10px rgba(0,82,204,0.12);
+  }
+  .history-dl-mode-row input[type="radio"] {
+    accent-color: #0052cc;
+    width: 18px;
+    height: 18px;
+  }
+  .history-dl-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .history-dl-fields .settings-field select {
+    min-width: 110px;
+    max-width: 160px;
+  }
+  .history-dl-fields-label {
+    font-size: 13px;
+    font-weight: 800;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    width: 100%;
+  }
 </style>
 </head>
 <body>
@@ -1290,6 +1323,38 @@
   </div>
 </div>
 
+<div id="historyDownloadOverlay" class="settings-overlay">
+  <div class="settings-panel">
+    <div class="settings-title"><span id="historyDownloadTitle">Download PDF</span><button onclick="closeHistoryDownload()">✕</button></div>
+    <div class="history-dl-mode-row" id="historyDlModeRow">
+      <label class="active"><input type="radio" name="historyDlMode" value="single" checked onchange="updateHistoryDlModeUI()"> Single Month</label>
+      <label><input type="radio" name="historyDlMode" value="range" onchange="updateHistoryDlModeUI()"> Month Range</label>
+      <label><input type="radio" name="historyDlMode" value="year" onchange="updateHistoryDlModeUI()"> Full Year</label>
+    </div>
+    <div id="historyDlFieldsSingle" class="history-dl-fields">
+      <div class="history-dl-fields-label">Month</div>
+      <div class="settings-field"><label>Year</label><select id="hdlSingleYear"></select></div>
+      <div class="settings-field"><label>Month</label><select id="hdlSingleMonth"></select></div>
+    </div>
+    <div id="historyDlFieldsRange" class="history-dl-fields" style="display:none;">
+      <div class="history-dl-fields-label">From</div>
+      <div class="settings-field"><label>Year</label><select id="hdlFromYear"></select></div>
+      <div class="settings-field"><label>Month</label><select id="hdlFromMonth"></select></div>
+      <div class="history-dl-fields-label" style="margin-top:8px;">To</div>
+      <div class="settings-field"><label>Year</label><select id="hdlToYear"></select></div>
+      <div class="settings-field"><label>Month</label><select id="hdlToMonth"></select></div>
+    </div>
+    <div id="historyDlFieldsYear" class="history-dl-fields" style="display:none;">
+      <div class="history-dl-fields-label">Year</div>
+      <div class="settings-field"><label>Year</label><select id="hdlFullYear"></select></div>
+    </div>
+    <div class="settings-actions">
+      <button class="settings-reset" onclick="closeHistoryDownload()">Cancel</button>
+      <button class="settings-apply" id="historyDlConfirmBtn" onclick="confirmHistoryDownload()">Download</button>
+    </div>
+  </div>
+</div>
+
 <div id="addReminderOverlay" class="settings-overlay">
   <div class="settings-panel">
     <div class="settings-title"><span id="addReminderTitle">Add New List</span><button onclick="closeAddReminder()">✕</button></div>
@@ -1330,6 +1395,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 let cloudSettings = { alerts: {}, data: {}, labels: { header: { text: null, hidden: false }, listCount: { text: null, hidden: false }, alertTitle: { text: null, hidden: false }, historyTitle: { text: null, hidden: false } }, animFavorites: [], animHidden: [] };
 const ANIM_SPEED_MULTIPLIERS = { slow: 0.6, normal: 1, medium: 1.5, high: 2.2 };
@@ -1418,8 +1484,18 @@ function renderHistoryList() {
   events.forEach((e) => {
     const card = document.createElement("div");
     card.className = "event history-card";
-    card.innerHTML = `<div class="event-name">${e.name}</div>`;
-    card.addEventListener("click", () => openHistoryDetail(e.key, e.name));
+    card.innerHTML = `<div class="event-name">${e.name}</div><button type="button" class="history-download-btn">Download</button>`;
+    card.addEventListener("click", (ev) => {
+      if (ev.target && ev.target.closest && ev.target.closest(".history-download-btn")) return;
+      openHistoryDetail(e.key, e.name);
+    });
+    const dlBtn = card.querySelector(".history-download-btn");
+    if (dlBtn) {
+      dlBtn.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        openHistoryDownload(e.key, e.name);
+      });
+    }
     // Apply the same event animations here so Animation Control on History
     // page actually shows the effect on these name cards.
     const animEntries = normalizeAnimationEntries(e.animations, e.animation);
@@ -1481,14 +1557,8 @@ let historyEntryHideTimer = null;
 function renderHistoryDetailItems(items, name, reminderKey) {
   const body = document.getElementById("historyDetailBody");
   if (items.length === 0) {
-    let emptyStatus = "";
-    try {
-      const liveEv = (typeof latestRawEvents !== "undefined" && Array.isArray(latestRawEvents))
-        ? latestRawEvents.find((ev) => (reminderKey && ev.key === reminderKey) || (name && ev.name === name))
-        : null;
-      if (liveEv && liveEv.date) emptyStatus = `<div class="history-detail-status-wrap">${planStatusHtml(liveEv.date)}</div>`;
-    } catch (e0) {}
-    body.innerHTML = emptyStatus + '<div class="empty-state">No History</div>';
+    // No history rows → only "No History". Never show Active / Expired here.
+    body.innerHTML = '<div class="empty-state">No History</div>';
     return;
   }
   const isGasCylinder = (name || "").trim().toLowerCase() === "gas cylinder";
@@ -1513,24 +1583,33 @@ function renderHistoryDetailItems(items, name, reminderKey) {
       : null;
     if (liveEv && liveEv.date) liveDate = liveEv.date;
   } catch (eLive) {}
-  // Order: Active (top) → Upcoming (2nd) → Expired / rest (below), then by changedAt desc within group
+  // Fixed order:
+  //  1) Active — always top
+  //  2) Upcoming if any — always 2nd under Active
+  //     If NO Upcoming → latest Expired takes 2nd place
+  //  3) When Upcoming exists → latest Expired is 3rd, older Expired further down
+  //  Within Expired / Upcoming groups: newest first (old ones push down)
   items.sort((a, b) => {
     const rank = (entry) => {
       if (isGasCylinder) return 2;
       const st = getHistoryEntryStatus(entry, items, liveDate);
       if (st === "Active") return 0;
       if (st === "Upcoming") return 1;
-      return 2;
+      return 2; // Expired — sits at 2nd when no Upcoming, else 3rd+
     };
     const ra = rank(a);
     const rb = rank(b);
     if (ra !== rb) return ra - rb;
-    return (b.changedAt || 0) - (a.changedAt || 0);
+    // Same group: newest first (latest Expired above older Expired)
+    const ta = a.changedAt || 0;
+    const tb = b.changedAt || 0;
+    if (tb !== ta) return tb - ta;
+    const da = parseEventDateString(a.newDate);
+    const db = parseEventDateString(b.newDate);
+    return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
   });
-  const statusTop = liveDate
-    ? buildPlanStatusSummaryHtml(items, liveDate, isGasCylinder, priceText)
-    : "";
-  body.innerHTML = statusTop + items.map((e) => {
+  // Status (Active / Upcoming / Expired) only on each history card — never a separate top label.
+  body.innerHTML = items.map((e) => {
     const when = e.changedAt ? formatHistoryTimestamp(e.changedAt) : "";
     // Always work out the days-forward/backward directly from this
     // entry's own old/new dates — never rely purely on a stored
@@ -1539,7 +1618,11 @@ function renderHistoryDetailItems(items, name, reminderKey) {
     // latest one.
     const oldDt = parseEventDateString(e.oldDate);
     const newDt = parseEventDateString(e.newDate);
-    const daysDiff = daysBetweenInclusive(oldDt, newDt);
+    // Upcoming: display start = day after Active end (same date must not appear on two cards).
+    let statusForDates = "";
+    if (!isGasCylinder) statusForDates = getHistoryEntryStatus(e, items, liveDate);
+    const displayOldDt = (statusForDates === "Upcoming" && oldDt) ? addOneDay(oldDt) : oldDt;
+    const daysDiff = daysBetweenInclusive(displayOldDt, newDt);
     let daysLine = "";
     if (daysDiff !== undefined && daysDiff !== null) {
       const n = Math.abs(daysDiff);
@@ -1558,16 +1641,16 @@ function renderHistoryDetailItems(items, name, reminderKey) {
       const p = priceText.replace(/^₹\s*/, "").trim();
       daysLine = `<div class="history-entry-days">₹ ${escapeHtml(p)}</div>`;
     }
-    const oldDateDisp = oldDt ? formatDisplayDate(oldDt) : (e.oldDate || "");
+    const oldDateDisp = displayOldDt ? formatDisplayDate(displayOldDt) : (e.oldDate || "");
     const newDateDisp = newDt ? formatDisplayDate(newDt) : (e.newDate || "");
     const upcomingBlock = getUpcomingBlockForEntry(e, items, isGasCylinder, priceText);
     // One status at top-left of this card: Active (green) / Expired (red) / Upcoming (orange).
     // Date line starts on the next line below.
     let statusLabel = "";
     if (!isGasCylinder) {
-      const st = getHistoryEntryStatus(e, items, liveDate);
+      const st = statusForDates;
       if (st === "Active") {
-        statusLabel = `<div class="history-entry-status-label"><span class="plan-status plan-status-active">Active</span></div>`;
+        statusLabel = `<div class="history-entry-status-label"><span class="active-bulb-dot"></span><span class="plan-status plan-status-active">Active</span></div>`;
       } else if (st === "Expired") {
         statusLabel = `<div class="history-entry-status-label"><span class="plan-status plan-status-expired">Expired</span></div>`;
       } else if (st === "Upcoming") {
@@ -1627,6 +1710,257 @@ function deleteHistoryEntry(btnEl) {
 
 function closeHistoryDetail() {
   document.getElementById("historyDetailOverlay").classList.remove("open");
+}
+
+// --- History PDF download ---
+const HISTORY_DL_MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+let historyDownloadTarget = null; // { key, name }
+
+function fillHistoryDlYearSelects() {
+  const yearNow = new Date().getFullYear();
+  const years = [];
+  for (let y = yearNow; y >= yearNow - 10; y--) years.push(y);
+  const ids = ["hdlSingleYear", "hdlFromYear", "hdlToYear", "hdlFullYear"];
+  ids.forEach((id) => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const prev = sel.value;
+    sel.innerHTML = years.map((y) => `<option value="${y}">${y}</option>`).join("");
+    if (prev && years.indexOf(parseInt(prev, 10)) !== -1) sel.value = prev;
+    else sel.value = String(yearNow);
+  });
+  const monthIds = ["hdlSingleMonth", "hdlFromMonth", "hdlToMonth"];
+  monthIds.forEach((id) => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const prev = sel.value;
+    sel.innerHTML = HISTORY_DL_MONTHS.map((m, i) => `<option value="${i}">${m}</option>`).join("");
+    if (prev !== "" && prev != null) sel.value = prev;
+    else sel.value = String(new Date().getMonth());
+  });
+}
+
+function openHistoryDownload(key, name) {
+  historyDownloadTarget = { key: key, name: name };
+  const titleEl = document.getElementById("historyDownloadTitle");
+  if (titleEl) titleEl.textContent = (name ? name + " — Download PDF" : "Download PDF");
+  fillHistoryDlYearSelects();
+  const singleRadio = document.querySelector('input[name="historyDlMode"][value="single"]');
+  if (singleRadio) singleRadio.checked = true;
+  updateHistoryDlModeUI();
+  document.getElementById("historyDownloadOverlay").classList.add("open");
+}
+
+function closeHistoryDownload() {
+  document.getElementById("historyDownloadOverlay").classList.remove("open");
+  historyDownloadTarget = null;
+}
+
+function updateHistoryDlModeUI() {
+  const mode = (document.querySelector('input[name="historyDlMode"]:checked') || {}).value || "single";
+  document.querySelectorAll("#historyDlModeRow label").forEach((lab) => {
+    const inp = lab.querySelector("input");
+    lab.classList.toggle("active", !!(inp && inp.checked));
+  });
+  const single = document.getElementById("historyDlFieldsSingle");
+  const range = document.getElementById("historyDlFieldsRange");
+  const year = document.getElementById("historyDlFieldsYear");
+  if (single) single.style.display = mode === "single" ? "" : "none";
+  if (range) range.style.display = mode === "range" ? "" : "none";
+  if (year) year.style.display = mode === "year" ? "" : "none";
+}
+
+function historyDlMonthBounds(year, monthIndex) {
+  const start = new Date(year, monthIndex, 1, 0, 0, 0, 0);
+  const end = new Date(year, monthIndex + 1, 0, 23, 59, 59, 999);
+  return { start: start.getTime(), end: end.getTime() };
+}
+
+function historyDlYearBounds(year) {
+  const start = new Date(year, 0, 1, 0, 0, 0, 0);
+  const end = new Date(year, 11, 31, 23, 59, 59, 999);
+  return { start: start.getTime(), end: end.getTime() };
+}
+
+function getHistoryDownloadRange() {
+  const mode = (document.querySelector('input[name="historyDlMode"]:checked') || {}).value || "single";
+  if (mode === "single") {
+    const y = parseInt(document.getElementById("hdlSingleYear").value, 10);
+    const m = parseInt(document.getElementById("hdlSingleMonth").value, 10);
+    const b = historyDlMonthBounds(y, m);
+    return { start: b.start, end: b.end, label: HISTORY_DL_MONTHS[m] + " " + y, mode: mode };
+  }
+  if (mode === "range") {
+    const fy = parseInt(document.getElementById("hdlFromYear").value, 10);
+    const fm = parseInt(document.getElementById("hdlFromMonth").value, 10);
+    const ty = parseInt(document.getElementById("hdlToYear").value, 10);
+    const tm = parseInt(document.getElementById("hdlToMonth").value, 10);
+    const fromB = historyDlMonthBounds(fy, fm);
+    const toB = historyDlMonthBounds(ty, tm);
+    if (fromB.start > toB.end) {
+      return { error: "From month should be before or equal to To month." };
+    }
+    return {
+      start: fromB.start,
+      end: toB.end,
+      label: HISTORY_DL_MONTHS[fm] + " " + fy + " – " + HISTORY_DL_MONTHS[tm] + " " + ty,
+      mode: mode
+    };
+  }
+  // full year
+  const y = parseInt(document.getElementById("hdlFullYear").value, 10);
+  const b = historyDlYearBounds(y);
+  return { start: b.start, end: b.end, label: String(y), mode: mode };
+}
+
+function confirmHistoryDownload() {
+  if (!historyDownloadTarget) return;
+  const range = getHistoryDownloadRange();
+  if (range.error) {
+    alert(range.error);
+    return;
+  }
+  const btn = document.getElementById("historyDlConfirmBtn");
+  if (btn) { btn.disabled = true; btn.textContent = "Preparing..."; }
+  const key = historyDownloadTarget.key;
+  const name = historyDownloadTarget.name;
+  if (!dateHistoryRef) {
+    if (btn) { btn.disabled = false; btn.textContent = "Download"; }
+    alert("Not connected to the database right now.");
+    return;
+  }
+  dateHistoryRef.orderByChild("changedAt").once("value", (snapshot) => {
+    const items = [];
+    snapshot.forEach((child) => {
+      const v = child.val();
+      if (!v) return;
+      const matches = v.key ? v.key === key : v.name === name;
+      if (!matches) return;
+      const t = v.changedAt || 0;
+      if (t >= range.start && t <= range.end) {
+        items.push(Object.assign({ _fbKey: child.key }, v));
+      }
+    });
+    // newest first
+    items.sort((a, b) => (b.changedAt || 0) - (a.changedAt || 0));
+    try {
+      generateHistoryPdf(name, items, range.label);
+    } catch (err) {
+      alert("PDF bana nahi paya.\n\nReason: " + ((err && err.message) ? err.message : "unknown error"));
+    }
+    if (btn) { btn.disabled = false; btn.textContent = "Download"; }
+    closeHistoryDownload();
+  }, () => {
+    if (btn) { btn.disabled = false; btn.textContent = "Download"; }
+    alert("History load nahi ho payi.");
+  });
+}
+
+function generateHistoryPdf(name, items, periodLabel) {
+  if (typeof window.jspdf === "undefined" && typeof window.jsPDF === "undefined") {
+    // jspdf 2.x exposes window.jspdf.jsPDF
+    throw new Error("PDF library not loaded. Check internet connection and try again.");
+  }
+  const JsPDF = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : window.jsPDF;
+  const doc = new JsPDF({ unit: "pt", format: "a4" });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const margin = 48;
+  let y = margin;
+
+  const safeName = String(name || "History").replace(/[^\w\s\-]+/g, "").trim() || "History";
+  const fileBase = (safeName + "_" + String(periodLabel || "").replace(/\s+/g, "_")).replace(/[^\w\-]+/g, "_");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.setTextColor(20, 21, 26);
+  doc.text(String(name || "History") + " — History", margin, y);
+  y += 20;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  doc.setTextColor(80, 85, 95);
+  doc.text("Period: " + periodLabel, margin, y);
+  y += 16;
+  doc.text("Generated: " + formatHistoryTimestamp(Date.now()), margin, y);
+  y += 22;
+  doc.setDrawColor(0, 82, 204);
+  doc.setLineWidth(1.5);
+  doc.line(margin, y, pageW - margin, y);
+  y += 18;
+
+  if (!items.length) {
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(12);
+    doc.setTextColor(120, 120, 120);
+    doc.text("No history found for this period.", margin, y);
+    doc.save(fileBase + ".pdf");
+    return;
+  }
+
+  const isGasCylinder = (name || "").trim().toLowerCase() === "gas cylinder";
+  let priceText = "";
+  try {
+    const live = (typeof latestRawEvents !== "undefined" && Array.isArray(latestRawEvents))
+      ? latestRawEvents.find((ev) => (historyDownloadTarget && historyDownloadTarget.key && ev.key === historyDownloadTarget.key) || (name && ev.name === name))
+      : null;
+    const rawPrice = live && live.price !== undefined && live.price !== null ? String(live.price).trim() : "";
+    if (rawPrice !== "") {
+      priceText = /₹|rs\.?|inr/i.test(rawPrice) ? rawPrice : ("₹ " + rawPrice);
+    }
+  } catch (eP) {}
+
+  items.forEach((e, idx) => {
+    const oldDt = parseEventDateString(e.oldDate);
+    const newDt = parseEventDateString(e.newDate);
+    const oldDisp = oldDt ? formatDisplayDate(oldDt) : (e.oldDate || "—");
+    const newDisp = newDt ? formatDisplayDate(newDt) : (e.newDate || "—");
+    const daysDiff = daysBetweenInclusive(oldDt, newDt);
+    let daysStr = "";
+    if (daysDiff !== undefined && daysDiff !== null) {
+      const n = Math.abs(daysDiff);
+      const label = isGasCylinder ? "The gas cylinder lasted" : "The recharge will last";
+      const p = priceText ? priceText.replace(/^₹\s*/, "").trim() : "";
+      daysStr = label + ": " + n + " days" + (p ? (" - ₹ " + p) : "");
+    }
+    const when = e.changedAt ? formatHistoryTimestamp(e.changedAt) : "";
+
+    // Estimate block height
+    const blockH = 14 + 16 + (daysStr ? 14 : 0) + (when ? 14 : 0) + 18;
+    if (y + blockH > pageH - margin) {
+      doc.addPage();
+      y = margin;
+    }
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(20, 21, 26);
+    doc.text((idx + 1) + ".  " + oldDisp + "  →  " + newDisp, margin, y);
+    y += 16;
+    if (daysStr) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor(0, 82, 204);
+      doc.text(daysStr, margin + 14, y);
+      y += 14;
+    }
+    if (when) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(120, 125, 135);
+      doc.text(when, margin + 14, y);
+      y += 14;
+    }
+    y += 10;
+    doc.setDrawColor(230, 232, 238);
+    doc.setLineWidth(0.5);
+    doc.line(margin, y, pageW - margin, y);
+    y += 14;
+  });
+
+  doc.save(fileBase + ".pdf");
 }
 
 function escapeHtml(str) {
@@ -1724,6 +2058,14 @@ function formatDisplayDate(dt) {
   const m = String(dt.getMonth() + 1).padStart(2, "0");
   const y = dt.getFullYear();
   return `${d}/${m}/${y}`;
+}
+
+// Next calendar day (used so Upcoming start is 1 day after Active end —
+// same date never appears on two different history cards).
+function addOneDay(dt) {
+  const n = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate() + 1);
+  n.setHours(0, 0, 0, 0);
+  return n;
 }
 
 // History change-time: always DD/MM/YYYY (day first, then month, then year)
