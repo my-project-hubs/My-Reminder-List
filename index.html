@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="build-id" content="2026-08-06-40v">
+<meta name="build-id" content="2026-08-07-51v">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -22,17 +22,27 @@
     margin: 0 auto;
   }
   .header-date { font-size: var(--header-size, 19px); color: var(--header-color, #000000); font-family: var(--header-font, inherit); font-weight: var(--header-weight, 400); margin-bottom: 28px; }
+  @property --rainbow-angle {
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 0deg;
+  }
+  @keyframes rainbowAngleSpin {
+    to { --rainbow-angle: 360deg; }
+  }
+  /* Soft light white border — subtle, not full white card */
   .event {
     margin-bottom: 16px;
     position: relative;
     overflow: hidden;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.28);
+    isolation: isolate;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.50);
     border-radius: 22px;
     padding: 16px 18px;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    animation: cardBorderGlowWhite 3s ease-in-out infinite;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
   }
   /* Any animation assigned to a reminder wraps the whole card in a div that
      carries the animation's own class (see renderEvents in the script below).
@@ -43,116 +53,6 @@
      is assigned to it — including any reminders added in the future. */
   .la-event-wrap { display: block !important; width: 100% !important; margin-bottom: 16px; }
   .la-event-wrap .event { margin-bottom: 0; }
-
-  /* Colorful border glows — same style as the 4 top icon balls */
-  @keyframes cardBorderGlowWhite {
-    0%, 100% {
-      border-color: rgba(255, 255, 255, 0.25);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.12), 0 0 10px rgba(255,255,255,0.06);
-    }
-    50% {
-      border-color: rgba(255, 255, 255, 0.55);
-      box-shadow: 0 8px 28px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 22px rgba(255,255,255,0.18);
-    }
-  }
-  @keyframes cardBorderGlowGreen {
-    0%, 100% {
-      border-color: rgba(34, 197, 94, 0.35);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.12), 0 0 12px rgba(34,197,94,0.25);
-    }
-    50% {
-      border-color: rgba(34, 197, 94, 0.8);
-      box-shadow: 0 8px 28px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 26px rgba(34,197,94,0.5);
-    }
-  }
-  @keyframes cardBorderGlowBlue {
-    0%, 100% {
-      border-color: rgba(77, 148, 255, 0.35);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.12), 0 0 12px rgba(77,148,255,0.28);
-    }
-    50% {
-      border-color: rgba(77, 148, 255, 0.85);
-      box-shadow: 0 8px 28px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 26px rgba(77,148,255,0.55);
-    }
-  }
-  @keyframes cardBorderGlowPurple {
-    0%, 100% {
-      border-color: rgba(184, 107, 255, 0.35);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.12), 0 0 12px rgba(184,107,255,0.25);
-    }
-    50% {
-      border-color: rgba(184, 107, 255, 0.85);
-      box-shadow: 0 8px 28px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 26px rgba(184,107,255,0.5);
-    }
-  }
-  @keyframes cardBorderGlowCyan {
-    0%, 100% {
-      border-color: rgba(77, 217, 255, 0.35);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.12), 0 0 12px rgba(77,217,255,0.25);
-    }
-    50% {
-      border-color: rgba(77, 217, 255, 0.85);
-      box-shadow: 0 8px 28px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 26px rgba(77,217,255,0.5);
-    }
-  }
-  @keyframes cardBorderGlowOrange {
-    0%, 100% {
-      border-color: rgba(255, 140, 50, 0.35);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.12), 0 0 12px rgba(255,140,50,0.25);
-    }
-    50% {
-      border-color: rgba(255, 140, 50, 0.85);
-      box-shadow: 0 8px 28px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 26px rgba(255,140,50,0.5);
-    }
-  }
-  @keyframes cardBorderGlowPink {
-    0%, 100% {
-      border-color: rgba(255, 80, 140, 0.35);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.12), 0 0 12px rgba(255,80,140,0.25);
-    }
-    50% {
-      border-color: rgba(255, 80, 140, 0.85);
-      box-shadow: 0 8px 28px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 26px rgba(255,80,140,0.5);
-    }
-  }
-  /* Cycle colors across cards — same vibe as the 4 balls */
-  #list-data .event:nth-child(6n+1),
-  #list-alerts .event:nth-child(6n+1),
-  #list-history .event:nth-child(6n+1) { animation: cardBorderGlowGreen 3s ease-in-out infinite; }
-  #list-data .event:nth-child(6n+2),
-  #list-alerts .event:nth-child(6n+2),
-  #list-history .event:nth-child(6n+2) { animation: cardBorderGlowBlue 3s ease-in-out infinite; animation-delay: 0.25s; }
-  #list-data .event:nth-child(6n+3),
-  #list-alerts .event:nth-child(6n+3),
-  #list-history .event:nth-child(6n+3) { animation: cardBorderGlowPurple 3s ease-in-out infinite; animation-delay: 0.5s; }
-  #list-data .event:nth-child(6n+4),
-  #list-alerts .event:nth-child(6n+4),
-  #list-history .event:nth-child(6n+4) { animation: cardBorderGlowCyan 3s ease-in-out infinite; animation-delay: 0.75s; }
-  #list-data .event:nth-child(6n+5),
-  #list-alerts .event:nth-child(6n+5),
-  #list-history .event:nth-child(6n+5) { animation: cardBorderGlowOrange 3s ease-in-out infinite; animation-delay: 0.15s; }
-  #list-data .event:nth-child(6n+6),
-  #list-alerts .event:nth-child(6n+6),
-  #list-history .event:nth-child(6n+6) { animation: cardBorderGlowPink 3s ease-in-out infinite; animation-delay: 0.4s; }
-  /* When wrapped in .la-event-wrap, color the inner .event the same way */
-  #list-data .la-event-wrap:nth-child(6n+1) .event,
-  #list-alerts .la-event-wrap:nth-child(6n+1) .event,
-  #list-history .la-event-wrap:nth-child(6n+1) .event { animation: cardBorderGlowGreen 3s ease-in-out infinite; }
-  #list-data .la-event-wrap:nth-child(6n+2) .event,
-  #list-alerts .la-event-wrap:nth-child(6n+2) .event,
-  #list-history .la-event-wrap:nth-child(6n+2) .event { animation: cardBorderGlowBlue 3s ease-in-out infinite; animation-delay: 0.25s; }
-  #list-data .la-event-wrap:nth-child(6n+3) .event,
-  #list-alerts .la-event-wrap:nth-child(6n+3) .event,
-  #list-history .la-event-wrap:nth-child(6n+3) .event { animation: cardBorderGlowPurple 3s ease-in-out infinite; animation-delay: 0.5s; }
-  #list-data .la-event-wrap:nth-child(6n+4) .event,
-  #list-alerts .la-event-wrap:nth-child(6n+4) .event,
-  #list-history .la-event-wrap:nth-child(6n+4) .event { animation: cardBorderGlowCyan 3s ease-in-out infinite; animation-delay: 0.75s; }
-  #list-data .la-event-wrap:nth-child(6n+5) .event,
-  #list-alerts .la-event-wrap:nth-child(6n+5) .event,
-  #list-history .la-event-wrap:nth-child(6n+5) .event { animation: cardBorderGlowOrange 3s ease-in-out infinite; animation-delay: 0.15s; }
-  #list-data .la-event-wrap:nth-child(6n+6) .event,
-  #list-alerts .la-event-wrap:nth-child(6n+6) .event,
-  #list-history .la-event-wrap:nth-child(6n+6) .event { animation: cardBorderGlowPink 3s ease-in-out infinite; animation-delay: 0.4s; }
   .event-name { color: var(--name-color, #000000); font-size: var(--name-size, 20px); font-family: var(--name-font, inherit); font-weight: var(--name-weight, 400); margin-bottom: 10px; line-height: 1.15; }
   .alerts-page-title { text-align: center; color: var(--title-color, #b266b2); font-size: var(--title-size, 26px); font-family: var(--title-font, inherit); font-weight: var(--title-weight, 700); }
   .alerts-page-title-row { display: flex; align-items: center; justify-content: center; gap: 6px; margin: -42px 0 40px; }
@@ -251,7 +151,7 @@
   }
   #list-history .history-recency {
     color: #ffffff;
-    font-size: 16px;
+    font-size: 19px;
     font-weight: 600;
     letter-spacing: 0.2px;
     white-space: nowrap;
@@ -264,14 +164,14 @@
   }
   #list-history .history-count {
     flex: none;
-    min-width: 28px;
-    height: 28px;
-    padding: 0 9px;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 10px;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.35);
     color: #ffffff;
-    font-size: 15px;
+    font-size: 18px;
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -301,6 +201,10 @@
   }
   /* Pure 100% colors — no light/dark tint */
   .plan-status-active {
+    color: #00B300;
+  }
+  /* Gas Cylinder history: newest entry badge — green, top-left of card */
+  .plan-status-latest {
     color: #00B300;
   }
   /* Small green status dot — half size, blinks like a room bulb */
@@ -727,8 +631,21 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(145deg, rgba(40, 44, 62, 0.72), rgba(18, 20, 32, 0.78));
-    border: 1px solid rgba(255, 255, 255, 0.28);
+    /* Same rainbow border as cards — stays on the circle edge */
+    border: 2px solid transparent;
+    background:
+      linear-gradient(145deg, rgba(40, 44, 62, 0.95), rgba(18, 20, 32, 0.98)) padding-box,
+      conic-gradient(
+        from var(--rainbow-angle, 0deg),
+        #ff0040,
+        #ff8c00,
+        #ffee00,
+        #00e676,
+        #00e5ff,
+        #2979ff,
+        #d500f9,
+        #ff0040
+      ) border-box;
     box-shadow: 0 4px 14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
     color: #ffffff;
     display: flex;
@@ -740,8 +657,8 @@
     font-weight: 700;
     line-height: 1;
     overflow: hidden;
-    transition: background 0.2s ease, transform 0.18s cubic-bezier(.34,1.4,.64,1);
-    animation: stackIconFloat 3.6s ease-in-out infinite, stackIconBorderGlow 3s ease-in-out infinite;
+    transition: transform 0.18s cubic-bezier(.34,1.4,.64,1);
+    animation: stackIconFloat 3.6s ease-in-out infinite, rainbowAngleSpin 6s linear infinite;
   }
   .stack-icon-btn::before {
     content: "";
@@ -750,107 +667,47 @@
     border-radius: 50%;
     background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.28), transparent 55%);
     pointer-events: none;
+    z-index: 0;
   }
-  .stack-icon-btn::after {
-    content: "";
-    position: absolute;
-    inset: -2px;
-    border-radius: 50%;
-    border: 1.5px solid transparent;
-    background: linear-gradient(135deg, rgba(77,148,255,0.55), rgba(184,107,255,0.35), rgba(77,217,255,0.45)) border-box;
-    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    opacity: 0.55;
-    animation: stackIconRing 4s linear infinite;
-    pointer-events: none;
+  .stack-icon-btn .toggle-icon,
+  .stack-icon-btn {
+    z-index: 1;
   }
   @keyframes stackIconFloat {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-2px); }
   }
-  @keyframes stackIconRing {
-    0% { transform: rotate(0deg); opacity: 0.4; }
-    50% { opacity: 0.75; }
-    100% { transform: rotate(360deg); opacity: 0.4; }
-  }
-  @keyframes stackIconBorderGlow {
-    0%, 100% {
-      border-color: rgba(255, 255, 255, 0.22);
-      box-shadow: 0 4px 14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 8px rgba(255,255,255,0.06);
-    }
-    50% {
-      border-color: rgba(255, 255, 255, 0.55);
-      box-shadow: 0 4px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.28), 0 0 18px rgba(255,255,255,0.18);
-    }
-  }
-  @keyframes stackIconBorderGlowGreen {
-    0%, 100% {
-      border-color: rgba(34, 197, 94, 0.35);
-      box-shadow: 0 4px 14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 10px rgba(34,197,94,0.25);
-    }
-    50% {
-      border-color: rgba(34, 197, 94, 0.75);
-      box-shadow: 0 4px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.28), 0 0 22px rgba(34,197,94,0.5);
-    }
-  }
-  @keyframes stackIconBorderGlowBlue {
-    0%, 100% {
-      border-color: rgba(77, 148, 255, 0.35);
-      box-shadow: 0 4px 14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 10px rgba(77,148,255,0.28);
-    }
-    50% {
-      border-color: rgba(77, 148, 255, 0.8);
-      box-shadow: 0 4px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.28), 0 0 22px rgba(77,148,255,0.55);
-    }
-  }
-  @keyframes stackIconBorderGlowPurple {
-    0%, 100% {
-      border-color: rgba(184, 107, 255, 0.35);
-      box-shadow: 0 4px 14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 10px rgba(184,107,255,0.25);
-    }
-    50% {
-      border-color: rgba(184, 107, 255, 0.8);
-      box-shadow: 0 4px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.28), 0 0 22px rgba(184,107,255,0.5);
-    }
-  }
-  @keyframes stackIconBorderGlowCyan {
-    0%, 100% {
-      border-color: rgba(77, 217, 255, 0.35);
-      box-shadow: 0 4px 14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 10px rgba(77,217,255,0.25);
-    }
-    50% {
-      border-color: rgba(77, 217, 255, 0.8);
-      box-shadow: 0 4px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.28), 0 0 22px rgba(77,217,255,0.5);
-    }
-  }
   /* Fixed order left→right: + | A | ⚙ | ⇄ — no drag, locked in place */
   .stack-icon-item { position: relative; }
   #stackIconWrap-add .stack-icon-btn {
-    animation: stackIconFloat 3.6s ease-in-out infinite, stackIconBorderGlowGreen 3s ease-in-out infinite;
+    animation: stackIconFloat 3.6s ease-in-out infinite, rainbowAngleSpin 6s linear infinite;
     animation-delay: 0s, 0s;
     font-size: 24px;
   }
   #stackIconWrap-anim .stack-icon-btn {
-    animation: stackIconFloat 3.6s ease-in-out infinite, stackIconBorderGlowBlue 3s ease-in-out infinite;
-    animation-delay: 0.45s, 0.45s;
+    animation: stackIconFloat 3.6s ease-in-out infinite, rainbowAngleSpin 6s linear infinite;
+    animation-delay: 0.45s, -1.5s;
     font-size: 21px;
   }
   #stackIconWrap-settings .stack-icon-btn {
-    animation: stackIconFloat 3.6s ease-in-out infinite, stackIconBorderGlowPurple 3s ease-in-out infinite;
-    animation-delay: 0.9s, 0.9s;
+    animation: stackIconFloat 3.6s ease-in-out infinite, rainbowAngleSpin 6s linear infinite;
+    animation-delay: 0.9s, -3s;
     font-size: 21px;
   }
   #stackIconWrap-switch .stack-icon-btn {
-    animation: stackIconFloat 3.6s ease-in-out infinite, stackIconBorderGlowCyan 3s ease-in-out infinite;
-    animation-delay: 1.35s, 1.35s;
+    animation: stackIconFloat 3.6s ease-in-out infinite, rainbowAngleSpin 6s linear infinite;
+    animation-delay: 1.35s, -4.5s;
     font-size: 24px;
   }
   .stack-icon-btn:active {
-    background: linear-gradient(145deg, rgba(70, 78, 110, 0.85), rgba(30, 34, 52, 0.9));
-    border-color: rgba(255, 255, 255, 0.4);
     transform: scale(0.88);
     animation: none;
+    background:
+      linear-gradient(145deg, rgba(70, 78, 110, 0.95), rgba(30, 34, 52, 0.98)) padding-box,
+      conic-gradient(
+        from var(--rainbow-angle, 0deg),
+        #ff0040, #ff8c00, #ffee00, #00e676, #00e5ff, #2979ff, #d500f9, #ff0040
+      ) border-box;
   }
   .stack-icon-btn .toggle-icon {
     display: inline-block;
@@ -1778,6 +1635,31 @@ function daysBetweenInclusive(oldDt, newDt) {
   return raw > 0 ? raw + 1 : raw - 1;
 }
 
+// Gas Cylinder ONLY — never use for recharge.
+// Install day counts. Change/replace day does NOT count on the finished cylinder,
+// so that calendar day belongs only to the next cylinder (no double-count).
+// includeEndDay=true on the live card so "today" still counts while it is running.
+function daysGasCylinderLasted(startDt, endDt, includeEndDay) {
+  if (!startDt || !endDt) return null;
+  const raw = Math.round((endDt - startDt) / 86400000);
+  if (raw === 0) return includeEndDay ? 1 : 0;
+  const n = Math.abs(raw);
+  return includeEndDay ? n + 1 : n;
+}
+
+function parsePriceNumber(priceVal) {
+  if (priceVal === undefined || priceVal === null || priceVal === "") return null;
+  const n = parseFloat(String(priceVal).replace(/[^\d.]/g, ""));
+  return (isNaN(n) || n < 0) ? null : n;
+}
+
+function formatDailyCostText(priceNum, daysCount) {
+  if (priceNum == null || daysCount == null || daysCount <= 0) return "Daily Cost —";
+  const cost = priceNum / daysCount;
+  const text = (Math.round(cost * 100) / 100).toFixed(2);
+  return "Daily Cost ₹ " + text;
+}
+
 function logDateHistory(reminderKey, reminderName, oldDate, newDate) {
   if (!dateHistoryRef || oldDate === newDate) return;
   const oldDt = parseEventDateString(oldDate);
@@ -1880,7 +1762,7 @@ function renderHistoryList() {
   const container = document.getElementById("list-history");
   const events = getAutoSortedForList(
     getSortedEvents()
-      .map((ev) => buildEventDisplay(ev.name, ev.date, ev.type, ev.alertDays, ev.key, ev.animation, ev.animations))
+      .map((ev) => buildEventDisplay(ev.name, ev.date, ev.type, ev.alertDays, ev.key, ev.animation, ev.animations, ev.price))
       .filter(Boolean)
   );
   if (events.length === 0) {
@@ -2020,7 +1902,8 @@ function renderHistoryDetailItems(items, name, reminderKey) {
     return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
   });
   // Status (Active / Upcoming / Expired) only on each history card — never a separate top label.
-  body.innerHTML = items.map((e) => {
+  // Gas Cylinder: items already sorted newest-first (changedAt). Index 0 = Latest.
+  body.innerHTML = items.map((e, idx) => {
     const when = e.changedAt ? formatHistoryTimestamp(e.changedAt) : "";
     // Always work out the days-forward/backward directly from this
     // entry's own old/new dates — never rely purely on a stored
@@ -2032,33 +1915,58 @@ function renderHistoryDetailItems(items, name, reminderKey) {
     // Upcoming: display start = day after Active end (same date must not appear on two cards).
     let statusForDates = "";
     if (!isGasCylinder) statusForDates = getHistoryEntryStatus(e, items, liveDate);
-    const displayOldDt = (statusForDates === "Upcoming" && oldDt) ? addOneDay(oldDt) : oldDt;
-    const daysDiff = daysBetweenInclusive(displayOldDt, newDt);
+    let displayOldDt = (statusForDates === "Upcoming" && oldDt) ? addOneDay(oldDt) : oldDt;
+    let displayNewDt = newDt;
+    // Gas Cylinder: always show dates in chronological order (earlier → later)
+    if (isGasCylinder && oldDt && newDt) {
+      if (oldDt.getTime() > newDt.getTime()) {
+        displayOldDt = newDt;
+        displayNewDt = oldDt;
+      } else {
+        displayOldDt = oldDt;
+        displayNewDt = newDt;
+      }
+    }
+    // Gas: exclusive of change day. Recharge: unchanged inclusive logic.
+    const daysDiff = isGasCylinder
+      ? daysGasCylinderLasted(displayOldDt, displayNewDt, false)
+      : daysBetweenInclusive(displayOldDt, displayNewDt);
     let daysLine = "";
     if (daysDiff !== undefined && daysDiff !== null) {
       const n = Math.abs(daysDiff);
-      // Line 1: label only (no wrap issues)
-      // Line 2: "28 days - ₹ 298"
-      const label = isGasCylinder
-        ? "The gas cylinder lasted"
-        : "The recharge will last";
-      const p = priceText ? priceText.replace(/^₹\s*/, "").trim() : "";
-      const detail = p
-        ? (n + " days - ₹ " + p)
-        : (n + " days");
-      daysLine = `<div class="history-entry-days">${escapeHtml(label)}</div>`
-        + `<div class="history-entry-days history-entry-days-detail">${escapeHtml(detail)}</div>`;
+      if (isGasCylinder) {
+        // Gas Cylinder history: days count + total price + Daily Cost
+        const p = priceText ? priceText.replace(/^₹\s*/, "").trim() : "";
+        const pNum = parsePriceNumber(priceText);
+        const detail = p ? (n + " days - ₹ " + p) : (n + " days");
+        daysLine = `<div class="history-entry-days history-entry-days-detail">${escapeHtml(detail)}</div>`
+          + `<div class="history-entry-days">${escapeHtml(formatDailyCostText(pNum, n))}</div>`;
+      } else {
+        // Recharge history: same layout as Gas — days + price, then Daily Cost (no English label)
+        const p = priceText ? priceText.replace(/^₹\s*/, "").trim() : "";
+        const pNum = parsePriceNumber(priceText);
+        const detail = p
+          ? (n + " days - ₹ " + p)
+          : (n + " days");
+        daysLine = `<div class="history-entry-days history-entry-days-detail">${escapeHtml(detail)}</div>`
+          + `<div class="history-entry-days">${escapeHtml(formatDailyCostText(pNum, n))}</div>`;
+      }
     } else if (priceText) {
       const p = priceText.replace(/^₹\s*/, "").trim();
       daysLine = `<div class="history-entry-days">₹ ${escapeHtml(p)}</div>`;
     }
     const oldDateDisp = displayOldDt ? formatDisplayDate(displayOldDt) : (e.oldDate || "");
-    const newDateDisp = newDt ? formatDisplayDate(newDt) : (e.newDate || "");
+    const newDateDisp = displayNewDt ? formatDisplayDate(displayNewDt) : (e.newDate || "");
     const upcomingBlock = getUpcomingBlockForEntry(e, items, isGasCylinder, priceText);
-    // One status at top-left of this card: Active (green) / Expired (red) / Upcoming (orange).
-    // Date line starts on the next line below.
+    // One status at top-left of this card:
+    // Gas Cylinder → green "Latest" only on the newest entry (always top)
+    // Others → Active (green) / Expired (red) / Upcoming (orange)
     let statusLabel = "";
-    if (!isGasCylinder) {
+    if (isGasCylinder) {
+      if (idx === 0) {
+        statusLabel = `<div class="history-entry-status-label"><span class="plan-status plan-status-latest">Latest</span></div>`;
+      }
+    } else {
       const st = statusForDates;
       if (st === "Active") {
         statusLabel = `<div class="history-entry-status-label"><span class="active-bulb-dot"></span><span class="plan-status plan-status-active">Active</span></div>`;
@@ -2358,10 +2266,23 @@ async function downloadHistoryPdf() {
         if (liveEv && liveEv.date) liveDate = liveEv.date;
       } catch (eL) {}
       const status = isGasCylinder ? "" : getHistoryEntryStatus(e, allItems, liveDate);
-      const displayOldDt = (status === "Upcoming" && oldDt) ? addOneDay(oldDt) : oldDt;
-      const daysDiff = daysBetweenInclusive(displayOldDt, newDt);
+      let displayOldDt = (status === "Upcoming" && oldDt) ? addOneDay(oldDt) : oldDt;
+      let displayNewDt = newDt;
+      if (isGasCylinder && oldDt && newDt) {
+        if (oldDt.getTime() > newDt.getTime()) {
+          displayOldDt = newDt;
+          displayNewDt = oldDt;
+        } else {
+          displayOldDt = oldDt;
+          displayNewDt = newDt;
+        }
+      }
+      // Gas: exclusive of change day. Recharge: unchanged inclusive logic.
+      const daysDiff = isGasCylinder
+        ? daysGasCylinderLasted(displayOldDt, displayNewDt, false)
+        : daysBetweenInclusive(displayOldDt, displayNewDt);
       const oldDisp = displayOldDt ? formatDisplayDate(displayOldDt) : (e.oldDate || "");
-      const newDisp = newDt ? formatDisplayDate(newDt) : (e.newDate || "");
+      const newDisp = displayNewDt ? formatDisplayDate(displayNewDt) : (e.newDate || "");
       const when = e.changedAt ? formatPdfTimestamp(e.changedAt) : "";
 
       if (y > pageH - 32) {
@@ -2410,17 +2331,27 @@ async function downloadHistoryPdf() {
       else doc.setFont("helvetica", "normal");
       if (daysDiff !== undefined && daysDiff !== null) {
         const n = Math.abs(daysDiff);
-        const label = isGasCylinder ? "Gas cylinder lasted" : "Recharge will last";
-        let line = label + ": " + n + " days";
-        if (priceForPdf) {
-          if (hasRupeeFont) {
-            line += " - " + priceForPdf;
-          } else {
-            // Fallback without ₹ glyph
-            line += " - " + priceForPdf.replace(/₹/g, "Rs.");
-          }
+        if (isGasCylinder) {
+          const p = priceText ? priceText.replace(/^₹\s*/, "").trim() : "";
+          let detail = p ? (n + " days - ₹ " + p) : (n + " days");
+          if (!hasRupeeFont) detail = detail.replace(/₹/g, "Rs.");
+          doc.text(detail, margin + 3, lineY);
+          lineY += 5;
+          const pNum = parsePriceNumber(priceText);
+          let costLine = formatDailyCostText(pNum, n);
+          if (!hasRupeeFont) costLine = costLine.replace(/₹/g, "Rs.");
+          doc.text(costLine, margin + 3, lineY);
+        } else {
+          const p = priceText ? priceText.replace(/^₹\s*/, "").trim() : "";
+          let detail = p ? (n + " days - ₹ " + p) : (n + " days");
+          if (!hasRupeeFont) detail = detail.replace(/₹/g, "Rs.");
+          doc.text(detail, margin + 3, lineY);
+          lineY += 5;
+          const pNum = parsePriceNumber(priceText);
+          let costLine = formatDailyCostText(pNum, n);
+          if (!hasRupeeFont) costLine = costLine.replace(/₹/g, "Rs.");
+          doc.text(costLine, margin + 3, lineY);
         }
-        doc.text(line, margin + 3, lineY);
       } else if (priceForPdf) {
         const p = hasRupeeFont ? priceForPdf : priceForPdf.replace(/₹/g, "Rs.");
         doc.text(p, margin + 3, lineY);
@@ -2432,7 +2363,7 @@ async function downloadHistoryPdf() {
       doc.setTextColor(107, 114, 128);
       doc.text(when, margin + 3, lineY);
 
-      y += 30;
+      y += isGasCylinder ? 35 : 30;
     });
   }
 
@@ -2559,10 +2490,13 @@ function formatHistoryTimestamp(ms) {
   const d = String(dt.getDate()).padStart(2, "0");
   const m = String(dt.getMonth() + 1).padStart(2, "0");
   const y = dt.getFullYear();
-  const hh = String(dt.getHours()).padStart(2, "0");
+  let h = dt.getHours();
+  const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12;
+  if (h === 0) h = 12;
   const mm = String(dt.getMinutes()).padStart(2, "0");
   const ss = String(dt.getSeconds()).padStart(2, "0");
-  return `${d}/${m}/${y}, ${hh}:${mm}:${ss}`;
+  return d + "/" + m + "/" + y + ", " + h + ":" + mm + ":" + ss + " " + ampm;
 }
 
 // PDF only: 12-hour clock with AM/PM (e.g. 06/08/2026, 7:22:14 PM)
@@ -2876,7 +2810,7 @@ function buildLetterAnimNode(text, entry) {
   return buildLetterDropNode(text, entry && entry.speed);
 }
 
-function buildEventDisplay(rawName, rawDate, rawType, rawAlertDays, rawKey, rawAnimation, rawAnimations) {
+function buildEventDisplay(rawName, rawDate, rawType, rawAlertDays, rawKey, rawAnimation, rawAnimations, rawPrice) {
   const eventDate = parseEventDateString(rawDate);
   if (!eventDate) return null;
   const today = getTodayMidnight();
@@ -2888,6 +2822,7 @@ function buildEventDisplay(rawName, rawDate, rawType, rawAlertDays, rawKey, rawA
   const animations = normalizeAnimationEntries(rawAnimations, rawAnimation);
 
   if (type === "elapsed") {
+    // List/Alerts card — original display only. Daily Cost / price stay in History only.
     const elapsedDays = Math.max(0, Math.round((today - eventDate) / 86400000));
     const months = Math.floor(elapsedDays / 30);
     const days = elapsedDays % 30;
@@ -3289,7 +3224,7 @@ function renderAll() {
   } catch (eHist) { console.warn("history title render skipped", eHist); }
 
   const events = getSortedEvents()
-    .map((ev) => buildEventDisplay(ev.name, ev.date, ev.type, ev.alertDays, ev.key, ev.animation, ev.animations))
+    .map((ev) => buildEventDisplay(ev.name, ev.date, ev.type, ev.alertDays, ev.key, ev.animation, ev.animations, ev.price))
     .filter(Boolean);
 
   setLabelIfChanged(document.getElementById("header-data-right"), getListCountDisplayText(events.length), getLabelAnimations("listCount"));
@@ -3428,6 +3363,11 @@ function saveNewReminder() {
   }
   if (!parseEventDateString(dateVal)) {
     alert("Please enter the Target Date in the correct format: DD/MM/YYYY (e.g. 15/08/2026)");
+    return;
+  }
+  // Price is required for every reminder (needed for Daily Cost on Gas Cylinder and history).
+  if (!priceVal) {
+    alert("Please add the Price first before saving.");
     return;
   }
   if (!eventsRef) {
@@ -4324,7 +4264,7 @@ function renderAnimControlList() {
   };
 
   const events = getSortedEvents()
-    .map((ev) => buildEventDisplay(ev.name, ev.date, ev.type, ev.alertDays, ev.key, ev.animation, ev.animations))
+    .map((ev) => buildEventDisplay(ev.name, ev.date, ev.type, ev.alertDays, ev.key, ev.animation, ev.animations, ev.price))
     .filter(Boolean);
 
   if (showAlerts) {
