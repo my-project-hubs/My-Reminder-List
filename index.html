@@ -392,6 +392,27 @@
     margin-top: 8px;
     position: relative;
   }
+  .history-pdf-bar-right { display: flex; align-items: center; justify-content: flex-end; position: relative; margin-left: auto; }
+  .history-graph-btn {
+    flex: none;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #a855f7, #ec4899, #f59e0b);
+    color: #ffffff;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(168,85,247,0.45);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    margin-right: auto;
+  }
+  .history-graph-btn.visible { display: inline-flex; }
+  .history-graph-btn:active { transform: scale(0.92); }
+  .history-graph-btn svg { width: 20px; height: 20px; flex: none; }
   .history-pdf-btn {
     flex: none;
     display: inline-flex;
@@ -410,6 +431,100 @@
   }
   .history-pdf-btn:active { transform: scale(0.92); }
   .history-pdf-btn svg { width: 20px; height: 20px; flex: none; }
+  #historyGraphOverlay { align-items: center; }
+  #historyGraphOverlay .settings-panel {
+    border-radius: 26px;
+    height: calc(100vh - 1.2in);
+    max-height: calc(100vh - 1.2in);
+    width: 94%;
+    max-width: 640px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 20px;
+    background: linear-gradient(180deg, #12121c 0%, #0a0a12 100%);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06) inset;
+  }
+  #historyGraphOverlay .settings-title { color: #f3e8ff; margin-bottom: 10px; }
+  #historyGraphOverlay .settings-title span { color: #f3e8ff; font-weight: 800; }
+  #historyGraphOverlay .settings-title button {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: #fff;
+  }
+  .graph-year-tabs {
+    display: flex; gap: 6px; justify-content: center;
+    background: rgba(255,255,255,0.06); padding: 5px; border-radius: 999px; margin: 0 0 18px;
+  }
+  .graph-year-tab {
+    flex: 1; padding: 10px 8px; border: none; border-radius: 999px; background: transparent;
+    color: #9ca3af; font-size: 14px; font-weight: 700; cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .graph-year-tab.selected {
+    background: linear-gradient(135deg, #4d94ff, #0052cc); color: #ffffff;
+    box-shadow: 0 4px 14px rgba(0,82,204,0.4);
+  }
+  .graph-chart-wrap { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 8px 6px 12px; }
+  .graph-bars-row {
+    display: flex; align-items: flex-end; justify-content: center; gap: 14px;
+    min-height: 220px; padding: 12px 4px 8px; perspective: 600px;
+  }
+  .graph-bar-col {
+    flex: 1; max-width: 88px; display: flex; flex-direction: column; align-items: center;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .graph-bar-track { width: 100%; height: 180px; display: flex; align-items: flex-end; justify-content: center; }
+  .graph-bar {
+    width: 72%; max-width: 56px; min-height: 8px; border-radius: 12px 12px 6px 6px;
+    background: linear-gradient(180deg, #f59e0b 0%, #ec4899 45%, #7c3aed 100%);
+    box-shadow: 0 8px 20px rgba(124,58,237,0.45), inset 0 1px 0 rgba(255,255,255,0.35),
+      inset -3px 0 8px rgba(0,0,0,0.25), inset 3px 0 6px rgba(255,255,255,0.12);
+    transform: translateZ(0) scaleY(0); transform-origin: bottom center;
+    transition: transform 0.7s cubic-bezier(.22,1.2,.36,1), box-shadow 0.2s ease; position: relative;
+  }
+  .graph-bar::after {
+    content: ""; position: absolute; top: 0; left: 10%; right: 10%; height: 18%;
+    border-radius: 10px 10px 4px 4px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.45), transparent); pointer-events: none;
+  }
+  .graph-bar.grown { transform: translateZ(0) scaleY(1); }
+  .graph-bar-col:active .graph-bar {
+    box-shadow: 0 12px 28px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.45), inset -3px 0 8px rgba(0,0,0,0.2);
+  }
+  .graph-bar-meta { margin-top: 10px; text-align: center; width: 100%; }
+  .graph-bar-duration { color: #f8fafc; font-size: 12px; font-weight: 800; line-height: 1.25; letter-spacing: 0.2px; }
+  .graph-bar-daily { color: #34d399; font-size: 12px; font-weight: 700; margin-top: 4px; line-height: 1.2; }
+  .graph-empty { color: #9ca3af; text-align: center; font-size: 16px; padding: 48px 12px; }
+  #graphBarDetailPopup {
+    display: none; position: fixed; inset: 0; z-index: 50; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.55); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+  }
+  #graphBarDetailPopup.open { display: flex; }
+  .graph-bar-detail-card {
+    width: 88%; max-width: 340px;
+    background: linear-gradient(180deg, #1a1a28 0%, #12121c 100%);
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 22px; padding: 22px 20px 18px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.5); color: #f8fafc;
+  }
+  .graph-bar-detail-card h3 {
+    font-size: 15px; font-weight: 800; color: #c4b5fd; text-transform: uppercase;
+    letter-spacing: 0.6px; margin: 0 0 14px;
+  }
+  .graph-bar-detail-row {
+    display: flex; justify-content: space-between; gap: 12px; padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 16px; font-weight: 600;
+  }
+  .graph-bar-detail-row:last-of-type { border-bottom: none; }
+  .graph-bar-detail-row .lbl { color: #9ca3af; font-weight: 600; }
+  .graph-bar-detail-row .val { color: #f8fafc; font-weight: 800; text-align: right; }
+  .graph-bar-detail-row .val.mint { color: #34d399; }
+  .graph-bar-detail-close {
+    display: block; width: 100%; margin-top: 16px; border: none; border-radius: 14px;
+    padding: 13px; font-size: 16px; font-weight: 800; cursor: pointer; color: #fff;
+    background: linear-gradient(135deg, #a855f7, #ec4899); box-shadow: 0 4px 14px rgba(168,85,247,0.4);
+  }
+  .graph-bar-detail-close:active { transform: scale(0.97); }
   /* Year picker popup (opens from PDF button) */
   .history-pdf-year-popup {
     position: absolute;
@@ -1638,18 +1753,43 @@
     <div class="settings-title"><span id="historyDetailTitle"></span><button onclick="closeHistoryDetail()">✕</button></div>
     <div id="historyDetailBody"></div>
     <div class="history-pdf-bar">
-      <div class="history-pdf-year-popup" id="historyPdfYearPopup">
-        <div class="pdf-popup-title">Select period</div>
-        <button type="button" class="pdf-year-option selected" data-years="1" onclick="pickPdfYearOption(1)">1 Year</button>
-        <button type="button" class="pdf-year-option" data-years="2" onclick="pickPdfYearOption(2)">2 Years</button>
-        <button type="button" class="pdf-year-option" data-years="3" onclick="pickPdfYearOption(3)">3 Years</button>
-        <button type="button" class="pdf-popup-ok" onclick="confirmPdfYearAndDownload()">OK</button>
-      </div>
-      <button type="button" class="history-pdf-btn" id="historyPdfDownloadBtn" onclick="openPdfYearPopup()" title="Download PDF">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+      <button type="button" class="history-graph-btn" id="historyGraphBtn" onclick="openHistoryGraph()" title="Graph">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="6" y1="20" x2="6" y2="13"></line>
+          <line x1="12" y1="20" x2="12" y2="8"></line>
+          <line x1="18" y1="20" x2="18" y2="4"></line>
+        </svg>
       </button>
+      <div class="history-pdf-bar-right">
+        <div class="history-pdf-year-popup" id="historyPdfYearPopup">
+          <div class="pdf-popup-title">Select period</div>
+          <button type="button" class="pdf-year-option selected" data-years="1" onclick="pickPdfYearOption(1)">1 Year</button>
+          <button type="button" class="pdf-year-option" data-years="2" onclick="pickPdfYearOption(2)">2 Years</button>
+          <button type="button" class="pdf-year-option" data-years="3" onclick="pickPdfYearOption(3)">3 Years</button>
+          <button type="button" class="pdf-popup-ok" onclick="confirmPdfYearAndDownload()">OK</button>
+        </div>
+        <button type="button" class="history-pdf-btn" id="historyPdfDownloadBtn" onclick="openPdfYearPopup()" title="Download PDF">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        </button>
+      </div>
     </div>
   </div>
+</div>
+
+<div id="historyGraphOverlay" class="settings-overlay">
+  <div class="settings-panel">
+    <div class="settings-title"><span id="historyGraphTitle">Graph</span><button type="button" onclick="closeHistoryGraph()">✕</button></div>
+    <div class="graph-year-tabs">
+      <button type="button" class="graph-year-tab selected" data-years="1" onclick="setGraphYears(1)">1 Year</button>
+      <button type="button" class="graph-year-tab" data-years="2" onclick="setGraphYears(2)">2 Years</button>
+      <button type="button" class="graph-year-tab" data-years="3" onclick="setGraphYears(3)">3 Years</button>
+    </div>
+    <div class="graph-chart-wrap" id="historyGraphBody"></div>
+  </div>
+</div>
+
+<div id="graphBarDetailPopup">
+  <div class="graph-bar-detail-card" id="graphBarDetailCard"></div>
 </div>
 
 <div id="addReminderOverlay" class="settings-overlay">
@@ -1760,22 +1900,36 @@ function formatDailyCostText(priceNum, daysCount) {
   return "Daily Cost ₹ " + text;
 }
 
-function logDateHistory(reminderKey, reminderName, oldDate, newDate) {
+function logDateHistory(reminderKey, reminderName, oldDate, newDate, completedPrice) {
   if (!dateHistoryRef || oldDate === newDate) return;
   const oldDt = parseEventDateString(oldDate);
   const newDt = parseEventDateString(newDate);
   const daysDiff = daysBetweenInclusive(oldDt, newDt);
-  dateHistoryRef.push({
+  const entry = {
     key: reminderKey,
     name: reminderName,
     oldDate: oldDate,
     newDate: newDate,
     daysDiff: daysDiff,
     changedAt: Date.now()
-  }).then(() => {
-    refreshHistoryMeta(true);
-    // New history was just written → start List page pulse icon immediately
-    try { if (typeof forceNewHistoryPulse === "function") forceNewHistoryPulse(); } catch (e) {}
+  };
+  // Price of the cylinder that just finished (for Graph Daily Cost)
+  if (completedPrice !== undefined && completedPrice !== null && String(completedPrice).trim() !== "") {
+    entry.price = String(completedPrice).trim();
+  }
+  dateHistoryRef.push(entry).then(() => {
+    // Update meta then start blink with correct timestamp
+    if (!dateHistoryRef) {
+      try { if (typeof forceNewHistoryPulse === "function") forceNewHistoryPulse(); } catch (e) {}
+      return;
+    }
+    dateHistoryRef.once("value", (snapshot) => {
+      rebuildHistoryMetaCache(snapshot);
+      try { if (typeof forceNewHistoryPulse === "function") forceNewHistoryPulse(); } catch (e) {}
+      renderHistoryList();
+    }, () => {
+      try { if (typeof forceNewHistoryPulse === "function") forceNewHistoryPulse(); } catch (e) {}
+    });
   }).catch((err) => {
     console.error("Date history save failed:", err);
   });
@@ -1845,6 +1999,7 @@ function rebuildHistoryMetaCache(snapshot) {
 function refreshHistoryMeta(thenRender) {
   if (!dateHistoryRef) {
     historyMetaCache = { byKey: {}, byName: {} };
+    try { if (typeof checkNewHistoryPulse === "function") checkNewHistoryPulse(); } catch (e) {}
     if (thenRender) renderHistoryList();
     return;
   }
@@ -1852,6 +2007,7 @@ function refreshHistoryMeta(thenRender) {
     rebuildHistoryMetaCache(snapshot);
     if (thenRender) renderHistoryList();
   }, () => {
+    try { if (typeof checkNewHistoryPulse === "function") checkNewHistoryPulse(); } catch (e) {}
     if (thenRender) renderHistoryList();
   });
 }
@@ -1920,13 +2076,19 @@ function renderHistoryList() {
 let currentHistoryDetail = { key: null, name: null, items: [] };
 
 function openHistoryDetail(key, name) {
-  // User is actually checking history → clear the blinking icon (Firebase + UI)
-  try { if (typeof markHistoryPulseSeen === "function") markHistoryPulseSeen(); } catch (e) {}
+  // Stop blink only if THIS reminder has the new unseen history
+  try { if (typeof markHistoryPulseSeenIfUnseen === "function") markHistoryPulseSeenIfUnseen(key, name); } catch (e) {}
   currentHistoryDetail = { key: key || null, name: name || null, items: [] };
   document.getElementById("historyDetailTitle").textContent = (name ? name + " (History)" : "History");
   const body = document.getElementById("historyDetailBody");
   body.innerHTML = '<div class="loading">Loading...</div>';
   syncPdfYearUI();
+  // Graph button only for Gas Cylinder
+  const graphBtn = document.getElementById("historyGraphBtn");
+  if (graphBtn) {
+    const isGas = (name || "").trim().toLowerCase() === "gas cylinder";
+    graphBtn.classList.toggle("visible", isGas);
+  }
   document.getElementById("historyDetailOverlay").classList.add("open");
   if (!dateHistoryRef) {
     body.innerHTML = '<div class="empty-state">No History</div>';
@@ -2127,7 +2289,39 @@ function deleteHistoryEntry(btnEl) {
     if (!body.querySelector(".history-entry")) {
       body.innerHTML = '<div class="empty-state">No History</div>';
     }
-    refreshHistoryMeta(true);
+    const delKey = (typeof currentHistoryDetail !== "undefined" && currentHistoryDetail) ? currentHistoryDetail.key : null;
+    const delName = (typeof currentHistoryDetail !== "undefined" && currentHistoryDetail) ? currentHistoryDetail.name : null;
+    // Rebuild cache inline (without rebuildHistoryMetaCache's checkNewHistoryPulse)
+    // then stop blink for the deleted new history — must run before any startPulse.
+    dateHistoryRef.once("value", (snapshot) => {
+      const byKey = {};
+      const byName = {};
+      const bump = (map, id, t) => {
+        if (!id) return;
+        if (!map[id]) map[id] = { count: 0, latestAt: 0 };
+        map[id].count += 1;
+        if (t > map[id].latestAt) map[id].latestAt = t;
+      };
+      if (snapshot) {
+        snapshot.forEach((child) => {
+          const v = child.val();
+          if (!v) return;
+          const t = v.changedAt || 0;
+          if (v.key) bump(byKey, v.key, t);
+          if (v.name) bump(byName, v.name, t);
+        });
+      }
+      historyMetaCache = { byKey: byKey, byName: byName };
+      try {
+        if (typeof afterHistoryEntryDeleted === "function") afterHistoryEntryDeleted(delKey, delName);
+        else if (typeof checkNewHistoryPulse === "function") checkNewHistoryPulse();
+      } catch (e) {}
+      renderHistoryList();
+    }, () => {
+      try {
+        if (typeof afterHistoryEntryDeleted === "function") afterHistoryEntryDeleted(delKey, delName);
+      } catch (e) {}
+    });
   }).catch((err) => {
     alert("Delete nahi ho paya.\n\nReason: " + ((err && err.message) ? err.message : "unknown error"));
   });
@@ -2136,7 +2330,182 @@ function deleteHistoryEntry(btnEl) {
 function closeHistoryDetail() {
   document.getElementById("historyDetailOverlay").classList.remove("open");
   currentHistoryDetail = { key: null, name: null, items: [] };
+  try { closeHistoryGraph(); } catch (e) {}
+  try { closeGraphBarDetail(); } catch (e) {}
 }
+
+// =============================================================================
+// GAS CYLINDER GRAPH — vertical bars only. Does not change History list / PDF / recharge.
+// =============================================================================
+let graphYearsChoice = 1;
+let graphBarDataCache = [];
+
+function formatGraphDuration(daysCount) {
+  const n = Math.max(0, Math.abs(Number(daysCount) || 0));
+  const months = Math.floor(n / 30);
+  const days = n % 30;
+  if (months === 0) return days + " Days";
+  if (days === 0) return months + "M";
+  return months + "M-" + days + "D";
+}
+
+function formatGraphDurationFull(daysCount) {
+  const n = Math.max(0, Math.abs(Number(daysCount) || 0));
+  const months = Math.floor(n / 30);
+  const days = n % 30;
+  if (months === 0) return days + " Days";
+  if (days === 0) return months + (months === 1 ? " Month" : " Months");
+  return months + (months === 1 ? " Month" : " Months") + " - " + days + (days === 1 ? " Day" : " Days");
+}
+
+function getLivePriceForCurrentHistory() {
+  try {
+    const key = currentHistoryDetail && currentHistoryDetail.key;
+    const name = currentHistoryDetail && currentHistoryDetail.name;
+    const live = (typeof latestRawEvents !== "undefined" && Array.isArray(latestRawEvents))
+      ? latestRawEvents.find((ev) => (key && ev.key === key) || (name && ev.name === name))
+      : null;
+    if (live && live.price !== undefined && live.price !== null && String(live.price).trim() !== "") {
+      return String(live.price).trim();
+    }
+  } catch (e) {}
+  return "";
+}
+
+function buildGraphBarEntries(items, years) {
+  const { filtered } = filterHistoryItemsForPdfYears(items || [], years);
+  const sorted = filtered.slice().sort((a, b) => {
+    const ta = a.changedAt || 0;
+    const tb = b.changedAt || 0;
+    if (ta !== tb) return ta - tb;
+    const da = parseEventDateString(a.newDate);
+    const db = parseEventDateString(b.newDate);
+    return (da ? da.getTime() : 0) - (db ? db.getTime() : 0);
+  });
+  const livePrice = getLivePriceForCurrentHistory();
+  const bars = [];
+  sorted.forEach((e) => {
+    let oldDt = parseEventDateString(e.oldDate);
+    let newDt = parseEventDateString(e.newDate);
+    if (!oldDt || !newDt) return;
+    if (oldDt.getTime() > newDt.getTime()) {
+      const tmp = oldDt; oldDt = newDt; newDt = tmp;
+    }
+    const days = daysGasCylinderLasted(oldDt, newDt, false);
+    if (days === null || days === undefined || days <= 0) return;
+    const priceRaw = (e.price !== undefined && e.price !== null && String(e.price).trim() !== "")
+      ? String(e.price).trim()
+      : livePrice;
+    const priceNum = parsePriceNumber(priceRaw);
+    const daily = (priceNum != null && days > 0) ? (Math.round((priceNum / days) * 100) / 100) : null;
+    bars.push({
+      oldDate: formatDisplayDate(oldDt),
+      newDate: formatDisplayDate(newDt),
+      days: days,
+      priceText: priceRaw,
+      priceNum: priceNum,
+      daily: daily
+    });
+  });
+  return bars;
+}
+
+function setGraphYears(years) {
+  const y = (years === 2 || years === 3) ? years : 1;
+  graphYearsChoice = y;
+  document.querySelectorAll("#historyGraphOverlay .graph-year-tab").forEach((btn) => {
+    btn.classList.toggle("selected", Number(btn.getAttribute("data-years")) === y);
+  });
+  renderHistoryGraph();
+}
+
+function openHistoryGraph() {
+  const name = (currentHistoryDetail && currentHistoryDetail.name) || "";
+  if (name.trim().toLowerCase() !== "gas cylinder") return;
+  graphYearsChoice = getPdfHistoryYears();
+  document.querySelectorAll("#historyGraphOverlay .graph-year-tab").forEach((btn) => {
+    btn.classList.toggle("selected", Number(btn.getAttribute("data-years")) === graphYearsChoice);
+  });
+  const titleEl = document.getElementById("historyGraphTitle");
+  if (titleEl) titleEl.textContent = "Gas Cylinder — Graph";
+  document.getElementById("historyGraphOverlay").classList.add("open");
+  renderHistoryGraph();
+}
+
+function closeHistoryGraph() {
+  const el = document.getElementById("historyGraphOverlay");
+  if (el) el.classList.remove("open");
+  closeGraphBarDetail();
+}
+
+function renderHistoryGraph() {
+  const body = document.getElementById("historyGraphBody");
+  if (!body) return;
+  const items = (currentHistoryDetail && currentHistoryDetail.items) || [];
+  const bars = buildGraphBarEntries(items, graphYearsChoice);
+  graphBarDataCache = bars;
+  if (!bars.length) {
+    body.innerHTML = '<div class="graph-empty">No data for graph</div>';
+    return;
+  }
+  const maxDays = Math.max.apply(null, bars.map((b) => b.days)) || 1;
+  const cols = bars.map((b, idx) => {
+    const pct = Math.max(8, Math.round((b.days / maxDays) * 100));
+    const dailyTxt = (b.daily != null) ? ("₹" + b.daily.toFixed(2)) : "—";
+    return (
+      '<div class="graph-bar-col" data-graph-idx="' + idx + '" onclick="openGraphBarDetail(' + idx + ')">' +
+        '<div class="graph-bar-track">' +
+          '<div class="graph-bar" style="height:' + pct + '%;"></div>' +
+        '</div>' +
+        '<div class="graph-bar-meta">' +
+          '<div class="graph-bar-duration">' + escapeHtml(formatGraphDuration(b.days)) + '</div>' +
+          '<div class="graph-bar-daily">' + escapeHtml(dailyTxt) + '</div>' +
+        '</div>' +
+      '</div>'
+    );
+  }).join("");
+  body.innerHTML = '<div class="graph-bars-row">' + cols + '</div>';
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      body.querySelectorAll(".graph-bar").forEach((bar, i) => {
+        setTimeout(() => { bar.classList.add("grown"); }, i * 90);
+      });
+    });
+  });
+}
+
+function openGraphBarDetail(idx) {
+  const b = graphBarDataCache[idx];
+  const popup = document.getElementById("graphBarDetailPopup");
+  const card = document.getElementById("graphBarDetailCard");
+  if (!b || !popup || !card) return;
+  const priceDisp = b.priceText
+    ? (/₹|rs\.?|inr/i.test(b.priceText) ? b.priceText : ("₹ " + b.priceText))
+    : "—";
+  const dailyDisp = (b.daily != null) ? ("₹ " + b.daily.toFixed(2)) : "—";
+  card.innerHTML =
+    '<h3>Cylinder Detail</h3>' +
+    '<div class="graph-bar-detail-row"><span class="lbl">Period</span><span class="val">' + escapeHtml(b.oldDate + " → " + b.newDate) + '</span></div>' +
+    '<div class="graph-bar-detail-row"><span class="lbl">Duration</span><span class="val">' + escapeHtml(formatGraphDurationFull(b.days)) + '</span></div>' +
+    '<div class="graph-bar-detail-row"><span class="lbl">Total Price</span><span class="val">' + escapeHtml(priceDisp) + '</span></div>' +
+    '<div class="graph-bar-detail-row"><span class="lbl">Daily Cost</span><span class="val mint">' + escapeHtml(dailyDisp) + '</span></div>' +
+    '<button type="button" class="graph-bar-detail-close" onclick="closeGraphBarDetail()">Close</button>';
+  popup.classList.add("open");
+}
+
+function closeGraphBarDetail() {
+  const popup = document.getElementById("graphBarDetailPopup");
+  if (popup) popup.classList.remove("open");
+}
+
+document.addEventListener("click", (ev) => {
+  const popup = document.getElementById("graphBarDetailPopup");
+  if (!popup || !popup.classList.contains("open")) return;
+  const card = document.getElementById("graphBarDetailCard");
+  if (card && card.contains(ev.target)) return;
+  if (ev.target.closest && ev.target.closest(".graph-bar-col")) return;
+  closeGraphBarDetail();
+});
 
 // PDF range: only full years (1, 2 or 3). Never months.
 let pdfYearPopupChoice = 1;
@@ -3496,7 +3865,7 @@ function saveNewReminder() {
     // Log the target-date change (if any) before overwriting the old value.
     const existingEvent = latestRawEvents.find((ev) => ev.key === editingReminderKey);
     if (existingEvent && existingEvent.date !== dateVal) {
-      logDateHistory(editingReminderKey, name, existingEvent.date, dateVal);
+      logDateHistory(editingReminderKey, name, existingEvent.date, dateVal, existingEvent.price);
     }
     action = eventsRef.child(editingReminderKey).update(newEvent);
   } else {
@@ -3691,10 +4060,14 @@ setInterval(renderAll, 60000);
     });
   }
 
-  // History pulse: stays ON until user opens History page. Nothing else may clear it.
+  // History pulse: blink while there is NEW unseen history.
+  // Stops when: (1) that new history is opened, (2) that history is deleted, (3) no history left.
+  // Opening OLD history must NOT stop the blink.
   let pulseActive = false;
-  let pulsePending = false; // in-memory lock (survives async races; localStorage backs it)
+  let pulsePending = false;
   try { pulsePending = localStorage.getItem("histPulsePending") === "1"; } catch (e) {}
+  let pulseTriggeredAt = 0;
+  try { pulseTriggeredAt = Number(localStorage.getItem("histPulseTriggeredAt")) || 0; } catch (e) {}
   function histPulseWraps() {
     return ["histPulseWrap", "histPulseWrapAlerts"]
       .map((id) => document.getElementById(id))
@@ -3709,7 +4082,6 @@ setInterval(renderAll, 60000);
     syncListOverlayIcons();
   }
   function stopPulse() {
-    // Only markHistoryPulseSeen() should call this (after clearing pulsePending).
     pulseActive = false;
     histPulseWraps().forEach((wrap) => {
       wrap.classList.remove("on");
@@ -3728,6 +4100,24 @@ setInterval(renderAll, 60000);
   function getLatestHistoryAt() {
     let maxAt = 0;
     const cache = (typeof historyMetaCache !== "undefined") ? historyMetaCache : { byKey: {}, byName: {} };
+    // Only count history for reminders that still exist on the List page.
+    // Orphan history of deleted reminders must not keep the blink on.
+    let events = [];
+    try {
+      if (typeof getSortedEvents === "function") events = getSortedEvents() || [];
+    } catch (e) {}
+    if (events.length > 0) {
+      events.forEach((ev) => {
+        let t = 0;
+        if (ev.key && cache.byKey && cache.byKey[ev.key]) t = cache.byKey[ev.key].latestAt || 0;
+        if (ev.name && cache.byName && cache.byName[ev.name]) {
+          const t2 = cache.byName[ev.name].latestAt || 0;
+          if (t2 > t) t = t2;
+        }
+        if (t > maxAt) maxAt = t;
+      });
+      return maxAt;
+    }
     Object.keys(cache.byKey || {}).forEach((k) => {
       const t = (cache.byKey[k] && cache.byKey[k].latestAt) || 0;
       if (t > maxAt) maxAt = t;
@@ -3738,8 +4128,6 @@ setInterval(renderAll, 60000);
     });
     return maxAt;
   }
-  // Persist pulse lock in Firebase (/settings/histPulse) so it survives refresh / devices.
-  // localStorage is only a fast local mirror.
   let histPulseSeenAt = 0;
   try { histPulseSeenAt = Number(localStorage.getItem("histPulseSeenAt")) || 0; } catch (e) {}
   function persistHistPulseToFirebase() {
@@ -3747,7 +4135,8 @@ setInterval(renderAll, 60000);
       if (typeof settingsRef !== "undefined" && settingsRef) {
         settingsRef.child("histPulse").update({
           pending: pulsePending ? 1 : 0,
-          seenAt: histPulseSeenAt || 0
+          seenAt: histPulseSeenAt || 0,
+          triggeredAt: pulseTriggeredAt || 0
         });
       }
     } catch (e) {}
@@ -3755,62 +4144,179 @@ setInterval(renderAll, 60000);
       if (pulsePending) localStorage.setItem("histPulsePending", "1");
       else localStorage.removeItem("histPulsePending");
       localStorage.setItem("histPulseSeenAt", String(histPulseSeenAt || 0));
+      localStorage.setItem("histPulseTriggeredAt", String(pulseTriggeredAt || 0));
     } catch (e) {}
   }
+  // After local clear (delete / open), ignore stale Firebase pending=1 briefly
+  let ignoreFirebasePendingUntil = 0;
   window.applyHistPulseFromFirebase = function(hp) {
-    // Firebase restores pending across reload/devices.
-    // CRITICAL: never STOP pulse from a snapshot — old/partial settings
-    // events were clearing the icon after a few seconds. Only markHistoryPulseSeen stops it.
     if (!hp || typeof hp !== "object") return;
-    if (typeof hp.seenAt === "number" && hp.seenAt >= 0) histPulseSeenAt = hp.seenAt;
-    if (hp.pending === 1 || hp.pending === true) {
-      pulsePending = true;
-      try { localStorage.setItem("histPulsePending", "1"); } catch (e) {}
-      startPulse();
+    // Never let Firebase LOWER seenAt (stale snapshot would re-enable blink)
+    if (typeof hp.seenAt === "number" && hp.seenAt > (histPulseSeenAt || 0)) {
+      histPulseSeenAt = hp.seenAt;
     }
-  }
+    if (typeof hp.triggeredAt === "number" && hp.triggeredAt >= 0 && !pulseTriggeredAt) {
+      pulseTriggeredAt = hp.triggeredAt;
+    }
+    if (hp.pending === 1 || hp.pending === true) {
+      // Ignore stale pending right after user deleted / opened history
+      if (Date.now() < ignoreFirebasePendingUntil) {
+        return;
+      }
+      const maxAt = getLatestHistoryAt();
+      if (maxAt && maxAt > (histPulseSeenAt || 0)) {
+        pulsePending = true;
+        try { localStorage.setItem("histPulsePending", "1"); } catch (e) {}
+        startPulse();
+      } else {
+        // Nothing unseen — do not restart blink
+        pulsePending = false;
+        pulseTriggeredAt = 0;
+        stopPulse();
+      }
+    } else if (hp.pending === 0 || hp.pending === false) {
+      pulsePending = false;
+      pulseTriggeredAt = 0;
+      stopPulse();
+    }
+  };
   window.forceNewHistoryPulse = function() {
-    // New history saved → lock blink ON in Firebase until History page is opened.
-    pulsePending = true;
     const maxAt = getLatestHistoryAt() || Date.now();
-    // seenAt stays behind so check still knows there is unseen history
-    if (!histPulseSeenAt) histPulseSeenAt = 0;
+    // Baseline: everything older than this new entry is "seen"
+    if (!histPulseSeenAt) histPulseSeenAt = Math.max(0, maxAt - 1);
+    pulseTriggeredAt = maxAt;
+    pulsePending = true;
     persistHistPulseToFirebase();
     startPulse();
   };
   window.markHistoryPulseSeen = function() {
-    // ONLY way to clear the icon — user opened History page. Write to Firebase permanently.
     pulsePending = false;
+    pulseTriggeredAt = 0;
     histPulseSeenAt = getLatestHistoryAt() || Date.now();
+    ignoreFirebasePendingUntil = Date.now() + 5000;
     persistHistPulseToFirebase();
     stopPulse();
   };
-  window.checkNewHistoryPulse = function() {
-    try { if (localStorage.getItem("histPulsePending") === "1") pulsePending = true; } catch (e) {}
-    if (pulsePending) {
-      startPulse();
-      return; // never auto-stop while pending
-    }
+  // Only stop blink when opening the reminder that has the NEW history
+  window.markHistoryPulseSeenIfUnseen = function(key, name) {
+    let latestAt = 0;
+    try {
+      if (typeof getHistoryMetaForReminder === "function") {
+        const meta = getHistoryMetaForReminder(key, name);
+        latestAt = (meta && meta.latestAt) || 0;
+      }
+    } catch (e) {}
+    if (!latestAt) return;
+    const triggered = pulseTriggeredAt || 0;
+    const seen = histPulseSeenAt || 0;
+    const globalMax = getLatestHistoryAt() || 0;
+    // New if: matches trigger, OR newer than seen, OR this reminder holds the global newest unseen
+    const isNew = (triggered && latestAt >= triggered) ||
+      (seen && latestAt > seen) ||
+      (!seen && triggered && latestAt >= triggered) ||
+      (globalMax && latestAt >= globalMax && latestAt > (seen || 0));
+    if (!isNew) return; // old history — keep blinking
+    markHistoryPulseSeen();
+  };
+  // Called after a history entry is deleted. Stops blink when the new/trigger
+  // history is gone — without needing a page switch.
+  window.afterHistoryEntryDeleted = function(key, name) {
     const maxAt = getLatestHistoryAt();
+    let latestAt = 0;
+    try {
+      if (typeof getHistoryMetaForReminder === "function") {
+        const meta = getHistoryMetaForReminder(key, name);
+        latestAt = (meta && meta.latestAt) || 0;
+      }
+    } catch (e) {}
+    const triggered = pulseTriggeredAt || 0;
+    const seen = histPulseSeenAt || 0;
+    // Stop if: no history left, this reminder has no more new history,
+    // global max fell below trigger, or everything is already seen.
+    // Also stop when pulse is on and this reminder no longer holds the global newest.
+    const shouldStop =
+      !maxAt ||
+      !latestAt ||
+      (triggered && maxAt < triggered) ||
+      (triggered && latestAt < triggered) ||
+      (seen && maxAt <= seen) ||
+      ((pulseActive || pulsePending) && maxAt && latestAt < maxAt && triggered && latestAt < triggered) ||
+      ((pulseActive || pulsePending) && !triggered && maxAt && latestAt < maxAt);
+    if (shouldStop) {
+      pulsePending = false;
+      pulseTriggeredAt = 0;
+      histPulseSeenAt = maxAt || seen || Date.now();
+      ignoreFirebasePendingUntil = Date.now() + 5000;
+      try { localStorage.removeItem("histPulsePending"); } catch (e) {}
+      persistHistPulseToFirebase();
+      stopPulse();
+      return;
+    }
+    // Still unseen history elsewhere — keep / refresh blink state
+    try { if (typeof checkNewHistoryPulse === "function") checkNewHistoryPulse(); } catch (e) {}
+  };
+  window.checkNewHistoryPulse = function() {
     if (!histPulseSeenAt) {
       try {
         const s = localStorage.getItem("histPulseSeenAt");
         if (s !== null) histPulseSeenAt = Number(s) || 0;
       } catch (e) {}
     }
-    if (!histPulseSeenAt && maxAt) {
-      // First run baseline — do not blink for old history; save baseline to Firebase
-      histPulseSeenAt = maxAt;
+    try {
+      const t = localStorage.getItem("histPulseTriggeredAt");
+      if (t !== null && !pulseTriggeredAt) pulseTriggeredAt = Number(t) || 0;
+    } catch (e) {}
+    const maxAt = getLatestHistoryAt();
+
+    // No history left → stop
+    if (!maxAt) {
       pulsePending = false;
+      pulseTriggeredAt = 0;
       persistHistPulseToFirebase();
+      stopPulse();
+      return;
+    }
+
+    // The history that triggered the blink was deleted (maxAt fell below trigger)
+    if (pulsePending && pulseTriggeredAt && maxAt < pulseTriggeredAt) {
+      pulsePending = false;
+      pulseTriggeredAt = 0;
+      histPulseSeenAt = maxAt; // remaining history is now seen baseline
+      persistHistPulseToFirebase();
+      stopPulse();
+      return;
+    }
+
+    // All history already seen → stop
+    if (histPulseSeenAt && maxAt <= histPulseSeenAt) {
+      pulsePending = false;
+      pulseTriggeredAt = 0;
+      persistHistPulseToFirebase();
+      stopPulse();
+      return;
+    }
+
+    // First-run baseline when not pending
+    if (!histPulseSeenAt && !pulsePending) {
+      histPulseSeenAt = maxAt;
+      pulseTriggeredAt = 0;
+      persistHistPulseToFirebase();
+      stopPulse();
+      return;
+    }
+
+    // Unseen history exists
+    try { if (localStorage.getItem("histPulsePending") === "1") pulsePending = true; } catch (e) {}
+    if (pulsePending) {
+      startPulse();
       return;
     }
     if (maxAt > (histPulseSeenAt || 0)) {
       pulsePending = true;
+      pulseTriggeredAt = maxAt;
       persistHistPulseToFirebase();
       startPulse();
     }
-    // no auto-stop — only markHistoryPulseSeen()
   };
   window.syncListOverlayIcons = function() {
     let page = "alerts";
@@ -3831,8 +4337,11 @@ setInterval(renderAll, 60000);
         hist.style.setProperty("visibility", "visible", "important");
         hist.style.setProperty("opacity", "1", "important");
       } else {
-        hist.classList.remove("on");
-        hist.style.display = "none";
+        // Must use setProperty(..., "important") to override the show styles above
+        hist.classList.remove("on", "pulse-blinking");
+        hist.style.setProperty("display", "none", "important");
+        hist.style.setProperty("visibility", "hidden", "important");
+        hist.style.setProperty("opacity", "0", "important");
       }
     }
     // Alerts page icon — own position (--hist-pulse-alerts-x/y)
@@ -3846,14 +4355,17 @@ setInterval(renderAll, 60000);
         histA.style.setProperty("visibility", "visible", "important");
         histA.style.setProperty("opacity", "1", "important");
       } else {
-        histA.classList.remove("on");
-        histA.style.display = "none";
+        // Must use setProperty(..., "important") to override the show styles above
+        histA.classList.remove("on", "pulse-blinking");
+        histA.style.setProperty("display", "none", "important");
+        histA.style.setProperty("visibility", "hidden", "important");
+        histA.style.setProperty("opacity", "0", "important");
       }
     }
     const ap = document.getElementById("alertsHistPulse");
     if (ap) {
       ap.classList.remove("on", "pulse-blinking");
-      ap.style.display = "none";
+      ap.style.setProperty("display", "none", "important");
     }
   };
 
@@ -3896,13 +4408,12 @@ setInterval(renderAll, 60000);
       if (ap) ap.addEventListener("click", openAlertsHistPopup);
     })();
     syncListOverlayIcons();
-    try { if (typeof refreshHistoryMeta === "function") refreshHistoryMeta(false); } catch (e) {}
-    // Restore pulse from Firebase if settings already in memory / local mirror
+    // Load history meta first, then decide pulse (never start blink if no history)
     try {
-      if (pulsePending) startPulse();
-      else if (localStorage.getItem("histPulsePending") === "1") {
-        pulsePending = true;
-        startPulse();
+      if (typeof refreshHistoryMeta === "function") {
+        refreshHistoryMeta(false);
+      } else if (typeof checkNewHistoryPulse === "function") {
+        checkNewHistoryPulse();
       }
     } catch (e) {}
     setInterval(syncListOverlayIcons, 800);
