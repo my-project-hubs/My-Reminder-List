@@ -3352,9 +3352,11 @@ function showPage(name) {
   document.getElementById("page-alerts").classList.toggle("active", name === "alerts");
   document.getElementById("page-data").classList.toggle("active", name === "data");
   document.getElementById("page-history").classList.toggle("active", name === "history");
-  // Persist whichever page is active — including History — so a refresh
-  // (or reopening the app) returns to exactly the page the user was on.
-  try { localStorage.setItem("activePage", name); } catch (e) {}
+  // Persist active page in sessionStorage only:
+  // - same tab refresh keeps the current page
+  // - full browser/tab close clears sessionStorage → next open always starts on Alerts
+  try { sessionStorage.setItem("activePage", name); } catch (e) {}
+  try { localStorage.removeItem("activePage"); } catch (e) {}
   // History now has its own font-settings container (like Alert/List do),
   // kept in sync automatically — see cloudSettings.history and the
   // applyFontSettingsToContainer("page-history", ...) calls elsewhere.
@@ -5367,8 +5369,10 @@ function deleteLabel(key) {
 })();
 
 let savedPage = null;
-try { savedPage = localStorage.getItem("activePage"); } catch (e) {}
-if (!savedPage) { try { savedPage = sessionStorage.getItem("activePage"); } catch (e) {} } // one-time migration from the old storage
+// sessionStorage survives refresh but is cleared when the tab/browser is fully closed.
+// So reopen after close always lands on Alerts; in-session refresh keeps the current page.
+try { savedPage = sessionStorage.getItem("activePage"); } catch (e) {}
+try { localStorage.removeItem("activePage"); } catch (e) {} // drop old localStorage so it never overrides
 if (savedPage !== "data" && savedPage !== "history") savedPage = "alerts";
 if (savedPage === "history") pageBeforeHistory = "alerts";
 showPage(savedPage);
