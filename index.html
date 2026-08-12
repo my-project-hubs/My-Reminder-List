@@ -1,0 +1,2627 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Alert | Reminder | History | Hide</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+
+    .slider {
+      display: flex;
+      width: 400%;
+      height: 100%;
+      transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+      will-change: transform;
+    }
+
+    .page {
+      width: 25%;
+      height: 100%;
+      position: relative;
+      background: #000;
+      flex-shrink: 0;
+    }
+
+    .page-name {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2.8rem;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 2px;
+      opacity: 0.9;
+    }
+
+    /* Alert title starts near top (draggable / pin-able) */
+    #title-alert {
+      top: 52px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 5;
+      width: max-content;
+      max-width: 90%;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .reminder-list-container {
+      position: absolute;
+      top: 64px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      overflow-y: auto;
+      padding: 8px 14px 90px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-sizing: border-box;
+    }
+
+    .reminder-page-heading {
+      position: absolute;
+      top: 46px;
+      left: 16px;
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .reminder-list-item {
+      background: #1c2f4d;
+      border: 2px solid rgba(255, 255, 255, 0.6);
+      border-radius: 18px;
+      padding: 16px 20px;
+      position: relative;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .reminder-list-item:active {
+      transform: scale(0.98);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    }
+
+    .reminder-item-name {
+      margin-bottom: 8px;
+      word-break: break-word;
+    }
+
+    .reminder-item-dayleft {
+      margin-bottom: 6px;
+      white-space: nowrap;
+    }
+
+    .reminder-item-date {
+      opacity: 0.95;
+    }
+
+    /* Reminder page cards: pushed down a bit from the top */
+    #reminderListContainer {
+      padding-top: 40px;
+    }
+
+    /* Alert page cards: well below Today Date + Alert title */
+    #alertListContainer {
+      padding-top: 12px;
+      top: 170px;
+    }
+
+    .line-item[contenteditable="true"] {
+      outline: 1px dashed #4da3ff;
+      outline-offset: 4px;
+      cursor: text;
+    }
+
+    .reminder-list-item {
+      cursor: pointer;
+    }
+
+    .today-date {
+      position: absolute;
+      top: 18px;
+      left: 16px;
+      font-size: 0.95rem;
+      color: #aaa;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+
+    .menu-btn {
+      position: fixed;
+      top: 14px;
+      right: 56px;
+      width: 36px;
+      height: 36px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      padding: 6px;
+    }
+
+    .menu-btn span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: #fff;
+      border-radius: 1px;
+    }
+
+    .switch-page-btn {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      width: 42px;
+      height: 42px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 26px;
+      line-height: 1;
+      padding: 0;
+    }
+
+    .menu-dropdown {
+      position: fixed;
+      top: 52px;
+      right: 52px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      z-index: 201;
+      display: none;
+      min-width: 180px;
+      overflow: hidden;
+      border: 1px solid #e5e5e5;
+    }
+
+    .menu-dropdown.show { display: block; }
+
+    .menu-item {
+      padding: 14px 20px;
+      color: #222;
+      font-size: 17px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .menu-item:active { background: #f2f2f2; }
+    .menu-item + .menu-item { border-top: 1px solid #eee; }
+    .menu-item-danger { color: #e53935; }
+
+    /* ========== SETTINGS - SPACIOUS ========== */
+    /* 🔒 LOCKED LAYOUT — DO NOT MODIFY WIDTH / HEIGHT / DISPLAY VALUES BELOW.
+       settings-overlay: full width, vertically centered
+       settings-panel: 100% width (flush left/right), 68vh height (centered top/bottom)
+       Any future edit must NOT change these without explicit request. */
+    .settings-overlay {
+      position: fixed !important;
+      inset: 0 !important;
+      background: rgba(0,0,0,0.5);
+      z-index: 300;
+      display: none;
+      align-items: center !important;
+      justify-content: stretch !important;
+    }
+
+    .settings-overlay.show { display: flex !important; }
+
+    .settings-panel {
+      width: 100% !important;
+      max-width: none !important;
+      height: 68vh !important;
+      max-height: 68vh !important;
+      background: #fff;
+      border-radius: 0 !important;
+      padding: 20px 22px 32px;
+      overflow-y: auto;
+      color: #222;
+      animation: fadeIn 0.3s ease;
+      box-sizing: border-box !important;
+    }
+    /* 🔒 END LOCKED LAYOUT */
+
+    @keyframes fadeIn {
+      from { opacity: 0.6; }
+      to { opacity: 1; }
+    }
+
+    .settings-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 22px;
+      padding: 0 4px;
+    }
+
+    .settings-header h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #111;
+    }
+
+    .close-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: #f0f0f0;
+      font-size: 22px;
+      cursor: pointer;
+      color: #555;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .settings-tabs {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 24px;
+      align-items: center;
+      padding: 0 4px;
+    }
+
+    .tab-active {
+      color: #1a73e8;
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .anim-btn {
+      margin-left: auto;
+      background: #1a73e8;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 14px 24px;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .setting-card {
+      border: 2px solid #1a73e8;
+      border-radius: 18px;
+      padding: 20px 20px 22px;
+      margin-bottom: 18px;
+      background: #fafbff;
+    }
+
+    .setting-card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1a73e8;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: 0.3px;
+    }
+
+    .setting-card-title::before {
+      content: '•';
+      font-size: 20px;
+    }
+
+    /* 🔒 LOCKED — icons must stay on ONE horizontal line, evenly spaced */
+    .controls-row {
+      display: flex !important;
+      flex-wrap: nowrap !important;
+      justify-content: space-between !important;
+      gap: 10px;
+      align-items: flex-end;
+      padding: 4px 6px;
+    }
+    /* 🔒 END LOCKED */
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+      min-width: 44px;
+      flex: 0 0 auto;
+    }
+
+    .control-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #777;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .control-group input[type="number"] {
+      width: 44px;
+      padding: 9px 4px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-size: 14px;
+      text-align: center;
+      background: #fff;
+    }
+
+    .color-swatch {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: 2px solid #ddd;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    /* Reminder Page settings — smaller color box, blue card borders */
+    #reminderSettingsOverlay .color-swatch {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+    }
+
+    #reminderSettingsOverlay .setting-card {
+      border-color: #1a73e8;
+    }
+
+    .delete-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: none;
+      background: #ffebee;
+      color: #e53935;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .toggle {
+      width: 40px;
+      height: 22px;
+      background: #ccc;
+      border-radius: 13px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+
+    .toggle.on { background: #1a73e8; }
+
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      background: #fff;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: left 0.2s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    }
+
+    .toggle.on::after { left: 20px; }
+
+    .font-select {
+      padding: 9px 8px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-size: 13px;
+      background: #fff;
+      min-width: 74px;
+      flex-shrink: 0;
+    }
+
+    .settings-footer {
+      display: flex;
+      gap: 12px;
+      margin-top: 28px;
+      padding: 0 4px 8px;
+      justify-content: center;
+    }
+
+    .btn-reset {
+      flex: 0 0 auto;
+      min-width: 110px;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 12px;
+      background: #e8e8e8;
+      color: #555;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-apply {
+      flex: 0 0 auto;
+      min-width: 140px;
+      padding: 16px 26px;
+      border: none;
+      border-radius: 14px;
+      background: #1a73e8;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Color Picker */
+    .color-picker-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 400;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .color-picker-overlay.show { display: flex; }
+
+    .color-picker-box {
+      background: #fff;
+      border-radius: 20px;
+      padding: 22px 18px 18px;
+      width: 100%;
+      max-width: 340px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .color-picker-title {
+      text-align: center;
+      font-size: 17px;
+      font-weight: 600;
+      color: #222;
+      margin-bottom: 18px;
+    }
+
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+      max-height: 300px;
+      overflow-y: auto;
+      padding: 4px;
+    }
+
+    .color-cell {
+      aspect-ratio: 1;
+      border-radius: 12px;
+      cursor: pointer;
+      border: 2.5px solid transparent;
+      transition: transform 0.1s, border-color 0.15s;
+    }
+
+    .color-cell:active { transform: scale(0.9); }
+
+    .color-cell.selected {
+      border-color: #1a73e8;
+      box-shadow: 0 0 0 2px rgba(26,115,232,0.35);
+    }
+
+    .color-picker-footer {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .color-picker-footer button {
+      flex: 0 0 auto;
+      min-width: 140px;
+      padding: 16px 26px;
+      border: none;
+      border-radius: 14px;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-cancel { background: #e8e8e8; color: #555; }
+    .btn-set { background: #1a73e8; color: #fff; }
+
+    /* ===== Add New Reminder panel — same locked layout as Settings ===== */
+    .reminder-overlay {
+      position: fixed !important;
+      inset: 0 !important;
+      background: rgba(0,0,0,0.5);
+      z-index: 300;
+      display: none;
+      align-items: center !important;
+      justify-content: stretch !important;
+    }
+
+    .reminder-overlay.show { display: flex !important; }
+
+    .reminder-panel {
+      width: 100% !important;
+      max-width: none !important;
+      height: auto !important;
+      max-height: 90vh !important;
+      background: #fff;
+      border-radius: 0 !important;
+      padding: 20px 22px 24px;
+      overflow-y: auto;
+      color: #222;
+      animation: fadeIn 0.3s ease;
+      box-sizing: border-box !important;
+    }
+
+    .sheet-handle {
+      width: 40px;
+      height: 4px;
+      background: #ddd;
+      border-radius: 2px;
+      margin: 0 auto 14px;
+    }
+
+    .field-block {
+      margin-bottom: 16px;
+    }
+
+    .field-block:last-child { margin-bottom: 0; }
+
+    .field-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1a73e8;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: 0.3px;
+    }
+
+    .field-label::before {
+      content: '•';
+      font-size: 20px;
+    }
+
+    .field-input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      font-size: 15px;
+      background: #fafbff;
+      color: #222;
+    }
+
+    /* Target date: slightly narrower (horizontal) */
+    #reminderTargetDate {
+      width: 85%;
+    }
+
+    /* Price + Alert Page: much narrower (horizontal) */
+    #reminderPrice,
+    #reminderAlertPage {
+      width: 55%;
+    }
+
+    .field-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px 16px;
+    }
+
+    .counter-toggle {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 55%;
+    }
+
+    /* Countdown / Count: narrower (horizontal) */
+    .counter-toggle button {
+      border: none;
+      border-radius: 20px;
+      padding: 12px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      background: #eee;
+      color: #555;
+    }
+
+    .counter-toggle button.active {
+      background: #1a73e8;
+      color: #fff;
+    }
+
+    /* ===== Line interaction popup (Drag / Resize / Pin / Unpin) ===== */
+    .line-item {
+      touch-action: none;
+      cursor: pointer;
+      z-index: 5;
+    }
+
+    /* pinning is silent now — no visible outline or badge on the element */
+
+    .line-toast {
+      position: fixed;
+      top: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(20,20,20,0.92);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 600;
+      pointer-events: none;
+      animation: toastFade 1.4s ease forwards;
+    }
+
+    @keyframes toastFade {
+      0% { opacity: 0; transform: translateX(-50%) translateY(-6px); }
+      12% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      80% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .line-popup {
+      position: fixed;
+      z-index: 500;
+      display: flex;
+      gap: 6px;
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 6px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      animation: popIn 0.15s ease;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .line-popup button {
+      border: none;
+      border-radius: 8px;
+      background: #2a2a2a;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 9px 11px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .line-popup button.act-drag.on { background: #1a73e8; }
+    .line-popup button.act-pin.on { background: #e5a100; }
+    .line-popup button.act-edit { background: #1a73e8; font-size: 17px; padding: 10px 14px; }
+    .line-popup button:active { opacity: 0.8; }
+    .line-popup button:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .resize-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: #2a2a2a;
+      border-radius: 8px;
+      padding: 2px;
+    }
+
+    .resize-group button {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      font-size: 16px;
+      font-weight: 700;
+      background: #383838;
+    }
+
+    .resize-value {
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      min-width: 34px;
+      text-align: center;
+    }
+
+    /* ===== ANIMATION PANEL ===== */
+    .anim-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 320;
+      display: none; align-items: center; justify-content: stretch;
+    }
+    .anim-overlay.show { display: flex; }
+    .anim-panel {
+      width: 100%; max-width: none; height: 78vh; max-height: 78vh; background: #fff;
+      border-radius: 0; padding: 12px 18px 28px; overflow-y: auto;
+      box-shadow: 0 0 32px rgba(0,0,0,0.18); box-sizing: border-box;
+    }
+    .anim-sheet-handle { width: 40px; height: 4px; background: #ddd; border-radius: 2px; margin: 4px auto 14px; }
+    .anim-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .anim-header h2 { font-size: 1.25rem; font-weight: 700; color: #111; }
+    .anim-page-pill { display: flex; justify-content: center; margin-bottom: 18px; }
+    .anim-page-pill span {
+      background: #1a73e8; color: #fff; font-size: 17px; font-weight: 700;
+      padding: 14px 34px; border-radius: 24px; letter-spacing: 0.4px; text-transform: uppercase;
+    }
+    .anim-lines-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
+    .anim-line-card {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 18px; background: #fff; border: 1.5px solid #e8ecf4;
+      border-radius: 16px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .anim-line-card:active { background: #f5f7fb; }
+    .anim-line-card.has-anim { border-color: #a8c7fa; background: #f0f6ff; }
+    .anim-line-card .line-label { font-weight: 600; font-size: 15px; color: #1a1a1a; }
+    .anim-line-card .line-chevron { color: #c0c4cc; font-size: 18px; }
+    .anim-line-card .line-current {
+      font-size: 11px; color: #1a73e8; font-weight: 600; margin-right: 8px;
+      max-width: 40%; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .anim-speed-row {
+      display: flex; gap: 0; margin-bottom: 14px; background: #f0f2f5;
+      border-radius: 24px; padding: 4px;
+    }
+    .anim-speed-btn {
+      flex: 1; padding: 14px 8px; border: none; border-radius: 20px; background: transparent;
+      font-size: 17px; font-weight: 600; color: #666; cursor: pointer; text-align: center;
+    }
+    .anim-speed-btn.active {
+      background: #1a73e8; color: #fff; box-shadow: 0 2px 8px rgba(26,115,232,0.35);
+    }
+    .anim-hint {
+      text-align: center; font-size: 12px; color: #999; margin-bottom: 14px;
+      line-height: 1.4; padding: 0 8px;
+    }
+    .anim-preview-list {
+      display: flex; flex-direction: column; gap: 10px; max-height: 52vh;
+      overflow-y: auto; padding-bottom: 8px; margin-bottom: 12px;
+    }
+    .anim-preview-card {
+      display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+      background: #fff; border: 1.5px solid #e8ecf4; border-radius: 16px;
+      cursor: pointer; position: relative; box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+    .anim-preview-card:active { background: #f8f9fc; }
+    .anim-preview-card.selected {
+      border-color: #1a73e8; background: #f0f6ff; box-shadow: 0 0 0 1px #1a73e8;
+    }
+    .anim-preview-card .anim-num { font-size: 14px; font-weight: 700; color: #888; min-width: 22px; }
+    .anim-preview-card .anim-preview-text {
+      flex: 1; font-size: 36px; font-weight: 700; color: #1a73e8; text-align: center;
+      min-height: 44px; display: flex; align-items: center; justify-content: center;
+    }
+    .anim-preview-card.none-card .anim-preview-text { font-size: 26px; }
+    .anim-green-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: #22c55e;
+      flex-shrink: 0; margin-right: 10px;
+      box-shadow: 0 0 0 2px rgba(34,197,94,0.25);
+    }
+    .btn-anim-apply {
+      display: block; width: auto; min-width: 150px; max-width: 190px;
+      margin: 0 auto; padding: 16px 28px; border: none; border-radius: 14px;
+      background: linear-gradient(180deg, #2b7cff 0%, #1a73e8 100%);
+      color: #fff; font-size: 17px; font-weight: 700; cursor: pointer;
+      box-shadow: 0 3px 10px rgba(26,115,232,0.3);
+    }
+    .anim-empty { text-align: center; color: #888; padding: 30px 10px; font-size: 14px; }
+
+    /* Keyframes — trending animations */
+    @keyframes bounce{0%,20%,53%,80%,100%{transform:translate3d(0,0,0)}40%,43%{transform:translate3d(0,-18px,0)}70%{transform:translate3d(0,-9px,0)}90%{transform:translate3d(0,-3px,0)}}
+    @keyframes flash{0%,50%,100%{opacity:1}25%,75%{opacity:0}}
+    @keyframes pulse{0%{transform:scale3d(1,1,1)}50%{transform:scale3d(1.08,1.08,1.08)}100%{transform:scale3d(1,1,1)}}
+    @keyframes rubberBand{0%{transform:scale3d(1,1,1)}30%{transform:scale3d(1.25,0.75,1)}40%{transform:scale3d(0.75,1.25,1)}50%{transform:scale3d(1.15,0.85,1)}65%{transform:scale3d(0.95,1.05,1)}75%{transform:scale3d(1.05,0.95,1)}100%{transform:scale3d(1,1,1)}}
+    @keyframes shakeX{0%,100%{transform:translate3d(0,0,0)}10%,30%,50%,70%,90%{transform:translate3d(-8px,0,0)}20%,40%,60%,80%{transform:translate3d(8px,0,0)}}
+    @keyframes shakeY{0%,100%{transform:translate3d(0,0,0)}10%,30%,50%,70%,90%{transform:translate3d(0,-8px,0)}20%,40%,60%,80%{transform:translate3d(0,8px,0)}}
+    @keyframes headShake{0%{transform:translateX(0)}6.5%{transform:translateX(-6px) rotateY(-9deg)}18.5%{transform:translateX(5px) rotateY(7deg)}31.5%{transform:translateX(-3px) rotateY(-5deg)}43.5%{transform:translateX(2px) rotateY(3deg)}50%{transform:translateX(0)}}
+    @keyframes swing{20%{transform:rotate3d(0,0,1,15deg)}40%{transform:rotate3d(0,0,1,-10deg)}60%{transform:rotate3d(0,0,1,5deg)}80%{transform:rotate3d(0,0,1,-5deg)}100%{transform:rotate3d(0,0,1,0deg)}}
+    @keyframes tada{0%{transform:scale3d(1,1,1)}10%,20%{transform:scale3d(0.9,0.9,0.9) rotate3d(0,0,1,-3deg)}30%,50%,70%,90%{transform:scale3d(1.1,1.1,1.1) rotate3d(0,0,1,3deg)}40%,60%,80%{transform:scale3d(1.1,1.1,1.1) rotate3d(0,0,1,-3deg)}100%{transform:scale3d(1,1,1)}}
+    @keyframes wobble{0%{transform:translate3d(0,0,0)}15%{transform:translate3d(-12%,0,0) rotate3d(0,0,1,-5deg)}30%{transform:translate3d(10%,0,0) rotate3d(0,0,1,3deg)}45%{transform:translate3d(-8%,0,0) rotate3d(0,0,1,-3deg)}60%{transform:translate3d(6%,0,0) rotate3d(0,0,1,2deg)}75%{transform:translate3d(-3%,0,0) rotate3d(0,0,1,-1deg)}100%{transform:translate3d(0,0,0)}}
+    @keyframes jello{0%,11.1%,100%{transform:translate3d(0,0,0)}22.2%{transform:skewX(-12.5deg) skewY(-12.5deg)}33.3%{transform:skewX(6.25deg) skewY(6.25deg)}44.4%{transform:skewX(-3.125deg) skewY(-3.125deg)}55.5%{transform:skewX(1.5625deg) skewY(1.5625deg)}66.6%{transform:skewX(-0.78125deg) skewY(-0.78125deg)}77.7%{transform:skewX(0.390625deg) skewY(0.390625deg)}88.8%{transform:skewX(-0.1953125deg) skewY(-0.1953125deg)}}
+    @keyframes heartBeat{0%{transform:scale(1)}14%{transform:scale(1.18)}28%{transform:scale(1)}42%{transform:scale(1.18)}70%{transform:scale(1)}}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes fadeOut{from{opacity:1}to{opacity:0}}
+    @keyframes fadeInDown{from{opacity:0;transform:translate3d(0,-30%,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+    @keyframes fadeInUp{from{opacity:0;transform:translate3d(0,30%,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+    @keyframes fadeInLeft{from{opacity:0;transform:translate3d(-30%,0,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+    @keyframes fadeInRight{from{opacity:0;transform:translate3d(30%,0,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+    @keyframes slideInDown{from{transform:translate3d(0,-100%,0)}to{transform:translate3d(0,0,0)}}
+    @keyframes slideInUp{from{transform:translate3d(0,100%,0)}to{transform:translate3d(0,0,0)}}
+    @keyframes slideInLeft{from{transform:translate3d(-100%,0,0)}to{transform:translate3d(0,0,0)}}
+    @keyframes slideInRight{from{transform:translate3d(100%,0,0)}to{transform:translate3d(0,0,0)}}
+    @keyframes zoomIn{from{opacity:0;transform:scale3d(0.3,0.3,0.3)}50%{opacity:1}}
+    @keyframes zoomOut{from{opacity:1}50%{opacity:0;transform:scale3d(0.3,0.3,0.3)}to{opacity:0}}
+    @keyframes bounceIn{0%{opacity:0;transform:scale3d(0.3,0.3,0.3)}20%{transform:scale3d(1.1,1.1,1.1)}40%{transform:scale3d(0.9,0.9,0.9)}60%{opacity:1;transform:scale3d(1.03,1.03,1.03)}80%{transform:scale3d(0.97,0.97,0.97)}100%{opacity:1;transform:scale3d(1,1,1)}}
+    @keyframes flip{from{transform:perspective(400px) rotate3d(0,1,0,-360deg)}40%{transform:perspective(400px) translate3d(0,0,150px) rotate3d(0,1,0,-190deg)}50%{transform:perspective(400px) translate3d(0,0,150px) rotate3d(0,1,0,-170deg)}80%{transform:perspective(400px) scale3d(0.95,0.95,0.95)}to{transform:perspective(400px)}}
+    @keyframes flipInX{from{transform:perspective(400px) rotate3d(1,0,0,90deg);opacity:0}40%{transform:perspective(400px) rotate3d(1,0,0,-20deg)}60%{transform:perspective(400px) rotate3d(1,0,0,10deg);opacity:1}80%{transform:perspective(400px) rotate3d(1,0,0,-5deg)}to{transform:perspective(400px)}}
+    @keyframes flipInY{from{transform:perspective(400px) rotate3d(0,1,0,90deg);opacity:0}40%{transform:perspective(400px) rotate3d(0,1,0,-20deg)}60%{transform:perspective(400px) rotate3d(0,1,0,10deg);opacity:1}80%{transform:perspective(400px) rotate3d(0,1,0,-5deg)}to{transform:perspective(400px)}}
+    @keyframes rotateIn{from{transform:rotate3d(0,0,1,-200deg);opacity:0}to{transform:translate3d(0,0,0);opacity:1}}
+    @keyframes lightSpeedInRight{from{transform:translate3d(100%,0,0) skewX(-30deg);opacity:0}60%{transform:skewX(20deg);opacity:1}80%{transform:skewX(-5deg)}to{transform:translate3d(0,0,0)}}
+    @keyframes lightSpeedInLeft{from{transform:translate3d(-100%,0,0) skewX(30deg);opacity:0}60%{transform:skewX(-20deg);opacity:1}80%{transform:skewX(5deg)}to{transform:translate3d(0,0,0)}}
+    @keyframes rollIn{from{opacity:0;transform:translate3d(-100%,0,0) rotate3d(0,0,1,-120deg)}to{opacity:1;transform:translate3d(0,0,0)}}
+    @keyframes jackInTheBox{from{opacity:0;transform:scale(0.1) rotate(30deg);transform-origin:center bottom}50%{transform:rotate(-10deg)}70%{transform:rotate(3deg)}to{opacity:1;transform:scale(1)}}
+    @keyframes float{0%{transform:translateY(0)}50%{transform:translateY(-12px)}100%{transform:translateY(0)}}
+    @keyframes glow{0%,100%{text-shadow:0 0 4px currentColor}50%{text-shadow:0 0 16px currentColor,0 0 28px currentColor}}
+    @keyframes blurIn{from{filter:blur(12px);opacity:0}to{filter:blur(0);opacity:1}}
+    @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    @keyframes spinReverse{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}
+    @keyframes pendulum{0%{transform:rotate(-15deg)}50%{transform:rotate(15deg)}100%{transform:rotate(-15deg)}}
+    @keyframes breathe{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.06);opacity:0.85}}
+    @keyframes vibrate{0%,100%{transform:translate(0)}20%{transform:translate(-2px,-2px)}40%{transform:translate(2px,-2px)}60%{transform:translate(-2px,2px)}80%{transform:translate(2px,2px)}}
+    @keyframes pop{0%{transform:scale(0.6);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+    @keyframes squeeze{0%,100%{transform:scaleX(1)}50%{transform:scaleX(0.85)}}
+    @keyframes stretch{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.15)}}
+    @keyframes tilt{0%,100%{transform:rotate(0deg)}25%{transform:rotate(4deg)}75%{transform:rotate(-4deg)}}
+    @keyframes wave{0%,100%{transform:translateY(0)}25%{transform:translateY(-6px)}75%{transform:translateY(6px)}}
+    @keyframes glitch{0%,100%{transform:translate(0)}20%{transform:translate(-3px,2px)}40%{transform:translate(3px,-2px)}60%{transform:translate(-2px,-1px)}80%{transform:translate(2px,1px)}}
+    @keyframes spiral{0%{transform:rotate(0deg) scale(1)}50%{transform:rotate(180deg) scale(0.85)}100%{transform:rotate(360deg) scale(1)}}
+    @keyframes dropIn{0%{transform:translateY(-80px);opacity:0}60%{transform:translateY(8px);opacity:1}100%{transform:translateY(0)}}
+    @keyframes riseUp{0%{transform:translateY(40px);opacity:0}100%{transform:translateY(0);opacity:1}}
+    @keyframes expand{0%{transform:scale(0.5);opacity:0}100%{transform:scale(1);opacity:1}}
+    @keyframes blink{0%,50%,100%{opacity:1}25%,75%{opacity:0.2}}
+    @keyframes softPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+    @keyframes textFocus{0%{filter:blur(8px);opacity:0;letter-spacing:8px}100%{filter:blur(0);opacity:1;letter-spacing:normal}}
+    @keyframes trackingIn{0%{letter-spacing:-0.5em;opacity:0}40%{opacity:0.6}100%{letter-spacing:normal;opacity:1}}
+    @keyframes shadowPop{0%{text-shadow:0 0 0 transparent;transform:translateY(0)}50%{text-shadow:4px 4px 0 rgba(0,0,0,0.25);transform:translateY(-4px)}100%{text-shadow:0 0 0 transparent;transform:translateY(0)}}
+    @keyframes rainbow{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
+    @keyframes bounceSoft{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+    @keyframes slideFadeLeft{0%{transform:translateX(40px);opacity:0}100%{transform:translateX(0);opacity:1}}
+    @keyframes slideFadeRight{0%{transform:translateX(-40px);opacity:0}100%{transform:translateX(0);opacity:1}}
+    @keyframes flicker{0%,19%,21%,23%,25%,54%,56%,100%{opacity:1}20%,24%,55%{opacity:0.3}}
+    @keyframes rubberX{0%,100%{transform:scaleX(1)}30%{transform:scaleX(1.2)}40%{transform:scaleX(0.85)}50%{transform:scaleX(1.1)}65%{transform:scaleX(0.95)}}
+    @keyframes rubberY{0%,100%{transform:scaleY(1)}30%{transform:scaleY(1.2)}40%{transform:scaleY(0.85)}50%{transform:scaleY(1.1)}65%{transform:scaleY(0.95)}}
+    @keyframes wiggle{0%,100%{transform:rotate(0deg)}25%{transform:rotate(6deg)}50%{transform:rotate(-6deg)}75%{transform:rotate(3deg)}}
+    @keyframes jump{0%,100%{transform:translateY(0) scale(1)}30%{transform:translateY(-20px) scale(1.05)}50%{transform:translateY(0) scale(0.95)}70%{transform:translateY(-8px) scale(1.02)}}
+    @keyframes elastic{0%{transform:scale(0)}55%{transform:scale(1.15)}70%{transform:scale(0.9)}85%{transform:scale(1.05)}100%{transform:scale(1)}}
+    @keyframes floatRotate{0%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-10px) rotate(3deg)}100%{transform:translateY(0) rotate(0deg)}}
+    @keyframes scaleBounce{0%{transform:scale(0.3)}50%{transform:scale(1.1)}70%{transform:scale(0.9)}100%{transform:scale(1)}}
+    @keyframes fadeScale{0%{opacity:0;transform:scale(0.8)}100%{opacity:1;transform:scale(1)}}
+    @keyframes rotateScale{0%{transform:rotate(-180deg) scale(0.3);opacity:0}100%{transform:rotate(0) scale(1);opacity:1}}
+    @keyframes blurFocus{0%{filter:blur(10px);opacity:0}100%{filter:blur(0);opacity:1}}
+    @keyframes softGlow{0%,100%{filter:drop-shadow(0 0 2px currentColor)}50%{filter:drop-shadow(0 0 12px currentColor)}}
+    @keyframes attention{0%,100%{transform:scale(1)}10%,20%{transform:scale(0.95) rotate(-2deg)}30%,50%,70%,90%{transform:scale(1.05) rotate(2deg)}40%,60%,80%{transform:scale(1.05) rotate(-2deg)}}
+    @keyframes heartbeatSoft{0%,100%{transform:scale(1)}15%{transform:scale(1.12)}30%{transform:scale(1)}45%{transform:scale(1.08)}60%{transform:scale(1)}}
+    @keyframes drift{0%{transform:translate(0,0)}25%{transform:translate(4px,-4px)}50%{transform:translate(0,-6px)}75%{transform:translate(-4px,-2px)}100%{transform:translate(0,0)}}
+    @keyframes opacityWave{0%,100%{opacity:1}50%{opacity:0.4}}
+    @keyframes scalePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+    @keyframes rotate3d{0%{transform:rotateY(0deg)}100%{transform:rotateY(360deg)}}
+    @keyframes bounceInLeft{0%{opacity:0;transform:translate3d(-2000px,0,0)}60%{opacity:1;transform:translate3d(25px,0,0)}75%{transform:translate3d(-10px,0,0)}90%{transform:translate3d(5px,0,0)}100%{transform:translate3d(0,0,0)}}
+    @keyframes bounceInRight{0%{opacity:0;transform:translate3d(2000px,0,0)}60%{opacity:1;transform:translate3d(-25px,0,0)}75%{transform:translate3d(10px,0,0)}90%{transform:translate3d(-5px,0,0)}100%{transform:translate3d(0,0,0)}}
+    @keyframes bounceInUp{0%{opacity:0;transform:translate3d(0,2000px,0)}60%{opacity:1;transform:translate3d(0,-20px,0)}75%{transform:translate3d(0,10px,0)}90%{transform:translate3d(0,-5px,0)}100%{transform:translate3d(0,0,0)}}
+    @keyframes bounceInDown{0%{opacity:0;transform:translate3d(0,-2000px,0)}60%{opacity:1;transform:translate3d(0,25px,0)}75%{transform:translate3d(0,-10px,0)}90%{transform:translate3d(0,5px,0)}100%{transform:translate3d(0,0,0)}}
+    @keyframes zoomInUp{from{opacity:0;transform:scale3d(0.1,0.1,0.1) translate3d(0,1000px,0)}60%{opacity:1;transform:scale3d(0.475,0.475,0.475) translate3d(0,-60px,0)}}
+    @keyframes zoomInDown{from{opacity:0;transform:scale3d(0.1,0.1,0.1) translate3d(0,-1000px,0)}60%{opacity:1;transform:scale3d(0.475,0.475,0.475) translate3d(0,60px,0)}}
+    @keyframes zoomRotate{0%{transform:scale(0) rotate(-180deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
+    @keyframes slideSkew{0%{transform:translateX(-50px) skewX(20deg);opacity:0}100%{transform:translateX(0) skewX(0);opacity:1}}
+    @keyframes flipDown{0%{transform:rotateX(90deg);opacity:0}100%{transform:rotateX(0);opacity:1}}
+    @keyframes flipUp{0%{transform:rotateX(-90deg);opacity:0}100%{transform:rotateX(0);opacity:1}}
+    @keyframes swingIn{0%{transform:rotateX(-90deg);transform-origin:top;opacity:0}100%{transform:rotateX(0);transform-origin:top;opacity:1}}
+    @keyframes letterPop{0%{transform:scale(0) rotate(-15deg);opacity:0}60%{transform:scale(1.15) rotate(5deg)}100%{transform:scale(1) rotate(0);opacity:1}}
+    @keyframes kenBurns{0%{transform:scale(1)}100%{transform:scale(1.12)}}
+    @keyframes colorCycle{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
+    @keyframes morph{0%,100%{border-radius:18px}50%{border-radius:40px}}
+    @keyframes reveal{0%{clip-path:inset(0 100% 0 0)}100%{clip-path:inset(0 0 0 0)}}
+    @keyframes maskWipe{0%{clip-path:circle(0% at 50% 50%)}100%{clip-path:circle(100% at 50% 50%)}}
+    @keyframes orbit{0%{transform:rotate(0deg) translateX(8px) rotate(0deg)}100%{transform:rotate(360deg) translateX(8px) rotate(-360deg)}}
+    @keyframes slideBounce{0%{transform:translateY(-100%)}60%{transform:translateY(10%)}80%{transform:translateY(-5%)}100%{transform:translateY(0)}}
+    @keyframes fadeInTopLeft{from{opacity:0;transform:translate3d(-40%,-40%,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+    @keyframes fadeInTopRight{from{opacity:0;transform:translate3d(40%,-40%,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+    @keyframes fadeInBottomLeft{from{opacity:0;transform:translate3d(-40%,40%,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+    @keyframes fadeInBottomRight{from{opacity:0;transform:translate3d(40%,40%,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+    @keyframes zoomInLeft{from{opacity:0;transform:scale3d(0.1,0.1,0.1) translate3d(-1000px,0,0)}60%{opacity:1;transform:scale3d(0.475,0.475,0.475) translate3d(10px,0,0)}}
+    @keyframes zoomInRight{from{opacity:0;transform:scale3d(0.1,0.1,0.1) translate3d(1000px,0,0)}60%{opacity:1;transform:scale3d(0.475,0.475,0.475) translate3d(-10px,0,0)}}
+  </style>
+</head>
+<body>
+
+  <button class="switch-page-btn" id="switchPageBtn" aria-label="Switch Page">⇄</button>
+  <button class="menu-btn" id="menuBtn" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+
+  <div class="menu-dropdown" id="menuDropdown"></div>
+
+  <div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-panel">
+      <div class="settings-header">
+        <h2>Settings</h2>
+        <button class="close-btn" id="closeSettings">×</button>
+      </div>
+
+      <div class="settings-tabs">
+        <span class="tab-active">Alerts Page</span>
+        <button class="anim-btn">Animation</button>
+      </div>
+
+      <!-- PAGE BACKGROUND -->
+      <div class="setting-card">
+        <div class="setting-card-title">PAGE BACKGROUND</div>
+        <div class="controls-row">
+          <div class="control-group">
+            <span class="control-label">COLOR</span>
+            <div class="color-swatch" id="bgColorSwatch" data-target="bgColor" style="background:#000000;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TODAY DATE -->
+      <div class="setting-card">
+        <div class="setting-card-title">TODAY DATE</div>
+        <div class="controls-row">
+          <div class="control-group">
+            <span class="control-label">SIZE</span>
+            <input type="number" id="dateSize" value="15" min="10" max="40">
+          </div>
+          <div class="control-group">
+            <span class="control-label">COLOR</span>
+            <div class="color-swatch" id="dateColorSwatch" data-target="dateColor" style="background:#aaaaaa;"></div>
+          </div>
+          <div class="control-group">
+            <span class="control-label">DELETE</span>
+            <button class="delete-btn" id="dateDelete">🗑</button>
+          </div>
+          <div class="control-group">
+            <span class="control-label">BOLD</span>
+            <div class="toggle" id="dateBold"></div>
+          </div>
+          <div class="control-group">
+            <span class="control-label">FONT</span>
+            <select class="font-select" id="dateFont">
+              <option value="Segoe UI">Default</option>
+              <option value="Arial">Arial</option>
+              <option value="Roboto">Roboto</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Courier New">Courier</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALERT TITLE -->
+      <div class="setting-card">
+        <div class="setting-card-title">ALERT TITLE</div>
+        <div class="controls-row">
+          <div class="control-group">
+            <span class="control-label">SIZE</span>
+            <input type="number" id="titleSize" value="45" min="16" max="80">
+          </div>
+          <div class="control-group">
+            <span class="control-label">COLOR</span>
+            <div class="color-swatch" id="titleColorSwatch" data-target="titleColor" style="background:#ffffff;"></div>
+          </div>
+          <div class="control-group">
+            <span class="control-label">DELETE</span>
+            <button class="delete-btn" id="titleDelete">🗑</button>
+          </div>
+          <div class="control-group">
+            <span class="control-label">BOLD</span>
+            <div class="toggle on" id="titleBold"></div>
+          </div>
+          <div class="control-group">
+            <span class="control-label">FONT</span>
+            <select class="font-select" id="titleFont">
+              <option value="Segoe UI">Default</option>
+              <option value="Arial">Arial</option>
+              <option value="Roboto">Roboto</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Courier New">Courier</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-footer">
+        <button class="btn-reset" id="resetBtn">Reset (this page)</button>
+        <button class="btn-apply" id="applyBtn">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-overlay" id="reminderSettingsOverlay">
+    <div class="settings-panel">
+      <div class="settings-header">
+        <h2>Settings</h2>
+        <button class="close-btn" id="closeReminderSettings">×</button>
+      </div>
+
+      <div style="text-align:center; color:#1a73e8; font-weight:700; font-size:1.15rem; margin-bottom:20px;">Reminder Page</div>
+
+      <!-- REMINDER LIST -->
+      <div class="setting-card">
+        <div class="setting-card-title">REMINDER LIST</div>
+        <div class="controls-row">
+          <div class="control-group">
+            <span class="control-label">SIZE</span>
+            <input type="number" id="rlSize" value="23" min="10" max="60">
+          </div>
+          <div class="control-group">
+            <span class="control-label">COLOR</span>
+            <div class="color-swatch" id="rlColorSwatch" data-target="rlColor" style="background:#152238;"></div>
+          </div>
+          <div class="control-group">
+            <span class="control-label">BOLD</span>
+            <div class="toggle" id="rlBold"></div>
+          </div>
+          <div class="control-group">
+            <span class="control-label">FONT</span>
+            <select class="font-select" id="rlFont">
+              <option value="Segoe UI">Default</option>
+              <option value="Arial">Arial</option>
+              <option value="Roboto">Roboto</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Courier New">Courier</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIST NAME -->
+      <div class="setting-card">
+        <div class="setting-card-title">LIST NAME</div>
+        <div class="controls-row">
+          <div class="control-group">
+            <span class="control-label">SIZE</span>
+            <input type="number" id="lnSize" value="20" min="10" max="60">
+          </div>
+          <div class="control-group">
+            <span class="control-label">COLOR</span>
+            <div class="color-swatch" id="lnColorSwatch" data-target="lnColor" style="background:#22c55e;"></div>
+          </div>
+          <div class="control-group">
+            <span class="control-label">BOLD</span>
+            <div class="toggle" id="lnBold"></div>
+          </div>
+          <div class="control-group">
+            <span class="control-label">FONT</span>
+            <select class="font-select" id="lnFont">
+              <option value="Segoe UI">Default</option>
+              <option value="Arial">Arial</option>
+              <option value="Roboto">Roboto</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Courier New">Courier</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- DAY LEFT -->
+      <div class="setting-card">
+        <div class="setting-card-title">DAY LEFT</div>
+        <div class="controls-row">
+          <div class="control-group">
+            <span class="control-label">SIZE</span>
+            <input type="number" id="dlSize" value="26" min="10" max="60">
+          </div>
+          <div class="control-group">
+            <span class="control-label">COLOR</span>
+            <div class="color-swatch" id="dlColorSwatch" data-target="dlColor" style="background:#22d3ee;"></div>
+          </div>
+          <div class="control-group">
+            <span class="control-label">BOLD</span>
+            <div class="toggle on" id="dlBold"></div>
+          </div>
+          <div class="control-group">
+            <span class="control-label">FONT</span>
+            <select class="font-select" id="dlFont">
+              <option value="Segoe UI">Default</option>
+              <option value="Arial">Arial</option>
+              <option value="Roboto">Roboto</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Courier New">Courier</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- TARGET DATE -->
+      <div class="setting-card">
+        <div class="setting-card-title">TARGET DATE</div>
+        <div class="controls-row">
+          <div class="control-group">
+            <span class="control-label">SIZE</span>
+            <input type="number" id="tdSize" value="15" min="10" max="60">
+          </div>
+          <div class="control-group">
+            <span class="control-label">COLOR</span>
+            <div class="color-swatch" id="tdColorSwatch" data-target="tdColor" style="background:#ffd54f;"></div>
+          </div>
+          <div class="control-group">
+            <span class="control-label">BOLD</span>
+            <div class="toggle" id="tdBold"></div>
+          </div>
+          <div class="control-group">
+            <span class="control-label">FONT</span>
+            <select class="font-select" id="tdFont">
+              <option value="Segoe UI">Default</option>
+              <option value="Arial">Arial</option>
+              <option value="Roboto">Roboto</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Courier New">Courier</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-footer">
+        <button class="btn-reset" id="reminderSettingsResetBtn">Reset (this page)</button>
+        <button class="btn-apply" id="reminderSettingsApplyBtn">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="color-picker-overlay" id="colorPickerOverlay">
+    <div class="color-picker-box">
+      <div class="color-picker-title">Select color</div>
+      <div class="color-grid" id="colorGrid"></div>
+      <div class="color-picker-footer">
+        <button class="btn-cancel" id="colorCancel">Cancel</button>
+        <button class="btn-set" id="colorSet">Set</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="reminder-overlay" id="addReminderOverlay">
+    <div class="reminder-panel">
+      <div class="sheet-handle"></div>
+      <div class="settings-header">
+        <h2 id="reminderFormTitle">Add New Reminder</h2>
+        <button class="close-btn" id="closeAddReminder">×</button>
+      </div>
+
+      <div class="setting-card">
+        <div class="field-label">LIST NAME</div>
+        <input type="text" class="field-input" id="reminderListName">
+      </div>
+
+      <div class="setting-card">
+        <div class="field-grid-2">
+          <div class="field-block">
+            <div class="field-label">TARGET DATE</div>
+            <input type="text" class="field-input" id="reminderTargetDate" placeholder="DD/MM/YYYY">
+          </div>
+          <div class="field-block">
+            <div class="field-label">PRICE</div>
+            <input type="number" class="field-input" id="reminderPrice" value="0">
+          </div>
+          <div class="field-block">
+            <div class="field-label">ALERT PAGE</div>
+            <input type="number" class="field-input" id="reminderAlertPage" value="15">
+          </div>
+          <div class="field-block">
+            <div class="field-label">COUNTER</div>
+            <div class="counter-toggle" id="reminderCounter">
+              <button class="active" data-val="countdown">Countdown</button>
+              <button data-val="count">Count</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-apply" style="display:block;margin:16px auto 0;" id="saveReminderBtn">Save New List</button>
+    </div>
+  </div>
+
+  <div class="settings-overlay" id="deleteRemindersOverlay">
+    <div class="settings-panel">
+      <div class="settings-header">
+        <h2>Delete Reminders</h2>
+        <button class="close-btn" id="closeDeleteReminders">×</button>
+      </div>
+      <div id="deleteRemindersList" style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;"></div>
+      <div class="settings-footer">
+        <button class="btn-reset" id="deleteRemindersCancelBtn">Cancel</button>
+        <button class="btn-apply" id="deleteRemindersConfirmBtn" style="background:#e53935;">Delete Selected</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Animation Control -->
+  <div class="anim-overlay" id="animOverlay">
+    <div class="anim-panel">
+      <div class="anim-sheet-handle"></div>
+      <div id="animLinesView">
+        <div class="anim-header">
+          <h2>Animation Control</h2>
+          <button class="close-btn" id="closeAnimPanel">×</button>
+        </div>
+        <div class="anim-page-pill"><span id="animPagePill">LIST PAGE</span></div>
+        <div class="anim-lines-list" id="animLinesList"></div>
+      </div>
+      <div id="animPickView" style="display:none;">
+        <div class="anim-header">
+          <h2>Choose Animation</h2>
+          <button class="close-btn" id="closeAnimPanel2">×</button>
+        </div>
+        <div class="anim-speed-row" id="animSpeedRow">
+          <button class="anim-speed-btn" data-speed="slow">Slow</button>
+          <button class="anim-speed-btn active" data-speed="normal">Normal</button>
+          <button class="anim-speed-btn" data-speed="medium">Medium</button>
+          <button class="anim-speed-btn" data-speed="high">High</button>
+        </div>
+        <div class="anim-hint">Pick up to 6 animations to combine on this line</div>
+        <div class="anim-preview-list" id="animPreviewList"></div>
+        <button class="btn-anim-apply" id="animApplyBtn">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="slider" id="slider">
+    <div class="page" id="page-alert">
+      <div class="today-date" id="date-alert"></div>
+      <div class="page-name" id="title-alert">Alert</div>
+      <div class="reminder-page-heading" id="alertPageHeading" style="display:none;">Alert</div>
+      <div class="reminder-list-container" id="alertListContainer"></div>
+    </div>
+    <div class="page" id="page-reminder">
+      <div class="today-date" id="date-reminder"></div>
+      <div class="page-name" id="title-reminder">Reminder</div>
+      <div class="reminder-page-heading" id="reminderPageHeading" style="display:none;"></div>
+      <div class="reminder-list-container" id="reminderListContainer"></div>
+    </div>
+    <div class="page"><div class="page-name" id="title-history">History</div></div>
+    <div class="page"><div class="page-name" id="title-hide">Hide</div></div>
+  </div>
+
+  <script type="module">
+    /* ======================================================================
+       FIREBASE CLOUD STORAGE BRIDGE
+       Ye poore app ka data ab local browser storage mein NAHI, balki
+       Firebase Firestore mein real-time save/load hota hai.
+       Neeche koi bhi localStorage.getItem/setItem/removeItem call
+       waisi ki waisi hai — lekin asal mein wo ab Firestore se baat kar rahi hai.
+       ====================================================================== */
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import {
+      getFirestore, doc, getDoc, setDoc, onSnapshot, deleteField
+    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+    // 👇 YAHAN APNA FIREBASE CONFIG PASTE KARO (Firebase Console > Project Settings > Web App)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBp4y8cKdiBc-OfGe4VLJpMY0jLBw816-E",
+      authDomain: "life-tracker-3a3a8.firebaseapp.com",
+      projectId: "life-tracker-3a3a8",
+      storageBucket: "life-tracker-3a3a8.firebasestorage.app",
+      messagingSenderId: "863018639687",
+      appId: "1:863018639687:web:97f21221b12580c1efec62"
+    };
+
+    const fbApp = initializeApp(firebaseConfig);
+    const db = getFirestore(fbApp);
+    const cloudDocRef = doc(db, "reminderApp", "mainData");
+
+    // Ek hi baar poora document fetch karo (app start hone se pehle)
+    let cloudCache = {};
+    try {
+      const snap = await getDoc(cloudDocRef);
+      if (snap.exists()) cloudCache = snap.data() || {};
+    } catch (err) {
+      console.error("Firebase load error:", err);
+    }
+
+    // Ignore flag taaki apne hi likhe hue update par dobara re-run na ho
+    let isRemoteUpdate = false;
+    const saveTimers = {};
+
+    function queueCloudSave(key, value) {
+      clearTimeout(saveTimers[key]);
+      saveTimers[key] = setTimeout(() => {
+        const payload = { [key]: value === null ? deleteField() : value };
+        setDoc(cloudDocRef, payload, { merge: true }).catch(err => console.error("Firebase save error:", err));
+      }, 300);
+    }
+
+    // localStorage jaisa hi API — lekin ab data Firestore se aata/jaata hai
+    window.localStorage.getItem = function (key) {
+      return Object.prototype.hasOwnProperty.call(cloudCache, key) ? cloudCache[key] : null;
+    };
+    window.localStorage.setItem = function (key, value) {
+      cloudCache[key] = value;
+      if (!isRemoteUpdate) queueCloudSave(key, value);
+    };
+    window.localStorage.removeItem = function (key) {
+      delete cloudCache[key];
+      if (!isRemoteUpdate) queueCloudSave(key, null);
+    };
+
+    // Real-time sync: agar data kahin aur se (dusra tab / Firestore console) badle,
+    // to yahan bhi turant update ho jaye
+    onSnapshot(cloudDocRef, (snap) => {
+      if (!snap.exists()) return;
+      isRemoteUpdate = true;
+      cloudCache = snap.data() || {};
+      isRemoteUpdate = false;
+    });
+    /* ====================== FIREBASE BRIDGE END ====================== */
+
+    const slider = document.getElementById('slider');
+    let current = 0;
+    let reminderLists = JSON.parse(localStorage.getItem('reminderLists') || '[]');
+    const reminderDefaultSettings = {
+      rlSize: 23, rlColor: '#152238', rlBold: false, rlFont: 'Segoe UI', rlVisible: true,
+      lnSize: 19, lnColor: '#22c55e', lnBold: false, lnFont: 'Segoe UI', lnVisible: true,
+      dlSize: 26, dlColor: '#22d3ee', dlBold: true, dlFont: 'Segoe UI', dlVisible: true,
+      tdSize: 15, tdColor: '#ffd54f', tdBold: false, tdFont: 'Segoe UI', tdVisible: true
+    };
+    let reminderSettings = JSON.parse(localStorage.getItem('reminderPageSettings') || 'null') || { ...reminderDefaultSettings };
+    const total = 4;
+    try {
+      const savedPage = parseInt(localStorage.getItem('currentPage') || '0', 10);
+      if (!isNaN(savedPage) && savedPage >= 0 && savedPage < total) current = savedPage;
+    } catch (e) {}
+    if (current !== 0) {
+      slider.style.transform = `translateX(-${current * 25}%)`;
+    }
+
+    // Custom text a user has typed into an editable line (date lines, headings) via the ✏️ popup.
+    // Keyed by element id. If a line has no override, its normal auto-generated text is used.
+    let lineTextOverrides = JSON.parse(localStorage.getItem('lineTextOverrides') || '{}');
+    if (lineTextOverrides['reminderPageHeading'] !== undefined) {
+      delete lineTextOverrides['reminderPageHeading'];
+      localStorage.setItem('lineTextOverrides', JSON.stringify(lineTextOverrides));
+    }
+    function applyLineText(el, defaultText) {
+      if (!el) return;
+      const ov = lineTextOverrides[el.id];
+      el.textContent = (ov !== undefined && ov !== null && ov !== '') ? ov : defaultText;
+    }
+
+    function goTo(index) {
+      const next = Math.max(0, Math.min(index, total - 1));
+      // History (2) → Alert (0) wrap: avoid reverse slide animation so cycle feels forward (gol-gol)
+      const wrappingForward = (current === 2 && next === 0) || (current === 3 && next === 0);
+      if (wrappingForward) {
+        slider.style.transition = 'none';
+        current = next;
+        slider.style.transform = `translateX(-${current * 25}%)`;
+        void slider.offsetWidth; // force reflow
+        slider.style.transition = '';
+      } else {
+        current = next;
+        slider.style.transform = `translateX(-${current * 25}%)`;
+      }
+      try { localStorage.setItem('currentPage', String(current)); } catch (e) {}
+      updateMenuVisibility();
+    }
+
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    function formatToday() {
+      const n = new Date();
+      return `Today - ${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}  (${days[n.getDay()]})`;
+    }
+    function updateDates() {
+      const t = formatToday();
+      const a = document.getElementById('date-alert');
+      const r = document.getElementById('date-reminder');
+      if (a) applyLineText(a, t);
+      if (r) applyLineText(r, t);
+      if (typeof renderReminderList === 'function') renderReminderList();
+    }
+    updateDates();
+    (function() {
+      const n = new Date();
+      const mid = new Date(n.getFullYear(), n.getMonth(), n.getDate()+1, 0,0,0,0);
+      setTimeout(() => { updateDates(); setInterval(updateDates, 86400000); }, mid - n);
+    })();
+    setInterval(() => {
+      if ((document.getElementById('date-alert')?.textContent || '') !== formatToday()) updateDates();
+    }, 60000);
+
+    const menuBtn = document.getElementById('menuBtn');
+    const menuDropdown = document.getElementById('menuDropdown');
+
+    function menuItemsForPage() {
+      if (current === 0) {
+        return [
+          { id: 'animation', label: 'Animation' },
+          { id: 'setting', label: 'Setting' }
+        ];
+      }
+      if (current === 1) {
+        return [
+          { id: 'addReminder', label: 'Add New Reminder' },
+          { id: 'animation', label: 'Animation' },
+          { id: 'setting', label: 'Setting' },
+          { id: 'hidePage', label: 'Hide Page' },
+          { id: 'hideList', label: 'Hide List' },
+          { id: 'delete', label: 'Delete', danger: true }
+        ];
+      }
+      return [
+        { id: 'animation', label: 'Animation' }
+      ];
+    }
+
+    function renderMenu() {
+      const items = menuItemsForPage();
+      menuDropdown.innerHTML = items
+        .map(it => `<div class="menu-item${it.danger ? ' menu-item-danger' : ''}" data-item="${it.id}">${it.label}</div>`)
+        .join('');
+    }
+
+    function updateMenuVisibility() {
+      renderMenu();
+    }
+    updateMenuVisibility();
+
+    menuBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      renderMenu();
+      menuDropdown.classList.toggle('show');
+    });
+    document.getElementById('switchPageBtn').addEventListener('click', e => {
+      e.stopPropagation();
+      menuDropdown.classList.remove('show');
+      // Only cycle Alert (0) → Reminder (1) → History (2) → Alert
+      // Hide (3) is reached only via Hide Page menu
+      if (current === 3) goTo(0);
+      else goTo((current + 1) % 3);
+    });
+    document.addEventListener('click', e => {
+      if (!menuBtn.contains(e.target) && !menuDropdown.contains(e.target))
+        menuDropdown.classList.remove('show');
+    });
+
+    menuDropdown.addEventListener('click', e => {
+      const item = e.target.closest('.menu-item');
+      if (!item) return;
+      menuDropdown.classList.remove('show');
+      const action = item.dataset.item;
+
+      if (action === 'setting') {
+        if (current === 0) {
+          applySettingsToUI();
+          document.getElementById('settingsOverlay').classList.add('show');
+        } else if (current === 1) {
+          applyReminderSettingsToUI();
+          document.getElementById('reminderSettingsOverlay').classList.add('show');
+        }
+      } else if (action === 'animation') {
+        openAnimationPanel();
+      } else if (action === 'addReminder') {
+        resetReminderFormMode();
+        document.getElementById('addReminderOverlay').classList.add('show');
+      } else if (action === 'hidePage') {
+        goTo(3);
+      } else if (action === 'hideList') {
+        showMenuToast('List hidden');
+      } else if (action === 'delete') {
+        renderDeleteRemindersList();
+        document.getElementById('deleteRemindersOverlay').classList.add('show');
+      } else if (action === 'switchPage') {
+        // Only cycle Alert (0) → Reminder (1) → History (2) → Alert
+        // Hide (3) is reached only via Hide Page menu
+        if (current === 3) goTo(0);
+        else goTo((current + 1) % 3);
+      }
+    });
+
+    function showMenuToast(msg) {
+      const t = document.createElement('div');
+      t.className = 'line-toast';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 1600);
+    }
+
+    const defaultSettings = {
+      bgColor: '#000000',
+      dateSize: 15, dateColor: '#aaaaaa', dateVisible: true, dateBold: false, dateFont: 'Segoe UI',
+      titleVisible: true, titleSize: 45, titleColor: '#ffffff', titleBold: true, titleFont: 'Segoe UI'
+    };
+    let settings = JSON.parse(localStorage.getItem('alertPageSettings') || 'null') || { ...defaultSettings };
+
+    let pendingColorTarget = null;
+    let pendingColorValue = null;
+
+    function applySettingsToUI() {
+      document.getElementById('bgColorSwatch').style.background = settings.bgColor;
+      document.getElementById('dateSize').value = settings.dateSize;
+      document.getElementById('dateColorSwatch').style.background = settings.dateColor;
+      document.getElementById('dateBold').classList.toggle('on', settings.dateBold);
+      document.getElementById('dateFont').value = settings.dateFont;
+      document.getElementById('titleSize').value = settings.titleSize;
+      document.getElementById('titleColorSwatch').style.background = settings.titleColor;
+      document.getElementById('titleBold').classList.toggle('on', settings.titleBold);
+      document.getElementById('titleFont').value = settings.titleFont;
+    }
+
+    function applySettingsToPage() {
+      const dateEl = document.getElementById('date-alert');
+      const dateElReminder = document.getElementById('date-reminder');
+      const titleEl = document.getElementById('title-alert');
+
+      // Apply background to ALL 4 pages
+      document.querySelectorAll('.page').forEach(p => {
+        p.style.background = settings.bgColor;
+      });
+      document.body.style.background = settings.bgColor;
+
+      // Today-date styling is SHARED between Alert page and Reminder page
+      [dateEl, dateElReminder].forEach(el => {
+        if (!el) return;
+        if (settings.dateVisible) {
+          el.style.display = 'block';
+          el.style.fontSize = settings.dateSize + 'px';
+          el.style.color = settings.dateColor;
+          el.style.fontWeight = settings.dateBold ? '700' : '500';
+          el.style.fontFamily = settings.dateFont;
+        } else el.style.display = 'none';
+      });
+
+      if (settings.titleVisible) {
+        titleEl.style.display = 'block';
+        titleEl.style.fontSize = settings.titleSize + 'px';
+        titleEl.style.color = settings.titleColor;
+        titleEl.style.fontWeight = settings.titleBold ? '700' : '400';
+        titleEl.style.fontFamily = settings.titleFont;
+      } else titleEl.style.display = 'none';
+
+      // Re-apply list/title visibility (hides "Alert" title when alert cards exist)
+      if (typeof renderReminderList === 'function') renderReminderList();
+    }
+
+    document.getElementById('closeSettings').addEventListener('click', () => {
+      document.getElementById('settingsOverlay').classList.remove('show');
+    });
+    document.getElementById('settingsOverlay').addEventListener('click', e => {
+      if (e.target.id === 'settingsOverlay') e.target.classList.remove('show');
+    });
+
+    document.getElementById('closeAddReminder').addEventListener('click', () => {
+      document.getElementById('addReminderOverlay').classList.remove('show');
+      resetReminderFormMode();
+    });
+    document.getElementById('addReminderOverlay').addEventListener('click', e => {
+      if (e.target.id === 'addReminderOverlay') {
+        e.target.classList.remove('show');
+        resetReminderFormMode();
+      }
+    });
+    document.getElementById('reminderCounter').addEventListener('click', e => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      document.querySelectorAll('#reminderCounter button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+    function showReminderToast(msg) {
+      const t = document.createElement('div');
+      t.className = 'line-toast';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 1450);
+    }
+
+    function applyReminderSettingsToUI() {
+      document.getElementById('rlSize').value = reminderSettings.rlSize;
+      document.getElementById('rlColorSwatch').style.background = reminderSettings.rlColor;
+      document.getElementById('rlBold').classList.toggle('on', reminderSettings.rlBold);
+      document.getElementById('rlFont').value = reminderSettings.rlFont;
+
+      document.getElementById('lnSize').value = reminderSettings.lnSize;
+      document.getElementById('lnColorSwatch').style.background = reminderSettings.lnColor;
+      document.getElementById('lnBold').classList.toggle('on', reminderSettings.lnBold);
+      document.getElementById('lnFont').value = reminderSettings.lnFont;
+
+      document.getElementById('dlSize').value = reminderSettings.dlSize;
+      document.getElementById('dlColorSwatch').style.background = reminderSettings.dlColor;
+      document.getElementById('dlBold').classList.toggle('on', reminderSettings.dlBold);
+      document.getElementById('dlFont').value = reminderSettings.dlFont;
+
+      document.getElementById('tdSize').value = reminderSettings.tdSize;
+      document.getElementById('tdColorSwatch').style.background = reminderSettings.tdColor;
+      document.getElementById('tdBold').classList.toggle('on', reminderSettings.tdBold);
+      document.getElementById('tdFont').value = reminderSettings.tdFont;
+    }
+
+    document.getElementById('closeReminderSettings').addEventListener('click', () => {
+      document.getElementById('reminderSettingsOverlay').classList.remove('show');
+    });
+    document.getElementById('reminderSettingsOverlay').addEventListener('click', e => {
+      if (e.target.id === 'reminderSettingsOverlay') e.target.classList.remove('show');
+    });
+
+    ['rlBold','lnBold','dlBold','tdBold'].forEach(id => {
+      document.getElementById(id).addEventListener('click', function() { this.classList.toggle('on'); });
+    });
+
+    document.getElementById('reminderSettingsApplyBtn').addEventListener('click', () => {
+      reminderSettings.rlSize = parseInt(document.getElementById('rlSize').value) || reminderDefaultSettings.rlSize;
+      reminderSettings.rlColor = rgbToHex(document.getElementById('rlColorSwatch').style.background) || reminderSettings.rlColor;
+      reminderSettings.rlBold = document.getElementById('rlBold').classList.contains('on');
+      reminderSettings.rlFont = document.getElementById('rlFont').value;
+
+      reminderSettings.lnSize = parseInt(document.getElementById('lnSize').value) || reminderDefaultSettings.lnSize;
+      reminderSettings.lnColor = rgbToHex(document.getElementById('lnColorSwatch').style.background) || reminderSettings.lnColor;
+      reminderSettings.lnBold = document.getElementById('lnBold').classList.contains('on');
+      reminderSettings.lnFont = document.getElementById('lnFont').value;
+
+      reminderSettings.dlSize = parseInt(document.getElementById('dlSize').value) || reminderDefaultSettings.dlSize;
+      reminderSettings.dlColor = rgbToHex(document.getElementById('dlColorSwatch').style.background) || reminderSettings.dlColor;
+      reminderSettings.dlBold = document.getElementById('dlBold').classList.contains('on');
+      reminderSettings.dlFont = document.getElementById('dlFont').value;
+
+      reminderSettings.tdSize = parseInt(document.getElementById('tdSize').value) || reminderDefaultSettings.tdSize;
+      reminderSettings.tdColor = rgbToHex(document.getElementById('tdColorSwatch').style.background) || reminderSettings.tdColor;
+      reminderSettings.tdBold = document.getElementById('tdBold').classList.contains('on');
+      reminderSettings.tdFont = document.getElementById('tdFont').value;
+
+      localStorage.setItem('reminderPageSettings', JSON.stringify(reminderSettings));
+      // Keep settings as the source of truth for heading size — clear any old linePositions fontSize
+      try {
+        const store = JSON.parse(localStorage.getItem('linePositions') || '{}');
+        if (store['reminderPageHeading']) {
+          delete store['reminderPageHeading'].fontSize;
+          localStorage.setItem('linePositions', JSON.stringify(store));
+        }
+      } catch (e) {}
+      document.getElementById('reminderSettingsOverlay').classList.remove('show');
+      renderReminderList();
+    });
+
+    document.getElementById('reminderSettingsResetBtn').addEventListener('click', () => {
+      reminderSettings = { ...reminderDefaultSettings };
+      localStorage.removeItem('reminderPageSettings');
+      applyReminderSettingsToUI();
+      renderReminderList();
+    });
+
+    /* ===== Reminder list: store, render, add, delete ===== */
+    function saveReminderLists() {
+      localStorage.setItem('reminderLists', JSON.stringify(reminderLists));
+    }
+
+    function parseDMY(str) {
+      const parts = (str || '').split('/');
+      if (parts.length !== 3) return null;
+      const d = parseInt(parts[0], 10), m = parseInt(parts[1], 10), y = parseInt(parts[2], 10);
+      if (!d || !m || !y) return null;
+      const dt = new Date(y, m - 1, d);
+      return isNaN(dt.getTime()) ? null : dt;
+    }
+
+    function daysBetween(a, b) {
+      const msPerDay = 86400000;
+      const aMid = new Date(a.getFullYear(), a.getMonth(), a.getDate());
+      const bMid = new Date(b.getFullYear(), b.getMonth(), b.getDate());
+      return Math.round((bMid - aMid) / msPerDay);
+    }
+
+    function computeDayValue(r, today) {
+      const target = parseDMY(r.targetDate);
+      if (!target) return null;
+      // Count = days since target date (forward count)
+      // Countdown = days until target date (reverse count)
+      if (r.counter === 'count') {
+        return daysBetween(target, today);
+      }
+      return daysBetween(today, target);
+    }
+
+    function isAlertTriggered(r, dayVal) {
+      if (dayVal === null || isNaN(dayVal)) return false;
+      const alertPageNum = parseInt(r.alertPage, 10);
+      if (isNaN(alertPageNum)) return false;
+      // Count (sidhi ginti) → Alert Page = days (jo number aap likho)
+      // Koi fixed month nahi — 10, 15, 30 (1 month), 60 (2 month) sab chalega
+      // Edit target date → count resets → auto leaves Alert if below threshold
+      if (r.counter === 'count') {
+        return Math.abs(dayVal) >= alertPageNum;
+      }
+      // Countdown → on Alert while days-left <= alertPage,
+      // and for 5 days after expire (dayVal 0 .. -5), then leave Alert
+      if (dayVal < -5) return false;
+      return dayVal <= alertPageNum;
+    }
+
+    function buildCardHTML(r, dayVal) {
+      let dayLeftText;
+      if (dayVal === null || isNaN(dayVal)) {
+        dayLeftText = r.counter === 'count' ? '-- . Months - -- . Days' : '-- . Day Left';
+      } else if (r.counter === 'count') {
+        // Count: 30 days = 1 month → "3 . Months - 4 . Days"
+        const abs = Math.abs(dayVal);
+        const months = Math.floor(abs / 30);
+        const days = abs % 30;
+        dayLeftText = `${months} . Months - ${days} . Days`;
+      } else {
+        // Countdown: show Expire when target date reached / passed
+        dayLeftText = (dayVal <= 0) ? 'Expire' : `${dayVal} . Day Left`;
+      }
+      const nameStyle = `font-size:${reminderSettings.lnSize}px;color:${reminderSettings.lnColor};font-weight:${reminderSettings.lnBold ? '700' : '500'};font-family:${reminderSettings.lnFont};`;
+      const dateStyle = `font-size:${reminderSettings.tdSize}px;color:${reminderSettings.tdColor};font-weight:${reminderSettings.tdBold ? '700' : '400'};font-family:${reminderSettings.tdFont};`;
+      const dayStyle = `font-size:${reminderSettings.dlSize}px;color:${reminderSettings.dlColor};font-weight:${reminderSettings.dlBold ? '700' : '400'};font-family:${reminderSettings.dlFont};`;
+      const itemStyle = reminderSettings.rlVisible === false
+        ? `background:transparent;border:none;`
+        : ``;
+      return `
+        <div class="reminder-list-item" style="${itemStyle}" data-id="${r.id}">
+          <div class="reminder-item-name" style="${nameStyle}">${r.listName}</div>
+          <div class="reminder-item-dayleft" style="${dayStyle}">${dayLeftText}</div>
+          <div class="reminder-item-date" style="${dateStyle}">${r.targetDate || '--'}</div>
+        </div>
+      `;
+    }
+
+    function renderReminderList() {
+      const container = document.getElementById('reminderListContainer');
+      const alertContainer = document.getElementById('alertListContainer');
+      const title = document.getElementById('title-reminder');
+      const heading = document.getElementById('reminderPageHeading');
+      const alertTitle = document.getElementById('title-alert');
+      const alertHeading = document.getElementById('alertPageHeading');
+      if (!container) return;
+
+      const today = new Date();
+      const alertCards = [];
+
+      // Countdown: fewest days on top, most at bottom.
+      // Count items always stay at the bottom (not mixed into day-left order).
+      const sortedLists = reminderLists
+        .map(r => ({ r, dayVal: computeDayValue(r, today) }))
+        .sort((a, b) => {
+          const aCount = a.r.counter === 'count';
+          const bCount = b.r.counter === 'count';
+          if (aCount && !bCount) return 1;
+          if (!aCount && bCount) return -1;
+          const av = (a.dayVal === null || isNaN(a.dayVal)) ? Infinity : a.dayVal;
+          const bv = (b.dayVal === null || isNaN(b.dayVal)) ? Infinity : b.dayVal;
+          return av - bv;
+        });
+
+      const cardsHTML = sortedLists.map(({ r, dayVal }) => {
+        if (isAlertTriggered(r, dayVal)) alertCards.push(buildCardHTML(r, dayVal));
+        return buildCardHTML(r, dayVal);
+      });
+
+      container.innerHTML = cardsHTML.join('');
+      if (reminderLists.length) {
+        if (title) title.style.display = 'none';
+        if (heading) {
+          heading.style.display = 'block';
+          heading.textContent = `🔔 ${reminderLists.length}`;
+          heading.style.fontSize = reminderSettings.rlSize + 'px';
+          heading.style.color = reminderSettings.rlColor;
+          heading.style.fontWeight = reminderSettings.rlBold ? '700' : '600';
+          heading.style.fontFamily = reminderSettings.rlFont;
+          // textContent destroys .anim-inner — re-apply animation if set
+          try {
+            const conf = animState && animState['reminderPageHeading'];
+            if (conf && conf.names && conf.names.length) {
+              applyToTarget('reminderPageHeading', conf.names, conf.speed || 'normal');
+            }
+          } catch (e) {}
+        }
+      } else {
+        if (title) title.style.display = 'block';
+        if (heading) heading.style.display = 'none';
+      }
+
+      if (alertContainer) {
+        alertContainer.innerHTML = alertCards.join('');
+        // Never show "Alert 1" heading
+        if (alertHeading) alertHeading.style.display = 'none';
+        // Always show "Alert" title (draggable + pin/unpin). Visibility also set by applySettingsToPage.
+        if (alertTitle) alertTitle.style.display = 'block';
+      }
+    }
+
+    renderReminderList();
+
+    /* ===== Delete Reminders (tick-box) modal ===== */
+    function renderDeleteRemindersList() {
+      const container = document.getElementById('deleteRemindersList');
+      if (!container) return;
+      if (!reminderLists.length) {
+        container.innerHTML = '<div style="color:#888;text-align:center;padding:20px 0;">No reminders to delete.</div>';
+        return;
+      }
+      container.innerHTML = reminderLists.map(r => `
+        <label style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:#f5f7fb;border-radius:12px;border:1.5px solid #dfe6f5;">
+          <input type="checkbox" data-id="${r.id}" style="width:20px;height:20px;flex-shrink:0;">
+          <span style="font-weight:600;color:#222;word-break:break-word;">${r.listName}</span>
+          <span style="margin-left:auto;color:#888;font-size:13px;white-space:nowrap;">${r.targetDate || ''}</span>
+        </label>
+      `).join('');
+    }
+
+    document.getElementById('closeDeleteReminders').addEventListener('click', () => {
+      document.getElementById('deleteRemindersOverlay').classList.remove('show');
+    });
+    document.getElementById('deleteRemindersCancelBtn').addEventListener('click', () => {
+      document.getElementById('deleteRemindersOverlay').classList.remove('show');
+    });
+    document.getElementById('deleteRemindersOverlay').addEventListener('click', e => {
+      if (e.target.id === 'deleteRemindersOverlay') e.target.classList.remove('show');
+    });
+    document.getElementById('deleteRemindersConfirmBtn').addEventListener('click', () => {
+      const checked = Array.from(document.querySelectorAll('#deleteRemindersList input[type="checkbox"]:checked')).map(cb => cb.dataset.id);
+      if (!checked.length) {
+        showReminderToast('Select at least one');
+        return;
+      }
+      reminderLists = reminderLists.filter(r => !checked.includes(r.id));
+      saveReminderLists();
+      renderReminderList();
+      document.getElementById('deleteRemindersOverlay').classList.remove('show');
+      showReminderToast(`Deleted ${checked.length}`);
+    });
+
+    /* ===== Tap a card once -> small popup with a pencil (Edit) icon.
+       Left untouched for a few seconds -> popup disappears automatically. ===== */
+    let reminderCardPopupEl = null;
+    let reminderCardPopupTimer = null;
+    let editingReminderId = null;
+
+    function hideReminderCardPopup() {
+      if (reminderCardPopupTimer) { clearTimeout(reminderCardPopupTimer); reminderCardPopupTimer = null; }
+      if (reminderCardPopupEl) { reminderCardPopupEl.remove(); reminderCardPopupEl = null; }
+    }
+
+    function showReminderCardPopup(cardEl, id) {
+      hideReminderCardPopup();
+      reminderCardPopupEl = document.createElement('div');
+      reminderCardPopupEl.className = 'line-popup';
+      reminderCardPopupEl.innerHTML = `<button class="act-edit" data-id="${id}">✏️</button>`;
+      document.body.appendChild(reminderCardPopupEl);
+
+      const rect = cardEl.getBoundingClientRect();
+      const pw = reminderCardPopupEl.offsetWidth || 90;
+      let top = rect.top + 8;
+      let left = rect.right - pw - 8;
+      if (left < 8) left = 8;
+      if (top + 40 > window.innerHeight) top = rect.top - 48;
+      reminderCardPopupEl.style.top = top + 'px';
+      reminderCardPopupEl.style.left = left + 'px';
+
+      reminderCardPopupEl.querySelector('.act-edit').addEventListener('click', e => {
+        e.stopPropagation();
+        openReminderEditForm(id);
+        hideReminderCardPopup();
+      });
+
+      reminderCardPopupTimer = setTimeout(hideReminderCardPopup, 3000);
+    }
+
+    function openReminderEditForm(id) {
+      const r = reminderLists.find(x => x.id === id);
+      if (!r) return;
+      editingReminderId = id;
+
+      document.getElementById('reminderListName').value = r.listName || '';
+      document.getElementById('reminderTargetDate').value = r.targetDate || '';
+      document.getElementById('reminderPrice').value = (r.price !== undefined && r.price !== null) ? r.price : 0;
+      document.getElementById('reminderAlertPage').value = (r.alertPage !== undefined && r.alertPage !== null) ? r.alertPage : 15;
+      document.querySelectorAll('#reminderCounter button').forEach(b => {
+        b.classList.toggle('active', b.dataset.val === r.counter);
+      });
+
+      const formTitle = document.getElementById('reminderFormTitle');
+      if (formTitle) formTitle.textContent = 'Edit Reminder';
+      const saveBtn = document.getElementById('saveReminderBtn');
+      if (saveBtn) saveBtn.textContent = 'Update List';
+
+      document.getElementById('addReminderOverlay').classList.add('show');
+    }
+
+    function resetReminderFormMode() {
+      editingReminderId = null;
+      const formTitle = document.getElementById('reminderFormTitle');
+      if (formTitle) formTitle.textContent = 'Add New Reminder';
+      const saveBtn = document.getElementById('saveReminderBtn');
+      if (saveBtn) saveBtn.textContent = 'Save New List';
+    }
+
+    document.addEventListener('click', e => {
+      const card = e.target.closest('.reminder-list-item');
+      if (card) {
+        e.stopPropagation();
+        // Edit pencil only on Reminder page — never on Alert page
+        if (current === 1) showReminderCardPopup(card, card.dataset.id);
+        return;
+      }
+      if (!e.target.closest('.line-popup')) hideReminderCardPopup();
+    });
+
+    document.getElementById('saveReminderBtn').addEventListener('click', () => {
+      const priceInput = document.getElementById('reminderPrice');
+      const priceVal = parseFloat(priceInput.value);
+      if (!priceInput.value || isNaN(priceVal) || priceVal <= 0) {
+        showReminderToast('Please enter price first');
+        priceInput.focus();
+        return;
+      }
+      const nameInput = document.getElementById('reminderListName');
+      const listName = nameInput.value.trim() || 'Untitled';
+      const targetDate = document.getElementById('reminderTargetDate').value.trim();
+      const alertPage = document.getElementById('reminderAlertPage').value;
+      const counter = document.querySelector('#reminderCounter button.active')?.dataset.val || 'countdown';
+
+      let toastMsg = 'List saved';
+      if (editingReminderId) {
+        const idx = reminderLists.findIndex(r => r.id === editingReminderId);
+        if (idx !== -1) {
+          reminderLists[idx] = { ...reminderLists[idx], listName, targetDate, price: priceVal, alertPage, counter };
+        }
+        toastMsg = 'List updated';
+      } else {
+        reminderLists.push({
+          id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+          listName, targetDate, price: priceVal, alertPage, counter,
+          created: Date.now()
+        });
+      }
+      saveReminderLists();
+      renderReminderList();
+
+      nameInput.value = '';
+      document.getElementById('reminderTargetDate').value = '';
+      priceInput.value = '0';
+      document.getElementById('reminderAlertPage').value = '15';
+      document.querySelectorAll('#reminderCounter button').forEach(b => b.classList.remove('active'));
+      document.querySelector('#reminderCounter button[data-val="countdown"]').classList.add('active');
+
+      resetReminderFormMode();
+      document.getElementById('addReminderOverlay').classList.remove('show');
+      showReminderToast(toastMsg);
+    });
+
+    document.getElementById('dateBold').addEventListener('click', function() { this.classList.toggle('on'); });
+    document.getElementById('titleBold').addEventListener('click', function() { this.classList.toggle('on'); });
+
+    document.getElementById('dateDelete').addEventListener('click', () => {
+      settings.dateVisible = false;
+      document.getElementById('date-alert').style.display = 'none';
+      const dr = document.getElementById('date-reminder');
+      if (dr) dr.style.display = 'none';
+    });
+    document.getElementById('titleDelete').addEventListener('click', () => {
+      settings.titleVisible = false;
+      document.getElementById('title-alert').style.display = 'none';
+    });
+
+    document.getElementById('applyBtn').addEventListener('click', () => {
+      settings.bgColor = rgbToHex(document.getElementById('bgColorSwatch').style.background) || settings.bgColor;
+      settings.dateSize = parseInt(document.getElementById('dateSize').value) || 15;
+      settings.dateColor = rgbToHex(document.getElementById('dateColorSwatch').style.background) || settings.dateColor;
+      settings.dateBold = document.getElementById('dateBold').classList.contains('on');
+      settings.dateFont = document.getElementById('dateFont').value;
+      settings.dateVisible = true;
+
+      settings.titleSize = parseInt(document.getElementById('titleSize').value) || 45;
+      settings.titleColor = rgbToHex(document.getElementById('titleColorSwatch').style.background) || settings.titleColor;
+      settings.titleBold = document.getElementById('titleBold').classList.contains('on');
+      settings.titleFont = document.getElementById('titleFont').value;
+      settings.titleVisible = true;
+
+      localStorage.setItem('alertPageSettings', JSON.stringify(settings));
+      applySettingsToPage();
+      document.getElementById('settingsOverlay').classList.remove('show');
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      settings = { ...defaultSettings };
+      localStorage.removeItem('alertPageSettings');
+      applySettingsToUI();
+      applySettingsToPage();
+    });
+
+    const palette = [
+      // Dark
+      '#000000','#0D0D0D','#1A1A1A','#212121','#2C2C2C','#333333',
+      '#3D3D3D','#424242','#4A4A4A','#555555','#616161','#6E6E6E',
+      // Gray / Light
+      '#757575','#9E9E9E','#BDBDBD','#E0E0E0','#EEEEEE','#F5F5F5',
+      '#FAFAFA','#FFFFFF','#F8F9FA','#F1F3F4','#E8EAED','#DADCE0',
+      // Blues dark to light
+      '#0D1B2A','#1B263B','#0A192F','#112240','#1A365D','#1E3A5F',
+      '#1565C0','#1976D2','#1E88E5','#2196F3','#42A5F5','#64B5F6',
+      '#90CAF9','#BBDEFB','#E3F2FD','#E8F0FE','#F0F7FF',
+      // Greens
+      '#1B5E20','#2E7D32','#388E3C','#43A047','#4CAF50','#66BB6A',
+      '#81C784','#A5D6A7','#C8E6C9','#E8F5E9','#F1F8E9',
+      // Reds / Pinks
+      '#B71C1C','#C62828','#D32F2F','#E53935','#F44336','#EF5350',
+      '#E91E63','#C2185B','#AD1457','#880E4F','#F48FB1','#F8BBD0',
+      '#FCE4EC','#FFEBEE','#FFCDD2',
+      // Purples
+      '#4A148C','#6A1B9A','#7B1FA2','#8E24AA','#9C27B0','#AB47BC',
+      '#CE93D8','#E1BEE7','#F3E5F5',
+      // Oranges / Yellows
+      '#E65100','#EF6C00','#F57C00','#FB8C00','#FF9800','#FFA726',
+      '#FFB74D','#FFCC80','#FFE0B2','#FFF3E0','#FFF8E1','#FFECB3',
+      '#FFE082','#FFD54F','#FFCA28','#FFC107','#FFEB3B','#FFF59D',
+      // Teal / Cyan
+      '#004D40','#00695C','#00796B','#00897B','#009688','#26A69A',
+      '#4DB6AC','#80CBC4','#B2DFDB','#E0F2F1','#E0F7FA','#B2EBF2',
+      '#00ACC1','#00BCD4','#26C6DA','#4DD0E1',
+      // Browns
+      '#3E2723','#4E342E','#5D4037','#6D4C41','#795548','#8D6E63',
+      '#A1887F','#BCAAA4','#D7CCC8','#EFEBE9',
+      // Bright accents
+      '#FF1744','#D50000','#00E676','#69F0AE','#2979FF','#448AFF',
+      '#18FFFF','#00B0FF','#7C4DFF','#B388FF','#76FF03','#FF9100',
+      '#F50057','#E040FB','#FF4081','#FF5252'
+    ];
+    const uniquePalette = [...new Set(palette)];
+
+    const colorGrid = document.getElementById('colorGrid');
+    uniquePalette.forEach(c => {
+      const cell = document.createElement('div');
+      cell.className = 'color-cell';
+      cell.style.background = c;
+      cell.dataset.color = c;
+      cell.addEventListener('click', () => {
+        document.querySelectorAll('.color-cell').forEach(el => el.classList.remove('selected'));
+        cell.classList.add('selected');
+        pendingColorValue = c;
+      });
+      colorGrid.appendChild(cell);
+    });
+
+    document.querySelectorAll('.color-swatch').forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        pendingColorTarget = swatch;
+        pendingColorValue = null;
+        const currentBg = (rgbToHex(swatch.style.background) || swatch.style.background).toLowerCase();
+        document.querySelectorAll('.color-cell').forEach(el => {
+          el.classList.toggle('selected', el.dataset.color.toLowerCase() === currentBg);
+        });
+        document.getElementById('colorPickerOverlay').classList.add('show');
+      });
+    });
+
+    document.getElementById('colorCancel').addEventListener('click', () => {
+      document.getElementById('colorPickerOverlay').classList.remove('show');
+      pendingColorTarget = null;
+    });
+
+    document.getElementById('colorSet').addEventListener('click', () => {
+      if (pendingColorTarget && pendingColorValue) {
+        pendingColorTarget.style.background = pendingColorValue;
+      }
+      document.getElementById('colorPickerOverlay').classList.remove('show');
+      pendingColorTarget = null;
+    });
+
+    document.getElementById('colorPickerOverlay').addEventListener('click', e => {
+      if (e.target.id === 'colorPickerOverlay') {
+        e.target.classList.remove('show');
+        pendingColorTarget = null;
+      }
+    });
+
+    function rgbToHex(rgb) {
+      if (!rgb || rgb.startsWith('#')) return rgb;
+      const m = rgb.match(/\d+/g);
+      if (!m || m.length < 3) return rgb;
+      return '#' + m.slice(0,3).map(x => (+x).toString(16).padStart(2,'0')).join('');
+    }
+
+    applySettingsToPage();
+
+    /* ===== Line interaction: tap any line -> popup with Drag / +- Resize / Pin / Unpin ===== */
+    (function() {
+      let popupEl = null;
+      let popupTimer = null;
+      const STORE_KEY = 'linePositions';
+      const RESIZE_STEP = 2;
+
+      function loadStore() {
+        return JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+      }
+      function saveLineState(el) {
+        if (!el.id) return;
+        const store = loadStore();
+        store[el.id] = {
+          left: el.style.left || '',
+          top: el.style.top || '',
+          right: el.style.right || '',
+          bottom: el.style.bottom || '',
+          transform: el.style.transform || '',
+          fontSize: el.style.fontSize || '',
+          pinned: el.dataset.pinned === 'true'
+        };
+        localStorage.setItem(STORE_KEY, JSON.stringify(store));
+      }
+      function restoreLineStates() {
+        const store = loadStore();
+        document.querySelectorAll('.line-item').forEach(el => {
+          const s = store[el.id];
+          if (!s) return;
+          if (s.left) el.style.left = s.left;
+          if (s.top) el.style.top = s.top;
+          if (s.right) el.style.right = s.right;
+          if (s.bottom) el.style.bottom = s.bottom;
+          if (s.transform) el.style.transform = s.transform;
+          // fontSize for reminder heading / dates is owned by page settings — do not restore from linePositions
+          if (s.fontSize && el.id !== 'reminderPageHeading' && el.id !== 'date-alert' && el.id !== 'date-reminder') {
+            el.style.fontSize = s.fontSize;
+          }
+          el.dataset.pinned = s.pinned ? 'true' : 'false';
+          el.classList.toggle('pinned', !!s.pinned);
+        });
+      }
+
+      function markLineItems() {
+        document.querySelectorAll('.page-name, .reminder-page-heading, .today-date').forEach(el => {
+          el.classList.add('line-item');
+          if (el.dataset.pinned === undefined) el.dataset.pinned = 'false';
+        });
+      }
+      markLineItems();
+      restoreLineStates();
+
+      // Today-date line always stays fixed at its default top-left spot —
+      // clear out any old drifted/dragged position so it can't move again.
+      (function resetDateLinePosition() {
+        const store = loadStore();
+        let changed = false;
+        ['date-alert', 'date-reminder'].forEach(id => {
+          if (store[id]) { delete store[id]; changed = true; }
+          const el = document.getElementById(id);
+          if (el) {
+            el.style.left = '';
+            el.style.top = '';
+            el.style.right = '';
+            el.style.bottom = '';
+            el.style.transform = '';
+          }
+        });
+        if (changed) localStorage.setItem(STORE_KEY, JSON.stringify(store));
+      })();
+
+      function showToast(msg) {
+        const t = document.createElement('div');
+        t.className = 'line-toast';
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 1450);
+      }
+
+      function clearPopupTimer() { if (popupTimer) { clearTimeout(popupTimer); popupTimer = null; } }
+      function scheduleAutoHide() {
+        clearPopupTimer();
+        popupTimer = setTimeout(hidePopup, 3000);
+      }
+      function hidePopup() {
+        clearPopupTimer();
+        if (popupEl) { popupEl.remove(); popupEl = null; }
+      }
+
+      function positionPopup(el) {
+        const rect = el.getBoundingClientRect();
+        let top = rect.bottom + 8;
+        let left = rect.left;
+        const pw = popupEl.offsetWidth || 140;
+        if (top + 46 > window.innerHeight) top = rect.top - 46 - 8;
+        if (left + pw > window.innerWidth) left = window.innerWidth - pw - 8;
+        if (left < 8) left = 8;
+        popupEl.style.top = top + 'px';
+        popupEl.style.left = left + 'px';
+      }
+
+      function showPopup(el) {
+        hidePopup();
+        const pinned = el.dataset.pinned === 'true';
+        const isHeading = el.id === 'alertPageHeading';
+        const isDateLine = el.id === 'date-alert' || el.id === 'date-reminder';
+        const isAlertTitle = el.id === 'title-alert';
+
+        popupEl = document.createElement('div');
+        popupEl.className = 'line-popup';
+        // Alert title: only Pin + Unpin (no Drag label). Pin = locked, Unpin = can drag.
+        if (isAlertTitle) {
+          popupEl.innerHTML = `
+            <button class="act-pin${pinned ? ' on' : ''}" data-act="pin">Pin</button>
+            <button class="act-pin${!pinned ? ' on' : ''}" data-act="unpin">Unpin</button>
+          `;
+        } else if (isDateLine) {
+          popupEl.innerHTML = `<button class="act-edit" data-act="edit">✏️</button>`;
+        } else {
+          popupEl.innerHTML = `
+            <button class="act-pin${pinned ? ' on' : ''}" data-act="${pinned ? 'unpin' : 'pin'}">${pinned ? 'Unpin' : 'Pin'}</button>
+            ${isHeading ? '<button class="act-edit" data-act="edit">✏️</button>' : ''}
+          `;
+        }
+        document.body.appendChild(popupEl);
+        positionPopup(el);
+
+        popupEl.querySelectorAll('button').forEach(btn => {
+          btn.addEventListener('click', e => {
+            e.stopPropagation();
+            handleAction(el, btn.dataset.act);
+          });
+        });
+
+        scheduleAutoHide();
+      }
+
+      function handleAction(el, act) {
+        if (act === 'pin') {
+          el.dataset.pinned = 'true';
+          el.classList.add('pinned');
+          saveLineState(el);
+          showToast('Pinned');
+          hidePopup();
+          return;
+        }
+        if (act === 'unpin') {
+          el.dataset.pinned = 'false';
+          el.classList.remove('pinned');
+          saveLineState(el);
+          showToast('Unpinned');
+          hidePopup();
+          return;
+        }
+        if (act === 'edit') {
+          hidePopup();
+          enableInlineEdit(el);
+          return;
+        }
+      }
+
+      function enableInlineEdit(el) {
+        el.contentEditable = 'true';
+        el.focus();
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        range.collapse(false);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+
+        function finishEdit() {
+          el.contentEditable = 'false';
+          el.removeEventListener('blur', finishEdit);
+          el.removeEventListener('keydown', onKeydown);
+          const text = el.textContent.trim();
+          if (text) {
+            lineTextOverrides[el.id] = text;
+          } else {
+            delete lineTextOverrides[el.id];
+          }
+          localStorage.setItem('lineTextOverrides', JSON.stringify(lineTextOverrides));
+          if (typeof renderReminderList === 'function') renderReminderList();
+        }
+        function onKeydown(e) {
+          if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+        }
+        el.addEventListener('blur', finishEdit);
+        el.addEventListener('keydown', onKeydown);
+      }
+
+      /* Direct drag: touch/hold-and-move a line to reposition it (only when unpinned).
+         A plain tap (no real movement) opens the Pin/Unpin popup instead. */
+      const DRAG_THRESHOLD = 18;
+
+      function attachDragHandlers(el) {
+        let startX = 0, startY = 0, dragging = false, moved = false;
+        let parentRect = null, isCentered = false;
+
+        function onStart(e) {
+          if (el.isContentEditable) return; // typing in the heading — don't trigger drag/popup
+          const p = e.touches ? e.touches[0] : e;
+          startX = p.clientX; startY = p.clientY;
+          moved = false; dragging = true;
+          const parent = el.offsetParent || el.parentElement;
+          parentRect = parent.getBoundingClientRect();
+          isCentered = el.classList.contains('page-name');
+          document.addEventListener('mousemove', onMove);
+          document.addEventListener('mouseup', onEnd);
+          document.addEventListener('touchmove', onMove, { passive: false });
+          document.addEventListener('touchend', onEnd);
+        }
+
+        function onMove(e) {
+          if (!dragging) return;
+          if (el.dataset.pinned === 'true') return; // pinned: no movement, but tap still registers on release
+          if (el.id === 'date-alert' || el.id === 'date-reminder') return; // date line: position always locked
+          const p = e.touches ? e.touches[0] : e;
+          const dx = p.clientX - startX, dy = p.clientY - startY;
+          if (!moved && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+          moved = true;
+          if (e.cancelable) e.preventDefault();
+          let x = p.clientX - parentRect.left;
+          let y = p.clientY - parentRect.top;
+          el.style.left = x + 'px';
+          el.style.top = y + 'px';
+          el.style.right = 'auto';
+          el.style.bottom = 'auto';
+          if (isCentered) el.style.transform = 'translate(-50%, -50%)';
+        }
+
+        function onEnd(e) {
+          dragging = false;
+          document.removeEventListener('mousemove', onMove);
+          document.removeEventListener('mouseup', onEnd);
+          document.removeEventListener('touchmove', onMove);
+          document.removeEventListener('touchend', onEnd);
+          if (moved) {
+            saveLineState(el);
+          } else {
+            showPopup(el);
+          }
+        }
+
+        el.addEventListener('mousedown', onStart);
+        el.addEventListener('touchstart', onStart, { passive: true });
+      }
+
+      document.querySelectorAll('.line-item').forEach(attachDragHandlers);
+
+      document.addEventListener('click', e => {
+        if (e.target.closest('.line-item')) { e.stopPropagation(); return; }
+        if (!e.target.closest('.line-popup')) hidePopup();
+      });
+    })();
+
+    /* ===== ANIMATION SYSTEM (additive only — does not touch other logic) ===== */
+    const ANIM_STORE_KEY = 'lineAnimations';
+    const SPEED_MAP = { slow: 3.2, normal: 2.0, medium: 1.3, high: 0.65 };
+    const TRENDING_ANIMS = [
+      'bounce','flash','pulse','rubberBand','shakeX','shakeY','headShake','swing','tada','wobble',
+      'jello','heartBeat','fadeIn','fadeOut','fadeInDown','fadeInUp','fadeInLeft','fadeInRight','slideInDown','slideInUp',
+      'slideInLeft','slideInRight','zoomIn','zoomOut','bounceIn','flip','flipInX','flipInY','rotateIn','lightSpeedInRight',
+      'lightSpeedInLeft','rollIn','jackInTheBox','float','glow','blurIn','spin','spinReverse','pendulum','breathe',
+      'vibrate','pop','squeeze','stretch','tilt','wave','glitch','spiral','dropIn','riseUp',
+      'expand','blink','softPulse','textFocus','trackingIn','shadowPop','rainbow','bounceSoft','slideFadeLeft','slideFadeRight',
+      'flicker','rubberX','rubberY','wiggle','jump','elastic','floatRotate','scaleBounce','fadeScale','rotateScale',
+      'blurFocus','softGlow','attention','heartbeatSoft','drift','opacityWave','scalePulse','rotate3d','bounceInLeft','bounceInRight',
+      'bounceInUp','bounceInDown','zoomInUp','zoomInDown','zoomRotate','slideSkew','flipDown','flipUp','swingIn','letterPop',
+      'kenBurns','colorCycle','morph','reveal','maskWipe','orbit','slideBounce','fadeInTopLeft','fadeInTopRight','fadeInBottomLeft',
+      'fadeInBottomRight','zoomInLeft','zoomInRight','neon','hinge'
+    ].slice(0, 100);
+
+    let animState = JSON.parse(localStorage.getItem(ANIM_STORE_KEY) || '{}');
+    let selectedAnimLineId = null;
+    let selectedAnims = [];
+    let selectedAnimSpeed = 'normal';
+
+    function getPageLines(pageIndex) {
+      if (pageIndex === 0) {
+        return [
+          { id: 'date-alert', label: 'Today Date' },
+          { id: 'title-alert', label: 'Alert Title' }
+        ];
+      }
+      if (pageIndex === 1) {
+        const lines = [
+          { id: 'date-reminder', label: 'Today Date' },
+          { id: 'reminderPageHeading', label: 'Reminder List' }
+        ];
+        (reminderLists || []).forEach(r => {
+          lines.push({ id: 'card-' + r.id, label: r.listName || 'Untitled', isCard: true, cardId: r.id });
+        });
+        return lines;
+      }
+      if (pageIndex === 2) return [{ id: 'title-history', label: 'History Title' }];
+      if (pageIndex === 3) return [{ id: 'title-hide', label: 'Hide Title' }];
+      return [];
+    }
+
+    function pagePillLabel(i) {
+      return ['ALERT PAGE', 'LIST PAGE', 'HISTORY PAGE', 'HIDE PAGE'][i] || 'PAGE';
+    }
+
+    function buildAnimCSS(names, speedKey) {
+      if (!names || !names.length) return '';
+      const dur = SPEED_MAP[speedKey] || SPEED_MAP.normal;
+      return names.map((n, i) => `${n} ${dur}s ease-in-out ${i * (dur * 0.15)}s infinite`).join(', ');
+    }
+
+    function ensureAnimInner(el) {
+      let inner = el.querySelector(':scope > .anim-inner');
+      if (!inner) {
+        inner = document.createElement('span');
+        inner.className = 'anim-inner';
+        inner.style.display = 'inline-block';
+        while (el.firstChild) inner.appendChild(el.firstChild);
+        el.appendChild(inner);
+      }
+      return inner;
+    }
+
+    function applyAnimationToElement(el, names, speedKey) {
+      if (!el) return;
+      if (el.classList.contains('reminder-list-item')) {
+        // Cards: animate whole card
+        el.style.animation = (!names || !names.length) ? '' : buildAnimCSS(names, speedKey);
+        return;
+      }
+      const target = ensureAnimInner(el);
+      target.style.animation = (!names || !names.length) ? '' : buildAnimCSS(names, speedKey);
+    }
+
+    function applyToTarget(lineId, names, speed) {
+      if (lineId.startsWith('card-')) {
+        const cardId = lineId.replace('card-', '');
+        const card = document.querySelector(`.reminder-list-item[data-id="${cardId}"]`);
+        if (card) applyAnimationToElement(card, names, speed);
+        return;
+      }
+      const el = document.getElementById(lineId);
+      if (el) applyAnimationToElement(el, names, speed);
+    }
+
+    function restoreAllAnimations() {
+      Object.keys(animState).forEach(id => {
+        const conf = animState[id];
+        if (conf && conf.names && conf.names.length) applyToTarget(id, conf.names, conf.speed || 'normal');
+      });
+    }
+
+    function openAnimationPanel() {
+      selectedAnimLineId = null;
+      selectedAnims = [];
+      selectedAnimSpeed = 'normal';
+      document.getElementById('animPagePill').textContent = pagePillLabel(current);
+      document.getElementById('animLinesView').style.display = 'block';
+      document.getElementById('animPickView').style.display = 'none';
+      renderAnimLinesList();
+      document.getElementById('animOverlay').classList.add('show');
+    }
+
+    function renderAnimLinesList() {
+      const list = document.getElementById('animLinesList');
+      const lines = getPageLines(current);
+      if (!lines.length) {
+        list.innerHTML = '<div class="anim-empty">No lines on this page.</div>';
+        return;
+      }
+      list.innerHTML = lines.map(ln => {
+        const conf = animState[ln.id];
+        const has = conf && conf.names && conf.names.length;
+        return `<div class="anim-line-card${has ? ' has-anim' : ''}" data-line-id="${ln.id}">
+          <div style="display:flex;align-items:center;">
+            ${has ? '<span class="anim-green-dot"></span>' : ''}
+            <span class="line-label">${ln.label}</span>
+          </div>
+          <div style="display:flex;align-items:center;">
+            ${has ? `<span class="line-current">${conf.names.join(' + ')}</span>` : ''}
+            <span class="line-chevron">›</span>
+          </div>
+        </div>`;
+      }).join('');
+      list.querySelectorAll('.anim-line-card').forEach(card => {
+        card.addEventListener('click', () => openAnimPicker(card.dataset.lineId));
+      });
+    }
+
+    function openAnimPicker(lineId) {
+      selectedAnimLineId = lineId;
+      const conf = animState[lineId] || {};
+      selectedAnims = (conf.names && conf.names.length) ? [...conf.names] : [];
+      selectedAnimSpeed = conf.speed || 'normal';
+      document.getElementById('animLinesView').style.display = 'none';
+      document.getElementById('animPickView').style.display = 'block';
+      document.querySelectorAll('#animSpeedRow .anim-speed-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.speed === selectedAnimSpeed);
+      });
+      renderAnimPreviewList();
+    }
+
+    function renderAnimPreviewList() {
+      const list = document.getElementById('animPreviewList');
+      const dur = SPEED_MAP[selectedAnimSpeed] || SPEED_MAP.normal;
+      let html = `<div class="anim-preview-card none-card${!selectedAnims.length ? ' selected' : ''}" data-anim="__none__">
+        <div class="anim-preview-text" style="color:#1a73e8;">None</div>
+      </div>`;
+      TRENDING_ANIMS.forEach((name, idx) => {
+        const isSel = selectedAnims.includes(name);
+        html += `<div class="anim-preview-card${isSel ? ' selected' : ''}" data-anim="${name}">
+          <span class="anim-num">${idx + 1}</span>
+          <div class="anim-preview-text" style="animation:${name} ${dur}s ease-in-out infinite;">Aa</div>
+        </div>`;
+      });
+      list.innerHTML = html;
+      list.querySelectorAll('.anim-preview-card').forEach(card => {
+        const name = card.dataset.anim;
+        card.addEventListener('click', () => {
+          if (name === '__none__') selectedAnims = [];
+          else {
+            const i = selectedAnims.indexOf(name);
+            if (i >= 0) selectedAnims.splice(i, 1);
+            else {
+              if (selectedAnims.length >= 6) { showMenuToast('Max 6 animations'); return; }
+              selectedAnims.push(name);
+            }
+          }
+          renderAnimPreviewList();
+        });
+      });
+    }
+
+    function closeAnimPanel() {
+      document.getElementById('animOverlay').classList.remove('show');
+    }
+    document.getElementById('closeAnimPanel').addEventListener('click', closeAnimPanel);
+    document.getElementById('closeAnimPanel2').addEventListener('click', closeAnimPanel);
+    document.getElementById('animOverlay').addEventListener('click', e => {
+      if (e.target.id === 'animOverlay') closeAnimPanel();
+    });
+    document.getElementById('animSpeedRow').addEventListener('click', e => {
+      const btn = e.target.closest('.anim-speed-btn');
+      if (!btn) return;
+      selectedAnimSpeed = btn.dataset.speed;
+      document.querySelectorAll('#animSpeedRow .anim-speed-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderAnimPreviewList();
+    });
+    document.getElementById('animApplyBtn').addEventListener('click', () => {
+      if (!selectedAnimLineId) return;
+      if (!selectedAnims.length) {
+        delete animState[selectedAnimLineId];
+        applyToTarget(selectedAnimLineId, null);
+        localStorage.setItem(ANIM_STORE_KEY, JSON.stringify(animState));
+        showMenuToast('Animation cleared');
+      } else {
+        animState[selectedAnimLineId] = { names: [...selectedAnims], speed: selectedAnimSpeed };
+        localStorage.setItem(ANIM_STORE_KEY, JSON.stringify(animState));
+        applyToTarget(selectedAnimLineId, selectedAnims, selectedAnimSpeed);
+        showMenuToast('Applied');
+      }
+      document.getElementById('animLinesView').style.display = 'block';
+      document.getElementById('animPickView').style.display = 'none';
+      renderAnimLinesList();
+    });
+
+    restoreAllAnimations();
+    // Re-apply card animations after list re-renders
+    setInterval(() => {
+      Object.keys(animState).forEach(id => {
+        const conf = animState[id];
+        if (!conf || !conf.names || !conf.names.length) return;
+        if (id.startsWith('card-')) {
+          const card = document.querySelector(`.reminder-list-item[data-id="${id.replace('card-', '')}"]`);
+          if (card && !card.style.animation) applyAnimationToElement(card, conf.names, conf.speed || 'normal');
+        } else {
+          const el = document.getElementById(id);
+          if (el) {
+            const inner = el.querySelector(':scope > .anim-inner');
+            // Re-create if missing (e.g. textContent wiped it) or animation was cleared
+            if (!inner || !inner.style.animation) applyAnimationToElement(el, conf.names, conf.speed || 'normal');
+          }
+        }
+      });
+    }, 2000);
+  </script>
+</body>
+</html>
