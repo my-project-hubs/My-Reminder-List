@@ -16,7 +16,7 @@
     html, body {
       height: 100%;
       overflow: hidden;
-      background: #000;
+      background: #ffffff;
       font-family: 'Segoe UI', system-ui, sans-serif;
     }
 
@@ -32,7 +32,7 @@
       width: 25%;
       height: 100%;
       position: relative;
-      background: #000;
+      background: #ffffff;
       flex-shrink: 0;
     }
 
@@ -43,7 +43,7 @@
       transform: translate(-50%, -50%);
       font-size: 2.8rem;
       font-weight: 600;
-      color: #fff;
+      color: #111111;
       letter-spacing: 2px;
       opacity: 0.9;
     }
@@ -80,22 +80,22 @@
       left: 16px;
       font-size: 1.4rem;
       font-weight: 600;
-      color: #fff;
+      color: #111111;
     }
 
     .reminder-list-item {
-      background: #1c2f4d;
-      border: 2px solid rgba(255, 255, 255, 0.6);
-      border-radius: 18px;
-      padding: 16px 20px;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 0;
+      padding: 14px 4px;
       position: relative;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: none;
+      transition: opacity 0.15s ease;
     }
 
     .reminder-list-item:active {
-      transform: scale(0.98);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+      opacity: 0.6;
     }
 
     .reminder-item-name {
@@ -138,7 +138,7 @@
       top: 18px;
       left: 16px;
       font-size: 0.95rem;
-      color: #aaa;
+      color: #666;
       font-weight: 500;
       letter-spacing: 0.3px;
     }
@@ -165,7 +165,7 @@
       display: block;
       width: 22px;
       height: 2px;
-      background: #fff;
+      background: #222;
       border-radius: 1px;
     }
 
@@ -182,7 +182,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #fff;
+      color: #222;
       font-size: 26px;
       line-height: 1;
       padding: 0;
@@ -977,7 +977,7 @@
         <div class="controls-row">
           <div class="control-group">
             <span class="control-label">COLOR</span>
-            <div class="color-swatch" id="bgColorSwatch" data-target="bgColor" style="background:#000000;"></div>
+            <div class="color-swatch" id="bgColorSwatch" data-target="bgColor" style="background:#ffffff;"></div>
           </div>
         </div>
       </div>
@@ -992,7 +992,7 @@
           </div>
           <div class="control-group">
             <span class="control-label">COLOR</span>
-            <div class="color-swatch" id="dateColorSwatch" data-target="dateColor" style="background:#aaaaaa;"></div>
+            <div class="color-swatch" id="dateColorSwatch" data-target="dateColor" style="background:#666666;"></div>
           </div>
           <div class="control-group">
             <span class="control-label">DELETE</span>
@@ -1025,7 +1025,7 @@
           </div>
           <div class="control-group">
             <span class="control-label">COLOR</span>
-            <div class="color-swatch" id="titleColorSwatch" data-target="titleColor" style="background:#ffffff;"></div>
+            <div class="color-swatch" id="titleColorSwatch" data-target="titleColor" style="background:#111111;"></div>
           </div>
           <div class="control-group">
             <span class="control-label">DELETE</span>
@@ -1564,11 +1564,17 @@
     }
 
     const defaultSettings = {
-      bgColor: '#000000',
-      dateSize: 15, dateColor: '#aaaaaa', dateVisible: true, dateBold: false, dateFont: 'Segoe UI',
-      titleVisible: true, titleSize: 45, titleColor: '#ffffff', titleBold: true, titleFont: 'Segoe UI'
+      bgColor: '#ffffff',
+      dateSize: 15, dateColor: '#666666', dateVisible: true, dateBold: false, dateFont: 'Segoe UI',
+      titleVisible: true, titleSize: 45, titleColor: '#111111', titleBold: true, titleFont: 'Segoe UI'
     };
     let settings = JSON.parse(localStorage.getItem('alertPageSettings') || 'null') || { ...defaultSettings };
+    // White theme force-update: agar pehle se dark theme wali settings cloud mein save thi,
+    // to unhe bhi white theme mein update kar do (ek baar)
+    if (settings.bgColor === '#000000' || !settings.bgColor) settings.bgColor = '#ffffff';
+    if (settings.titleColor === '#ffffff' || !settings.titleColor) settings.titleColor = '#111111';
+    if (settings.dateColor === '#aaaaaa' || !settings.dateColor) settings.dateColor = '#666666';
+    try { localStorage.setItem('alertPageSettings', JSON.stringify(settings)); } catch (e) {}
 
     let pendingColorTarget = null;
     let pendingColorValue = null;
