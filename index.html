@@ -1336,6 +1336,28 @@
       console.error("Firebase load error:", err);
     }
 
+    // ONE-TIME MIGRATION: agar Firestore mein kisi key ka data nahi hai, lekin
+    // is browser ke REAL (asli) localStorage mein purana data pada hai,
+    // to usse ek baar cloud mein copy kar do (isse purana data delete nahi hota,
+    // sirf Firestore mein bhi save ho jata hai)
+    const REMINDER_APP_KEYS = [
+      'reminderLists', 'reminderPageSettings', 'currentPage',
+      'lineTextOverrides', 'linePositions', 'alertPageSettings', 'lineAnimations'
+    ];
+    let didMigrate = false;
+    REMINDER_APP_KEYS.forEach(key => {
+      if (!Object.prototype.hasOwnProperty.call(cloudCache, key)) {
+        const realVal = Storage.prototype.getItem.call(window.localStorage, key);
+        if (realVal !== null) {
+          cloudCache[key] = realVal;
+          didMigrate = true;
+        }
+      }
+    });
+    if (didMigrate) {
+      setDoc(cloudDocRef, cloudCache, { merge: true }).catch(err => console.error("Migration save error:", err));
+    }
+
     // Ignore flag taaki apne hi likhe hue update par dobara re-run na ho
     let isRemoteUpdate = false;
     const saveTimers = {};
