@@ -1392,6 +1392,74 @@
       width: 55%;
     }
 
+    /* Notes body — large box for 5000+ words */
+    .notes-textarea {
+      width: 100%;
+      min-height: 280px;
+      height: 42vh;
+      max-height: 55vh;
+      resize: vertical;
+      line-height: 1.5;
+      font-size: 15px;
+      font-family: inherit;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-y: auto;
+      box-sizing: border-box;
+    }
+
+    /* Add New Notes: Target Date (left) | Alert Page (true center) | Counter (right) */
+    .notes-fields-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: start;
+      column-gap: 10px;
+      width: 100%;
+    }
+    .notes-fields-row .field-block {
+      margin-bottom: 0;
+    }
+    .notes-field-date {
+      justify-self: start;
+      width: 138px;
+      max-width: 100%;
+    }
+    .notes-field-date .field-input {
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 14px;
+      letter-spacing: 0;
+    }
+    .notes-field-alert {
+      justify-self: center;
+      width: 52px;
+    }
+    .notes-field-alert .field-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding-left: 4px;
+      padding-right: 4px;
+      text-align: center;
+    }
+    .notes-field-alert .field-label {
+      white-space: normal;
+      text-align: center;
+      line-height: 1.15;
+    }
+    .notes-field-counter {
+      justify-self: end;
+      width: auto;
+    }
+    .notes-field-counter .counter-toggle {
+      width: auto;
+      min-width: 0;
+    }
+    .notes-field-counter .counter-toggle button {
+      padding: 10px 12px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
     .field-grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -1515,6 +1583,52 @@
       box-shadow: none;
       filter: brightness(0);
       transform: scaleX(-1);
+    }
+    /* Notes list card: View + Edit side by side */
+    .reminder-card-popup.notes-card-popup {
+      background: #1a73e8 !important;
+      border-radius: 14px !important;
+      padding: 6px 8px !important;
+      gap: 6px !important;
+      box-shadow: 0 4px 14px rgba(26, 115, 232, 0.35) !important;
+    }
+    .reminder-card-popup.notes-card-popup .act-edit {
+      filter: none;
+      transform: none;
+      font-size: 18px !important;
+      padding: 6px 8px !important;
+    }
+    .reminder-card-popup .act-view {
+      background: transparent !important;
+      border: none !important;
+      border-radius: 0;
+      width: auto;
+      height: auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px !important;
+      padding: 6px 8px !important;
+      box-shadow: none;
+      cursor: pointer;
+      color: #fff;
+    }
+    .notes-view-body {
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 16px;
+      line-height: 1.55;
+      color: #222;
+      min-height: 40vh;
+      max-height: 70vh;
+      overflow-y: auto;
+      padding: 8px 4px 20px;
+    }
+    .notes-view-empty {
+      color: #999;
+      text-align: center;
+      padding: 40px 12px;
+      font-size: 15px;
     }
 
     .resize-group {
@@ -2614,6 +2728,9 @@
         <div class="mini-setting-box" title="Add New Reminder">
           <button class="action-btn" id="raAddReminder">➕</button>
         </div>
+        <div class="mini-setting-box" title="Add New Notes">
+          <button class="action-btn" id="raAddNotes" style="font-weight:700;font-size:14px;">📝</button>
+        </div>
         <div class="mini-setting-box" title="Animation">
           <button class="action-btn" id="raAnimation" style="font-weight:700;font-size:16px;">A</button>
         </div>
@@ -3507,6 +3624,59 @@
     </div>
   </div>
 
+  <div class="reminder-overlay" id="addNotesOverlay">
+    <div class="reminder-panel">
+      <div class="sheet-handle"></div>
+      <div class="settings-header">
+        <h2 id="notesFormTitle">Add New Notes</h2>
+        <button class="close-btn" id="closeAddNotes">×</button>
+      </div>
+
+      <div class="setting-card">
+        <div class="field-label">TITLE NAME</div>
+        <input type="text" class="field-input" id="notesListName">
+      </div>
+
+      <div class="setting-card">
+        <div class="notes-fields-row">
+          <div class="field-block notes-field-date">
+            <div class="field-label">TARGET DATE</div>
+            <input type="text" class="field-input" id="notesTargetDate" placeholder="DD/MM/YYYY">
+          </div>
+          <div class="field-block notes-field-alert">
+            <div class="field-label">ALERT PAGE</div>
+            <input type="number" class="field-input" id="notesAlertPage" value="15">
+          </div>
+          <div class="field-block notes-field-counter">
+            <div class="field-label">COUNTER</div>
+            <div class="counter-toggle" id="notesCounter">
+              <button class="active" data-val="countdown">Countdown</button>
+              <button data-val="count">Count</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="setting-card">
+        <div class="field-label">NOTES</div>
+        <textarea class="field-input notes-textarea" id="notesBody" placeholder="Write your notes here..." rows="12"></textarea>
+      </div>
+
+      <button class="btn-apply" style="display:block;margin:16px auto 0;" id="saveNotesBtn">Save New Notes</button>
+    </div>
+  </div>
+
+  <div class="reminder-overlay" id="viewNotesOverlay">
+    <div class="reminder-panel">
+      <div class="sheet-handle"></div>
+      <div class="settings-header">
+        <h2 id="viewNotesTitle">Notes</h2>
+        <button class="close-btn" id="closeViewNotes">×</button>
+      </div>
+      <div class="notes-view-body" id="viewNotesBody"></div>
+    </div>
+  </div>
+
   <div class="reminder-overlay" id="historyDetailOverlay">
     <div class="reminder-panel">
       <div class="sheet-handle"></div>
@@ -3889,6 +4059,7 @@
         price: entry.price,
         alertPage: entry.alertPage,
         counter: entry.counter,
+        itemType: entry.itemType || null,
         created: Date.now()
       });
       saveHistoryLists();
@@ -4057,7 +4228,7 @@
       const dateElReminder = document.getElementById('date-reminder');
       const titleEl = document.getElementById('title-alert');
 
-      // Apply background to ALL 4 pages
+      // Apply background to ALL pages
       document.querySelectorAll('.page').forEach(p => {
         p.style.background = settings.bgColor;
       });
@@ -4155,6 +4326,157 @@
       document.getElementById('reminderSettingsOverlay').classList.remove('show');
       resetReminderFormMode();
       document.getElementById('addReminderOverlay').classList.add('show');
+    });
+
+    // Notes use the same reminderLists pipeline (list / alert / history / hide).
+    // Only differences vs reminder: itemType === 'notes', no price, optional notes body text.
+    let editingNotesId = null;
+
+    // One-time: older notesLists (if any) merge into reminderLists
+    (function migrateOldNotesLists() {
+      try {
+        const old = JSON.parse(localStorage.getItem('notesLists') || '[]');
+        if (!old.length) return;
+        let changed = false;
+        old.forEach(n => {
+          if (!n || !n.id) return;
+          if (reminderLists.some(r => r.id === n.id)) return;
+          reminderLists.push({
+            id: n.id,
+            listName: n.listName || 'Untitled',
+            notes: n.notes || '',
+            targetDate: n.targetDate || '',
+            alertPage: n.alertPage != null ? n.alertPage : 15,
+            counter: n.counter || 'countdown',
+            price: 0,
+            itemType: 'notes',
+            created: n.created || Date.now()
+          });
+          changed = true;
+        });
+        if (changed) {
+          localStorage.setItem('reminderLists', JSON.stringify(reminderLists));
+          localStorage.removeItem('notesLists');
+        }
+      } catch (e) {}
+    })();
+
+    function resetNotesFormMode() {
+      editingNotesId = null;
+      const formTitle = document.getElementById('notesFormTitle');
+      if (formTitle) formTitle.textContent = 'Add New Notes';
+      const saveBtn = document.getElementById('saveNotesBtn');
+      if (saveBtn) saveBtn.textContent = 'Save New Notes';
+      document.getElementById('notesListName').value = '';
+      const notesBody = document.getElementById('notesBody');
+      if (notesBody) notesBody.value = '';
+      document.getElementById('notesTargetDate').value = '';
+      document.getElementById('notesAlertPage').value = '15';
+      document.querySelectorAll('#notesCounter button').forEach(b => b.classList.remove('active'));
+      const cd = document.querySelector('#notesCounter button[data-val="countdown"]');
+      if (cd) cd.classList.add('active');
+    }
+
+    function openNotesEditForm(id) {
+      const r = reminderLists.find(x => x.id === id);
+      if (!r) return;
+      editingNotesId = id;
+      document.getElementById('notesListName').value = r.listName || '';
+      const notesBody = document.getElementById('notesBody');
+      if (notesBody) notesBody.value = r.notes || '';
+      document.getElementById('notesTargetDate').value = r.targetDate || '';
+      document.getElementById('notesAlertPage').value = (r.alertPage !== undefined && r.alertPage !== null) ? r.alertPage : 15;
+      document.querySelectorAll('#notesCounter button').forEach(b => {
+        b.classList.toggle('active', b.dataset.val === r.counter);
+      });
+      const formTitle = document.getElementById('notesFormTitle');
+      if (formTitle) formTitle.textContent = 'Edit Notes';
+      const saveBtn = document.getElementById('saveNotesBtn');
+      if (saveBtn) saveBtn.textContent = 'Update Notes';
+      document.getElementById('addNotesOverlay').classList.add('show');
+    }
+
+    document.getElementById('raAddNotes').addEventListener('click', () => {
+      document.getElementById('reminderSettingsOverlay').classList.remove('show');
+      resetNotesFormMode();
+      document.getElementById('addNotesOverlay').classList.add('show');
+    });
+    document.getElementById('closeAddNotes').addEventListener('click', () => {
+      document.getElementById('addNotesOverlay').classList.remove('show');
+      resetNotesFormMode();
+    });
+    document.getElementById('closeViewNotes').addEventListener('click', () => {
+      document.getElementById('viewNotesOverlay').classList.remove('show');
+    });
+    document.getElementById('viewNotesOverlay').addEventListener('click', e => {
+      if (e.target.id === 'viewNotesOverlay') e.target.classList.remove('show');
+    });
+    document.getElementById('addNotesOverlay').addEventListener('click', e => {
+      if (e.target.id === 'addNotesOverlay') {
+        e.target.classList.remove('show');
+        resetNotesFormMode();
+      }
+    });
+    document.getElementById('notesCounter').addEventListener('click', e => {
+      const btn = e.target.closest('button[data-val]');
+      if (!btn) return;
+      document.querySelectorAll('#notesCounter button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+    document.getElementById('saveNotesBtn').addEventListener('click', () => {
+      const nameInput = document.getElementById('notesListName');
+      const listName = (nameInput.value || '').trim() || 'Untitled';
+      const notesText = (document.getElementById('notesBody')?.value || '').trim();
+      const targetDate = document.getElementById('notesTargetDate').value.trim();
+      const alertPage = document.getElementById('notesAlertPage').value;
+      const counter = document.querySelector('#notesCounter button.active')?.dataset.val || 'countdown';
+
+      let toastMsg = 'Notes saved';
+      let savedEntry = null;
+      let targetDateChanged = false;
+      if (editingNotesId) {
+        const idx = reminderLists.findIndex(r => r.id === editingNotesId);
+        if (idx !== -1) {
+          const prevTargetDate = reminderLists[idx].targetDate;
+          reminderLists[idx] = {
+            ...reminderLists[idx],
+            listName,
+            notes: notesText,
+            targetDate,
+            alertPage,
+            counter,
+            price: 0,
+            itemType: 'notes'
+          };
+          savedEntry = reminderLists[idx];
+          targetDateChanged = (prevTargetDate !== targetDate);
+        }
+        toastMsg = 'Notes updated';
+      } else {
+        const newEntry = {
+          id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+          listName,
+          notes: notesText,
+          targetDate,
+          alertPage,
+          counter,
+          price: 0,
+          itemType: 'notes',
+          created: Date.now()
+        };
+        reminderLists.push(newEntry);
+        savedEntry = newEntry;
+        targetDateChanged = true;
+      }
+      saveReminderLists();
+      // Same history rule as reminders: countdown + count on create / target-date change
+      if (savedEntry && (savedEntry.counter === 'countdown' || savedEntry.counter === 'count') && targetDateChanged) {
+        addHistorySnapshot(savedEntry);
+      }
+      renderReminderList();
+      resetNotesFormMode();
+      document.getElementById('addNotesOverlay').classList.remove('show');
+      if (typeof showReminderToast === 'function') showReminderToast(toastMsg);
     });
     document.getElementById('aaAnimation').addEventListener('click', () => {
       document.getElementById('settingsOverlay').classList.remove('show');
@@ -4418,7 +4740,8 @@
       // Koi fixed month nahi — 10, 15, 30 (1 month), 60 (2 month) sab chalega
       // Edit target date → count resets → auto leaves Alert if below threshold
       if (r.counter === 'count') {
-        return Math.abs(dayVal) >= alertPageNum;
+        // Only count days that have already passed (future target = not yet)
+        return dayVal >= alertPageNum;
       }
       // Countdown → on Alert while days-left <= alertPage,
       // and for 5 days after expire (dayVal 0 .. -5), then leave Alert
@@ -4431,11 +4754,17 @@
       if (dayVal === null || isNaN(dayVal)) {
         dayLeftText = r.counter === 'count' ? '-- . Months - -- . Days' : '-- . Day Left';
       } else if (r.counter === 'count') {
-        // Count: 30 days = 1 month → "3 . Months - 4 . Days"
-        const abs = Math.abs(dayVal);
-        const months = Math.floor(abs / 30);
-        const days = abs % 30;
-        dayLeftText = `${months} . Months - ${days} . Days`;
+        // Count = days SINCE target (forward). Future target → 0 (not started yet).
+        // 1–30 → only Days; from 31st day → Months start (30 days = 1 month)
+        // Day 30 = "30 . Days"; Day 31 = "1 . Months - 1 . Days"
+        const elapsed = Math.max(0, dayVal);
+        if (elapsed <= 30) {
+          dayLeftText = `${elapsed} . Days`;
+        } else {
+          const months = Math.floor((elapsed - 1) / 30);
+          const days = ((elapsed - 1) % 30) + 1;
+          dayLeftText = `${months} . Months - ${days} . Days`;
+        }
       } else {
         // Countdown: show Expire when target date reached / passed
         dayLeftText = (dayVal <= 0) ? 'Expire' : `${dayVal} . Day Left`;
@@ -4446,9 +4775,13 @@
       const itemStyle = reminderSettings.rlVisible === false
         ? `background:transparent;border:none;`
         : ``;
+      // Notes items: show "Title (Notes)" — (Notes) in blue, auto (no extra user step)
+      const displayName = (r.itemType === 'notes')
+        ? `${r.listName || 'Untitled'} <span style="color:#1a73e8;font-weight:600;">(Notes)</span>`
+        : (r.listName || '');
       return `
         <div class="reminder-list-item" style="${itemStyle}" data-id="${r.id}">
-          <div class="reminder-item-name" style="${nameStyle}">${r.listName}</div>
+          <div class="reminder-item-name" style="${nameStyle}">${displayName}</div>
           <div class="reminder-item-dayleft" style="${dayStyle}">${dayLeftText}</div>
           <div class="reminder-item-date" style="${dateStyle}">${r.targetDate || '--'}</div>
         </div>
@@ -4486,9 +4819,12 @@
           agoHtml = `<span class="history-ago">${d}d ago</span>`;
         }
       }
+      const displayName = (r.itemType === 'notes')
+        ? `${r.listName || 'Untitled'} <span style="color:#1a73e8;font-weight:600;">(Notes)</span>`
+        : (r.listName || '');
       return `
         <div class="reminder-list-item" style="${itemStyle}" data-id="${r.id}">
-          <div class="reminder-item-name" style="${nameStyle}">${r.listName}</div>
+          <div class="reminder-item-name" style="${nameStyle}">${displayName}</div>
           <div class="history-meta">${agoHtml}<span class="history-count">${count}</span></div>
         </div>
       `;
@@ -4599,6 +4935,7 @@
             historyGroups[h.reminderId] = {
               id: h.reminderId,
               listName: h.listName,
+              itemType: h.itemType || null,
               latest: t,
               histCount: 1,
               latestHist: t
@@ -4610,6 +4947,7 @@
             if (t > (g.latest || 0)) {
               g.latest = t;
               g.listName = h.listName;
+              if (h.itemType) g.itemType = h.itemType;
             }
           }
         });
@@ -4623,6 +4961,7 @@
             historyGroups[r.id] = {
               id: r.id,
               listName: r.listName,
+              itemType: r.itemType || null,
               latest: t,
               histCount: 0,
               latestHist: 0
@@ -4630,6 +4969,7 @@
           } else {
             // Reminder still exists — always show its current (latest) name.
             historyGroups[r.id].listName = r.listName;
+            historyGroups[r.id].itemType = r.itemType || historyGroups[r.id].itemType || null;
             if (t > historyGroups[r.id].latest) historyGroups[r.id].latest = t;
           }
         });
@@ -5490,11 +5830,36 @@
       if (reminderCardPopupEl) { reminderCardPopupEl.remove(); reminderCardPopupEl = null; }
     }
 
+    function openNotesView(id) {
+      const r = reminderLists.find(x => x.id === id);
+      if (!r) return;
+      const titleEl = document.getElementById('viewNotesTitle');
+      if (titleEl) titleEl.textContent = r.listName || 'Notes';
+      const bodyEl = document.getElementById('viewNotesBody');
+      if (bodyEl) {
+        const notesText = (r.notes || '').trim();
+        if (notesText) {
+          bodyEl.className = 'notes-view-body';
+          bodyEl.textContent = notesText;
+        } else {
+          bodyEl.className = 'notes-view-body notes-view-empty';
+          bodyEl.textContent = 'No notes written';
+        }
+      }
+      document.getElementById('viewNotesOverlay').classList.add('show');
+    }
+
     function showReminderCardPopup(cardEl, id) {
       hideReminderCardPopup();
+      const item = reminderLists.find(x => x.id === id);
+      const isNotes = !!(item && item.itemType === 'notes');
       reminderCardPopupEl = document.createElement('div');
-      reminderCardPopupEl.className = 'line-popup reminder-card-popup';
-      reminderCardPopupEl.innerHTML = `<button class="act-edit" data-id="${id}">✏️</button>`;
+      reminderCardPopupEl.className = 'line-popup reminder-card-popup' + (isNotes ? ' notes-card-popup' : '');
+      if (isNotes) {
+        reminderCardPopupEl.innerHTML = `<button class="act-view" data-id="${id}" type="button">👁️</button><button class="act-edit" data-id="${id}" type="button">✏️</button>`;
+      } else {
+        reminderCardPopupEl.innerHTML = `<button class="act-edit" data-id="${id}" type="button">✏️</button>`;
+      }
       document.body.appendChild(reminderCardPopupEl);
 
       const rect = cardEl.getBoundingClientRect();
@@ -5506,11 +5871,22 @@
       reminderCardPopupEl.style.top = top + 'px';
       reminderCardPopupEl.style.left = left + 'px';
 
-      reminderCardPopupEl.querySelector('.act-edit').addEventListener('click', e => {
-        e.stopPropagation();
-        openReminderEditForm(id);
-        hideReminderCardPopup();
-      });
+      const editBtn = reminderCardPopupEl.querySelector('.act-edit');
+      if (editBtn) {
+        editBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          openReminderEditForm(id);
+          hideReminderCardPopup();
+        });
+      }
+      const viewBtn = reminderCardPopupEl.querySelector('.act-view');
+      if (viewBtn) {
+        viewBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          openNotesView(id);
+          hideReminderCardPopup();
+        });
+      }
 
       reminderCardPopupTimer = setTimeout(hideReminderCardPopup, 3000);
     }
@@ -5518,6 +5894,11 @@
     function openReminderEditForm(id) {
       const r = reminderLists.find(x => x.id === id);
       if (!r) return;
+      // Notes items open the Notes form (no price field)
+      if (r.itemType === 'notes') {
+        openNotesEditForm(id);
+        return;
+      }
       editingReminderId = id;
 
       document.getElementById('reminderListName').value = r.listName || '';
