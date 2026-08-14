@@ -3335,6 +3335,156 @@
         </div>
       </div>
 
+      <!-- MD COUNT -->
+      <div class="setting-card">
+        <div class="setting-card-title">MD COUNT</div>
+        <div class="controls-row">
+          <div class="control-group">
+            <span class="control-label">SIZE</span>
+            <input type="number" id="mdSize" value="15" min="10" max="60">
+          </div>
+          <div class="control-group">
+            <span class="control-label">COLOR</span>
+            <div class="color-swatch" id="mdColorSwatch" data-target="mdColor" style="background:#ffd54f;"></div>
+          </div>
+          <div class="control-group">
+            <span class="control-label">BOLD</span>
+            <div class="toggle" id="mdBold"></div>
+          </div>
+          <div class="control-group">
+            <span class="control-label">FONT</span>
+            <select class="font-select" id="mdFont">
+              <option value="Segoe UI">Default</option>
+              <option value="Arial">Arial</option>
+              <option value="Roboto" style="font-family:'Roboto',sans-serif;">Roboto</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Courier New">Courier</option>
+              <option value="Poppins" style="font-family:'Poppins',sans-serif;">Poppins</option>
+              <option value="Montserrat" style="font-family:'Montserrat',sans-serif;">Montserrat</option>
+              <option value="Lato" style="font-family:'Lato',sans-serif;">Lato</option>
+              <option value="Open Sans" style="font-family:'Open Sans',sans-serif;">Open Sans</option>
+              <option value="Nunito" style="font-family:'Nunito',sans-serif;">Nunito</option>
+              <option value="Nunito Sans" style="font-family:'Nunito Sans',sans-serif;">Nunito Sans</option>
+              <option value="Raleway" style="font-family:'Raleway',sans-serif;">Raleway</option>
+              <option value="Ubuntu" style="font-family:'Ubuntu',sans-serif;">Ubuntu</option>
+              <option value="Rubik" style="font-family:'Rubik',sans-serif;">Rubik</option>
+              <option value="Quicksand" style="font-family:'Quicksand',sans-serif;">Quicksand</option>
+              <option value="Josefin Sans" style="font-family:'Josefin Sans',sans-serif;">Josefin Sans</option>
+              <option value="Work Sans" style="font-family:'Work Sans',sans-serif;">Work Sans</option>
+              <option value="Inter" style="font-family:'Inter',sans-serif;">Inter</option>
+              <option value="Mulish" style="font-family:'Mulish',sans-serif;">Mulish</option>
+              <option value="Karla" style="font-family:'Karla',sans-serif;">Karla</option>
+              <option value="Titillium Web" style="font-family:'Titillium Web',sans-serif;">Titillium Web</option>
+              <option value="PT Sans" style="font-family:'PT Sans',sans-serif;">PT Sans</option>
+              <option value="Source Sans 3" style="font-family:'Source Sans 3',sans-serif;">Source Sans 3</option>
+              <option value="Fira Sans" style="font-family:'Fira Sans',sans-serif;">Fira Sans</option>
+              <option value="Barlow" style="font-family:'Barlow',sans-serif;">Barlow</option>
+              <option value="DM Sans" style="font-family:'DM Sans',sans-serif;">DM Sans</option>
+              <option value="Manrope" style="font-family:'Manrope',sans-serif;">Manrope</option>
+              <option value="Outfit" style="font-family:'Outfit',sans-serif;">Outfit</option>
+              <option value="Sora" style="font-family:'Sora',sans-serif;">Sora</option>
+              <option value="Plus Jakarta Sans" style="font-family:'Plus Jakarta Sans',sans-serif;">Plus Jakarta…</option>
+              <option value="Space Grotesk" style="font-family:'Space Grotesk',sans-serif;">Space Grotesk</option>
+              <option value="Urbanist" style="font-family:'Urbanist',sans-serif;">Urbanist</option>
+              <option value="Figtree" style="font-family:'Figtree',sans-serif;">Figtree</option>
+              <option value="Lexend" style="font-family:'Lexend',sans-serif;">Lexend</option>
+              <option value="Epilogue" style="font-family:'Epilogue',sans-serif;">Epilogue</option>
+              <option value="Hind" style="font-family:'Hind',sans-serif;">Hind</option>
+              <option value="Cabin" style="font-family:'Cabin',sans-serif;">Cabin</option>
+              <option value="Assistant" style="font-family:'Assistant',sans-serif;">Assistant</option>
+              <option value="Heebo" style="font-family:'Heebo',sans-serif;">Heebo</option>
+              <option value="Overpass" style="font-family:'Overpass',sans-serif;">Overpass</option>
+              <option value="Varela Round" style="font-family:'Varela Round',sans-serif;">Varela Round</option>
+              <option value="Comfortaa" style="font-family:'Comfortaa',sans-serif;">Comfortaa</option>
+              <option value="Baloo 2" style="font-family:'Baloo 2',sans-serif;">Baloo 2</option>
+              <option value="Fredoka" style="font-family:'Fredoka',sans-serif;">Fredoka</option>
+              <option value="Righteous" style="font-family:'Righteous',sans-serif;">Righteous</option>
+              <option value="Pacifico" style="font-family:'Pacifico',sans-serif;">Pacifico</option>
+              <option value="Dancing Script" style="font-family:'Dancing Script',sans-serif;">Dancing Scrip…</option>
+              <option value="Great Vibes" style="font-family:'Great Vibes',sans-serif;">Great Vibes</option>
+              <option value="Sacramento" style="font-family:'Sacramento',sans-serif;">Sacramento</option>
+              <option value="Satisfy" style="font-family:'Satisfy',sans-serif;">Satisfy</option>
+              <option value="Caveat" style="font-family:'Caveat',sans-serif;">Caveat</option>
+              <option value="Kalam" style="font-family:'Kalam',sans-serif;">Kalam</option>
+              <option value="Indie Flower" style="font-family:'Indie Flower',sans-serif;">Indie Flower</option>
+              <option value="Shadows Into Light" style="font-family:'Shadows Into Light',sans-serif;">Shadows Into…</option>
+              <option value="Amatic SC" style="font-family:'Amatic SC',sans-serif;">Amatic SC</option>
+              <option value="Permanent Marker" style="font-family:'Permanent Marker',sans-serif;">Permanent Mar…</option>
+              <option value="Lobster" style="font-family:'Lobster',sans-serif;">Lobster</option>
+              <option value="Bangers" style="font-family:'Bangers',sans-serif;">Bangers</option>
+              <option value="Anton" style="font-family:'Anton',sans-serif;">Anton</option>
+              <option value="Archivo Black" style="font-family:'Archivo Black',sans-serif;">Archivo Black</option>
+              <option value="Bebas Neue" style="font-family:'Bebas Neue',sans-serif;">Bebas Neue</option>
+              <option value="Oswald" style="font-family:'Oswald',sans-serif;">Oswald</option>
+              <option value="Teko" style="font-family:'Teko',sans-serif;">Teko</option>
+              <option value="Staatliches" style="font-family:'Staatliches',sans-serif;">Staatliches</option>
+              <option value="Alfa Slab One" style="font-family:'Alfa Slab One',sans-serif;">Alfa Slab One</option>
+              <option value="Passion One" style="font-family:'Passion One',sans-serif;">Passion One</option>
+              <option value="Playfair Display" style="font-family:'Playfair Display',sans-serif;">Playfair Disp…</option>
+              <option value="Merriweather" style="font-family:'Merriweather',sans-serif;">Merriweather</option>
+              <option value="Lora" style="font-family:'Lora',sans-serif;">Lora</option>
+              <option value="PT Serif" style="font-family:'PT Serif',sans-serif;">PT Serif</option>
+              <option value="Crimson Text" style="font-family:'Crimson Text',sans-serif;">Crimson Text</option>
+              <option value="Libre Baskerville" style="font-family:'Libre Baskerville',sans-serif;">Libre Baskerv…</option>
+              <option value="EB Garamond" style="font-family:'EB Garamond',sans-serif;">EB Garamond</option>
+              <option value="Cormorant Garamond" style="font-family:'Cormorant Garamond',sans-serif;">Cormorant Gar…</option>
+              <option value="Noto Serif" style="font-family:'Noto Serif',sans-serif;">Noto Serif</option>
+              <option value="Bitter" style="font-family:'Bitter',sans-serif;">Bitter</option>
+              <option value="Domine" style="font-family:'Domine',sans-serif;">Domine</option>
+              <option value="Rokkitt" style="font-family:'Rokkitt',sans-serif;">Rokkitt</option>
+              <option value="Roboto Slab" style="font-family:'Roboto Slab',sans-serif;">Roboto Slab</option>
+              <option value="Arvo" style="font-family:'Arvo',sans-serif;">Arvo</option>
+              <option value="Zilla Slab" style="font-family:'Zilla Slab',sans-serif;">Zilla Slab</option>
+              <option value="Vollkorn" style="font-family:'Vollkorn',sans-serif;">Vollkorn</option>
+              <option value="Spectral" style="font-family:'Spectral',sans-serif;">Spectral</option>
+              <option value="Abril Fatface" style="font-family:'Abril Fatface',sans-serif;">Abril Fatface</option>
+              <option value="Signika" style="font-family:'Signika',sans-serif;">Signika</option>
+              <option value="Yanone Kaffeesatz" style="font-family:'Yanone Kaffeesatz',sans-serif;">Yanone Kaffee…</option>
+              <option value="Chivo" style="font-family:'Chivo',sans-serif;">Chivo</option>
+              <option value="Exo 2" style="font-family:'Exo 2',sans-serif;">Exo 2</option>
+              <option value="Orbitron" style="font-family:'Orbitron',sans-serif;">Orbitron</option>
+              <option value="Audiowide" style="font-family:'Audiowide',sans-serif;">Audiowide</option>
+              <option value="Michroma" style="font-family:'Michroma',sans-serif;">Michroma</option>
+              <option value="Syncopate" style="font-family:'Syncopate',sans-serif;">Syncopate</option>
+              <option value="Krona One" style="font-family:'Krona One',sans-serif;">Krona One</option>
+              <option value="Russo One" style="font-family:'Russo One',sans-serif;">Russo One</option>
+              <option value="Play" style="font-family:'Play',sans-serif;">Play</option>
+              <option value="Saira" style="font-family:'Saira',sans-serif;">Saira</option>
+              <option value="Jost" style="font-family:'Jost',sans-serif;">Jost</option>
+              <option value="Prompt" style="font-family:'Prompt',sans-serif;">Prompt</option>
+              <option value="Kanit" style="font-family:'Kanit',sans-serif;">Kanit</option>
+              <option value="Mitr" style="font-family:'Mitr',sans-serif;">Mitr</option>
+              <option value="Chakra Petch" style="font-family:'Chakra Petch',sans-serif;">Chakra Petch</option>
+              <option value="Maven Pro" style="font-family:'Maven Pro',sans-serif;">Maven Pro</option>
+              <option value="Questrial" style="font-family:'Questrial',sans-serif;">Questrial</option>
+              <option value="Cardo" style="font-family:'Cardo',sans-serif;">Cardo</option>
+              <option value="Alegreya" style="font-family:'Alegreya',sans-serif;">Alegreya</option>
+              <option value="Alegreya Sans" style="font-family:'Alegreya Sans',sans-serif;">Alegreya Sans</option>
+              <option value="Yrsa" style="font-family:'Yrsa',sans-serif;">Yrsa</option>
+              <option value="Frank Ruhl Libre" style="font-family:'Frank Ruhl Libre',sans-serif;">Frank Ruhl Li…</option>
+              <option value="Marcellus" style="font-family:'Marcellus',sans-serif;">Marcellus</option>
+              <option value="Cinzel" style="font-family:'Cinzel',sans-serif;">Cinzel</option>
+              <option value="Cormorant" style="font-family:'Cormorant',sans-serif;">Cormorant</option>
+              <option value="Allura" style="font-family:'Allura',sans-serif;">Allura</option>
+              <option value="Tangerine" style="font-family:'Tangerine',sans-serif;">Tangerine</option>
+              <option value="Parisienne" style="font-family:'Parisienne',sans-serif;">Parisienne</option>
+              <option value="Kaushan Script" style="font-family:'Kaushan Script',sans-serif;">Kaushan Scrip…</option>
+              <option value="Courgette" style="font-family:'Courgette',sans-serif;">Courgette</option>
+              <option value="Pattaya" style="font-family:'Pattaya',sans-serif;">Pattaya</option>
+              <option value="Comic Neue" style="font-family:'Comic Neue',sans-serif;">Comic Neue</option>
+              <option value="Patrick Hand" style="font-family:'Patrick Hand',sans-serif;">Patrick Hand</option>
+              <option value="Architects Daughter" style="font-family:'Architects Daughter',sans-serif;">Architects Da…</option>
+              <option value="Gochi Hand" style="font-family:'Gochi Hand',sans-serif;">Gochi Hand</option>
+              <option value="Merienda" style="font-family:'Merienda',sans-serif;">Merienda</option>
+              <option value="Yellowtail" style="font-family:'Yellowtail',sans-serif;">Yellowtail</option>
+              <option value="Cookie" style="font-family:'Cookie',sans-serif;">Cookie</option>
+              <option value="Style Script" style="font-family:'Style Script',sans-serif;">Style Script</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+
       <div class="settings-footer">
         <button class="btn-reset" id="reminderSettingsResetBtn">Reset (this page)</button>
         <button class="btn-apply" id="reminderSettingsApplyBtn">Apply</button>
@@ -4073,7 +4223,8 @@
       rlSize: 23, rlColor: '#152238', rlBold: false, rlFont: 'Segoe UI', rlVisible: true,
       lnSize: 19, lnColor: '#22c55e', lnBold: false, lnFont: 'Segoe UI', lnVisible: true,
       dlSize: 26, dlColor: '#22d3ee', dlBold: true, dlFont: 'Segoe UI', dlVisible: true,
-      tdSize: 15, tdColor: '#ffd54f', tdBold: false, tdFont: 'Segoe UI', tdVisible: true
+      tdSize: 15, tdColor: '#ffd54f', tdBold: false, tdFont: 'Segoe UI', tdVisible: true,
+      mdSize: 15, mdColor: '#ffd54f', mdBold: false, mdFont: 'Segoe UI', mdVisible: true
     };
     let reminderSettings = JSON.parse(localStorage.getItem('reminderPageSettings') || 'null') || { ...reminderDefaultSettings };
     const historyDefaultSettings = {
@@ -4313,6 +4464,12 @@
       document.getElementById('tdBold').classList.toggle('on', reminderSettings.tdBold);
       document.getElementById('tdFont').value = reminderSettings.tdFont;
       syncFontSelectPreview(document.getElementById('tdFont'));
+
+      document.getElementById('mdSize').value = reminderSettings.mdSize ?? 15;
+      document.getElementById('mdColorSwatch').style.background = reminderSettings.mdColor || '#ffd54f';
+      document.getElementById('mdBold').classList.toggle('on', !!reminderSettings.mdBold);
+      document.getElementById('mdFont').value = reminderSettings.mdFont || 'Segoe UI';
+      syncFontSelectPreview(document.getElementById('mdFont'));
     }
 
     document.getElementById('closeReminderSettings').addEventListener('click', () => {
@@ -4551,7 +4708,7 @@
       showReminderToast(`Hidden ${checked.length}`);
     });
 
-    ['rlBold','lnBold','dlBold','tdBold'].forEach(id => {
+    ['rlBold','lnBold','dlBold','tdBold','mdBold'].forEach(id => {
       document.getElementById(id).addEventListener('click', function() { this.classList.toggle('on'); });
     });
 
@@ -4575,6 +4732,11 @@
       reminderSettings.tdColor = rgbToHex(document.getElementById('tdColorSwatch').style.background) || reminderSettings.tdColor;
       reminderSettings.tdBold = document.getElementById('tdBold').classList.contains('on');
       reminderSettings.tdFont = document.getElementById('tdFont').value;
+
+      reminderSettings.mdSize = parseInt(document.getElementById('mdSize').value) || reminderDefaultSettings.mdSize;
+      reminderSettings.mdColor = rgbToHex(document.getElementById('mdColorSwatch').style.background) || reminderSettings.mdColor;
+      reminderSettings.mdBold = document.getElementById('mdBold').classList.contains('on');
+      reminderSettings.mdFont = document.getElementById('mdFont').value;
 
       localStorage.setItem('reminderPageSettings', JSON.stringify(reminderSettings));
       // Keep settings as the source of truth for heading size — clear any old linePositions fontSize
@@ -4771,6 +4933,7 @@
       }
       const nameStyle = `font-size:${reminderSettings.lnSize}px;color:${reminderSettings.lnColor};font-weight:${reminderSettings.lnBold ? '700' : '500'};font-family:${reminderSettings.lnFont};`;
       const dateStyle = `font-size:${reminderSettings.tdSize}px;color:${reminderSettings.tdColor};font-weight:${reminderSettings.tdBold ? '700' : '400'};font-family:${reminderSettings.tdFont};`;
+      const mdStyle = `font-size:${reminderSettings.mdSize ?? 15}px;color:${reminderSettings.mdColor || '#ffd54f'};font-weight:${reminderSettings.mdBold ? '700' : '400'};font-family:${reminderSettings.mdFont || 'Segoe UI'};`;
       const dayStyle = `font-size:${reminderSettings.dlSize}px;color:${reminderSettings.dlColor};font-weight:${reminderSettings.dlBold ? '700' : '400'};font-family:${reminderSettings.dlFont};`;
       const itemStyle = reminderSettings.rlVisible === false
         ? `background:transparent;border:none;`
@@ -4779,11 +4942,27 @@
       const displayName = (r.itemType === 'notes')
         ? `${r.listName || 'Untitled'} <span style="color:#1a73e8;font-weight:600;">(Notes)</span>`
         : (r.listName || '');
+      // Extra on target-date line only (day-left line unchanged):
+      //  Count → always ( 68'Day's )
+      //  Countdown → only if > 30 days: ( 3'M 23'DL ); ≤30 → hide
+      //  Styled by MD COUNT settings (Months Days Count)
+      let dateExtra = '';
+      if (dayVal !== null && !isNaN(dayVal)) {
+        if (r.counter === 'count') {
+          const elapsed = Math.max(0, dayVal);
+          dateExtra = ` <span style="margin-left:10px;white-space:nowrap;${mdStyle}">( ${elapsed}'Day's )</span>`;
+        } else if (dayVal > 30) {
+          const left = Math.max(0, dayVal);
+          const months = Math.floor(left / 30);
+          const days = left % 30;
+          dateExtra = ` <span style="margin-left:10px;white-space:nowrap;${mdStyle}">( ${months}'M ${days}'DL )</span>`;
+        }
+      }
       return `
         <div class="reminder-list-item" style="${itemStyle}" data-id="${r.id}">
           <div class="reminder-item-name" style="${nameStyle}">${displayName}</div>
           <div class="reminder-item-dayleft" style="${dayStyle}">${dayLeftText}</div>
-          <div class="reminder-item-date" style="${dateStyle}">${r.targetDate || '--'}</div>
+          <div class="reminder-item-date" style="${dateStyle}">${r.targetDate || '--'}${dateExtra}</div>
         </div>
       `;
     }
