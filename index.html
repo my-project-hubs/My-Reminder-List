@@ -5171,6 +5171,37 @@
       return Math.round((bMid - aMid) / msPerDay);
     }
 
+    // ===== CALENDAR-ACCURATE month/day diff (test) =====
+    // Real calendar ke hisaab se "kitne months aur kitne days" nikalta hai
+    // startDate se endDate tak (endDate >= startDate maana gaya hai).
+    // Sirf date-components ko SUBTRACT kiya ja raha hai — koi bhi date mein
+    // "1 month add karna" wala operation nahi hai, isliye 31-Jan / 30-31 din
+    // wale month-end rollover bug (jaise 31 Jan + 1 month = 3 March) yahan
+    // aa hi nahi sakta.
+    function calendarMonthsDaysBetween(startDate, endDate) {
+      if (!startDate || !endDate) return { months: 0, days: 0 };
+      const y1 = startDate.getFullYear(), m1 = startDate.getMonth(), d1 = startDate.getDate();
+      const y2 = endDate.getFullYear(), m2 = endDate.getMonth(), d2 = endDate.getDate();
+
+      let months = (y2 - y1) * 12 + (m2 - m1);
+      let days = d2 - d1;
+
+      if (days < 0) {
+        months -= 1;
+        // Us mahine ka last din jo endDate ke month se pehle wala hai
+        // (0 tareek trick = pichhle mahine ka aakhri din — Feb 28/29 bhi
+        // khud-ba-khud sahi aa jaata hai, koi hardcoded 30/31 nahi hai)
+        const prevMonthLastDay = new Date(y2, m2, 0).getDate();
+        days += prevMonthLastDay;
+      }
+      if (months < 0) {
+        // Safety guard — normal flow mein yahan aana nahi chahiye
+        months = 0;
+        days = Math.max(0, days);
+      }
+      return { months, days };
+    }
+
     function computeDayValue(r, today) {
       const target = parseDMY(r.targetDate);
       if (!target) return null;
@@ -5211,8 +5242,11 @@
         if (elapsed <= 30) {
           dayLeftText = `${elapsed} . Days`;
         } else {
-          const months = Math.floor((elapsed - 1) / 30);
-          const days = ((elapsed - 1) % 30) + 1;
+          // Calendar-accurate: target date se aaj tak asli calendar months/days
+          const targetForCount = parseDMY(r.targetDate);
+          const { months, days } = targetForCount
+            ? calendarMonthsDaysBetween(targetForCount, new Date())
+            : { months: Math.floor((elapsed - 1) / 30), days: ((elapsed - 1) % 30) + 1 };
           dayLeftText = `${months} . Months - ${days} . Days`;
         }
       } else {
@@ -5240,9 +5274,11 @@
           const elapsed = Math.max(0, dayVal);
           dateExtra = ` <span style="margin-left:10px;white-space:nowrap;${mdStyle}">( ${elapsed}'Day's )</span>`;
         } else if (dayVal > 30) {
-          const left = Math.max(0, dayVal);
-          const months = Math.floor(left / 30);
-          const days = left % 30;
+          // Calendar-accurate: aaj se target date tak asli calendar months/days
+          const targetForCountdown = parseDMY(r.targetDate);
+          const { months, days } = targetForCountdown
+            ? calendarMonthsDaysBetween(new Date(), targetForCountdown)
+            : { months: Math.floor(Math.max(0, dayVal) / 30), days: Math.max(0, dayVal) % 30 };
           dateExtra = ` <span style="margin-left:10px;white-space:nowrap;${mdStyle}">( ${months}'M ${days}'DL )</span>`;
         }
       }
