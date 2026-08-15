@@ -1041,6 +1041,74 @@
       margin: 0 4px 48px;
       padding: 0;
     }
+    /* Reminder settings actions: left / center / right columns */
+    .ra-text-actions-grid {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 0 0 28px;
+      padding: 0;
+    }
+    .ra-text-actions-grid .ra-col {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      min-width: 0;
+    }
+    /* Left: Hide List / Hide Page — small, stuck to left */
+    .ra-text-actions-grid .ra-col:first-child {
+      flex: 0 0 auto;
+      align-items: flex-start;
+    }
+    .ra-text-actions-grid .ra-col:first-child .ra-name-btn {
+      width: auto;
+      min-width: 88px;
+      padding: 11px 14px;
+      font-size: 14px;
+      border-radius: 12px;
+    }
+    /* Center: Add New Notes / Add New Reminder */
+    .ra-text-actions-grid .ra-col:nth-child(2) {
+      flex: 1 1 auto;
+      align-items: center;
+    }
+    .ra-text-actions-grid .ra-col:nth-child(2) .ra-name-btn {
+      width: auto;
+      min-width: 110px;
+      max-width: 100%;
+      padding: 12px 12px;
+      font-size: 13px;
+      border-radius: 13px;
+    }
+    /* Right: Delete / Animation — small, stuck to right */
+    .ra-text-actions-grid .ra-col:last-child {
+      flex: 0 0 auto;
+      align-items: flex-end;
+    }
+    .ra-text-actions-grid .ra-col:last-child .ra-name-btn {
+      width: auto;
+      min-width: 88px;
+      padding: 11px 14px;
+      font-size: 14px;
+      border-radius: 12px;
+    }
+    .ra-name-btn {
+      border: none;
+      font-weight: 700;
+      line-height: 1.25;
+      text-align: center;
+      white-space: nowrap;
+      cursor: pointer;
+      background: linear-gradient(180deg, #bdbdbd 0%, #9e9e9e 55%, #8a8a8a 100%);
+      color: #ffffff !important;
+      box-shadow: 0 2px 0 #757575, 0 3px 8px rgba(0,0,0,0.15);
+    }
+    .ra-name-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 0 0 #757575, 0 1px 3px rgba(0,0,0,0.12);
+    }
     .ra-mini-row-right {
       justify-content: flex-end;
       margin: 0 4px 20px;
@@ -1146,10 +1214,12 @@
       justify-content: center;
     }
 
-    /* History settings: push title card + Reset/Apply toward bottom (not cut off) */
+    /* History settings: taller panel (more height top + bottom) */
     #historySettingsOverlay .settings-panel {
       display: flex !important;
       flex-direction: column !important;
+      height: 88vh !important;
+      max-height: 88vh !important;
     }
     #historySettingsOverlay .history-settings-body {
       margin-top: auto;
@@ -1192,6 +1262,39 @@
     }
     #hideSettingsOverlay .hide-settings-body .settings-footer {
       margin-top: 18px;
+    }
+
+    /* Hide History panel — force full body height so empty "No History" can true-center */
+    #hideHistoryOverlay .settings-panel {
+      position: relative !important;
+      display: flex !important;
+      flex-direction: column !important;
+      height: 80vh !important;
+      max-height: 80vh !important;
+      overflow: hidden !important;
+      padding-bottom: 16px !important;
+    }
+    #hideHistoryOverlay #hideHistoryList {
+      position: relative !important;
+      flex: 1 1 auto !important;
+      min-height: 55vh !important;
+      overflow-y: auto !important;
+    }
+    #hideHistoryOverlay #hideHistoryList .hide-history-empty {
+      position: absolute !important;
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      width: max-content !important;
+      max-width: 90% !important;
+      text-align: center !important;
+      color: #999 !important;
+      font-size: 20px !important;
+      font-weight: 700 !important;
+      white-space: nowrap !important;
+      pointer-events: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
     }
 
     .btn-reset {
@@ -2717,25 +2820,19 @@
 
       <div style="text-align:center; color:#1a73e8; font-weight:700; font-size:1.15rem; margin-bottom:72px;">Reminder Page</div>
 
-      <!-- REMINDER ACTIONS: small boxes in one horizontal line -->
-      <div class="ra-mini-row">
-        <div class="mini-setting-box" title="Hide Page">
-          <button class="action-btn ra-text-btn" id="raHidePage"><span>Hide</span><span>Page</span></button>
+      <!-- REMINDER ACTIONS: 2 rows × 3 cols (pair stacked), light grey + white text -->
+      <div class="ra-text-actions-grid">
+        <div class="ra-col">
+          <button type="button" class="ra-name-btn" id="raHideList">Hide List</button>
+          <button type="button" class="ra-name-btn" id="raHidePage">Hide Page</button>
         </div>
-        <div class="mini-setting-box" title="Hide List">
-          <button class="action-btn ra-text-btn" id="raHideList"><span>Hide</span><span>List</span></button>
+        <div class="ra-col">
+          <button type="button" class="ra-name-btn" id="raAddNotes">Add New Notes</button>
+          <button type="button" class="ra-name-btn" id="raAddReminder">Add New Reminder</button>
         </div>
-        <div class="mini-setting-box" title="Add New Reminder">
-          <button class="action-btn" id="raAddReminder">➕</button>
-        </div>
-        <div class="mini-setting-box" title="Add New Notes">
-          <button class="action-btn" id="raAddNotes" style="font-weight:700;font-size:14px;">📝</button>
-        </div>
-        <div class="mini-setting-box" title="Animation">
-          <button class="action-btn" id="raAnimation" style="font-weight:700;font-size:16px;">A</button>
-        </div>
-        <div class="mini-setting-box mini-setting-box-danger" title="Delete">
-          <button class="delete-btn" id="raDelete"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1z"/><path d="M5 6h14"/><path d="M7 6v13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V6"/><line x1="10" y1="10" x2="10" y2="17"/><line x1="14" y1="10" x2="14" y2="17"/></svg></button>
+        <div class="ra-col">
+          <button type="button" class="ra-name-btn" id="raDelete">Delete</button>
+          <button type="button" class="ra-name-btn" id="raAnimation">Animation</button>
         </div>
       </div>
 
@@ -3658,9 +3755,158 @@
         </div>
       </div>
 
-      <!-- REMINDER LIST HISTORY -->
+      <!-- LIST COUNT -->
       <div class="setting-card">
-        <div class="setting-card-title">REMINDER LIST HISTORY</div>
+        <div class="setting-card-title">LIST COUNT</div>
+        <div class="controls-row">
+          <div class="control-group">
+            <span class="control-label">SIZE</span>
+            <input type="number" id="hlistSize" value="23" min="16" max="80">
+          </div>
+          <div class="control-group">
+            <span class="control-label">COLOR</span>
+            <div class="color-swatch" id="hlistColorSwatch" data-target="hlistColor" style="background:#152238;"></div>
+          </div>
+          <div class="control-group">
+            <span class="control-label">BOLD</span>
+            <div class="toggle" id="hlistBold"></div>
+          </div>
+          <div class="control-group">
+            <span class="control-label">FONT</span>
+            <select class="font-select" id="hlistFont">
+              <option value="Segoe UI">Default</option>
+              <option value="Arial">Arial</option>
+              <option value="Roboto" style="font-family:'Roboto',sans-serif;">Roboto</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Courier New">Courier</option>
+              <option value="Poppins" style="font-family:'Poppins',sans-serif;">Poppins</option>
+              <option value="Montserrat" style="font-family:'Montserrat',sans-serif;">Montserrat</option>
+              <option value="Lato" style="font-family:'Lato',sans-serif;">Lato</option>
+              <option value="Open Sans" style="font-family:'Open Sans',sans-serif;">Open Sans</option>
+              <option value="Nunito" style="font-family:'Nunito',sans-serif;">Nunito</option>
+              <option value="Nunito Sans" style="font-family:'Nunito Sans',sans-serif;">Nunito Sans</option>
+              <option value="Raleway" style="font-family:'Raleway',sans-serif;">Raleway</option>
+              <option value="Ubuntu" style="font-family:'Ubuntu',sans-serif;">Ubuntu</option>
+              <option value="Rubik" style="font-family:'Rubik',sans-serif;">Rubik</option>
+              <option value="Quicksand" style="font-family:'Quicksand',sans-serif;">Quicksand</option>
+              <option value="Josefin Sans" style="font-family:'Josefin Sans',sans-serif;">Josefin Sans</option>
+              <option value="Work Sans" style="font-family:'Work Sans',sans-serif;">Work Sans</option>
+              <option value="Inter" style="font-family:'Inter',sans-serif;">Inter</option>
+              <option value="Mulish" style="font-family:'Mulish',sans-serif;">Mulish</option>
+              <option value="Karla" style="font-family:'Karla',sans-serif;">Karla</option>
+              <option value="Titillium Web" style="font-family:'Titillium Web',sans-serif;">Titillium Web</option>
+              <option value="PT Sans" style="font-family:'PT Sans',sans-serif;">PT Sans</option>
+              <option value="Source Sans 3" style="font-family:'Source Sans 3',sans-serif;">Source Sans 3</option>
+              <option value="Fira Sans" style="font-family:'Fira Sans',sans-serif;">Fira Sans</option>
+              <option value="Barlow" style="font-family:'Barlow',sans-serif;">Barlow</option>
+              <option value="DM Sans" style="font-family:'DM Sans',sans-serif;">DM Sans</option>
+              <option value="Manrope" style="font-family:'Manrope',sans-serif;">Manrope</option>
+              <option value="Outfit" style="font-family:'Outfit',sans-serif;">Outfit</option>
+              <option value="Sora" style="font-family:'Sora',sans-serif;">Sora</option>
+              <option value="Plus Jakarta Sans" style="font-family:'Plus Jakarta Sans',sans-serif;">Plus Jakarta…</option>
+              <option value="Space Grotesk" style="font-family:'Space Grotesk',sans-serif;">Space Grotesk</option>
+              <option value="Urbanist" style="font-family:'Urbanist',sans-serif;">Urbanist</option>
+              <option value="Figtree" style="font-family:'Figtree',sans-serif;">Figtree</option>
+              <option value="Lexend" style="font-family:'Lexend',sans-serif;">Lexend</option>
+              <option value="Epilogue" style="font-family:'Epilogue',sans-serif;">Epilogue</option>
+              <option value="Hind" style="font-family:'Hind',sans-serif;">Hind</option>
+              <option value="Cabin" style="font-family:'Cabin',sans-serif;">Cabin</option>
+              <option value="Assistant" style="font-family:'Assistant',sans-serif;">Assistant</option>
+              <option value="Heebo" style="font-family:'Heebo',sans-serif;">Heebo</option>
+              <option value="Overpass" style="font-family:'Overpass',sans-serif;">Overpass</option>
+              <option value="Varela Round" style="font-family:'Varela Round',sans-serif;">Varela Round</option>
+              <option value="Comfortaa" style="font-family:'Comfortaa',sans-serif;">Comfortaa</option>
+              <option value="Baloo 2" style="font-family:'Baloo 2',sans-serif;">Baloo 2</option>
+              <option value="Fredoka" style="font-family:'Fredoka',sans-serif;">Fredoka</option>
+              <option value="Righteous" style="font-family:'Righteous',sans-serif;">Righteous</option>
+              <option value="Pacifico" style="font-family:'Pacifico',sans-serif;">Pacifico</option>
+              <option value="Dancing Script" style="font-family:'Dancing Script',sans-serif;">Dancing Scrip…</option>
+              <option value="Great Vibes" style="font-family:'Great Vibes',sans-serif;">Great Vibes</option>
+              <option value="Sacramento" style="font-family:'Sacramento',sans-serif;">Sacramento</option>
+              <option value="Satisfy" style="font-family:'Satisfy',sans-serif;">Satisfy</option>
+              <option value="Caveat" style="font-family:'Caveat',sans-serif;">Caveat</option>
+              <option value="Kalam" style="font-family:'Kalam',sans-serif;">Kalam</option>
+              <option value="Indie Flower" style="font-family:'Indie Flower',sans-serif;">Indie Flower</option>
+              <option value="Shadows Into Light" style="font-family:'Shadows Into Light',sans-serif;">Shadows Into…</option>
+              <option value="Amatic SC" style="font-family:'Amatic SC',sans-serif;">Amatic SC</option>
+              <option value="Permanent Marker" style="font-family:'Permanent Marker',sans-serif;">Permanent Mar…</option>
+              <option value="Lobster" style="font-family:'Lobster',sans-serif;">Lobster</option>
+              <option value="Bangers" style="font-family:'Bangers',sans-serif;">Bangers</option>
+              <option value="Anton" style="font-family:'Anton',sans-serif;">Anton</option>
+              <option value="Archivo Black" style="font-family:'Archivo Black',sans-serif;">Archivo Black</option>
+              <option value="Bebas Neue" style="font-family:'Bebas Neue',sans-serif;">Bebas Neue</option>
+              <option value="Oswald" style="font-family:'Oswald',sans-serif;">Oswald</option>
+              <option value="Teko" style="font-family:'Teko',sans-serif;">Teko</option>
+              <option value="Staatliches" style="font-family:'Staatliches',sans-serif;">Staatliches</option>
+              <option value="Alfa Slab One" style="font-family:'Alfa Slab One',sans-serif;">Alfa Slab One</option>
+              <option value="Passion One" style="font-family:'Passion One',sans-serif;">Passion One</option>
+              <option value="Playfair Display" style="font-family:'Playfair Display',sans-serif;">Playfair Disp…</option>
+              <option value="Merriweather" style="font-family:'Merriweather',sans-serif;">Merriweather</option>
+              <option value="Lora" style="font-family:'Lora',sans-serif;">Lora</option>
+              <option value="PT Serif" style="font-family:'PT Serif',sans-serif;">PT Serif</option>
+              <option value="Crimson Text" style="font-family:'Crimson Text',sans-serif;">Crimson Text</option>
+              <option value="Libre Baskerville" style="font-family:'Libre Baskerville',sans-serif;">Libre Baskerv…</option>
+              <option value="EB Garamond" style="font-family:'EB Garamond',sans-serif;">EB Garamond</option>
+              <option value="Cormorant Garamond" style="font-family:'Cormorant Garamond',sans-serif;">Cormorant Gar…</option>
+              <option value="Noto Serif" style="font-family:'Noto Serif',sans-serif;">Noto Serif</option>
+              <option value="Bitter" style="font-family:'Bitter',sans-serif;">Bitter</option>
+              <option value="Domine" style="font-family:'Domine',sans-serif;">Domine</option>
+              <option value="Rokkitt" style="font-family:'Rokkitt',sans-serif;">Rokkitt</option>
+              <option value="Roboto Slab" style="font-family:'Roboto Slab',sans-serif;">Roboto Slab</option>
+              <option value="Arvo" style="font-family:'Arvo',sans-serif;">Arvo</option>
+              <option value="Zilla Slab" style="font-family:'Zilla Slab',sans-serif;">Zilla Slab</option>
+              <option value="Vollkorn" style="font-family:'Vollkorn',sans-serif;">Vollkorn</option>
+              <option value="Spectral" style="font-family:'Spectral',sans-serif;">Spectral</option>
+              <option value="Abril Fatface" style="font-family:'Abril Fatface',sans-serif;">Abril Fatface</option>
+              <option value="Signika" style="font-family:'Signika',sans-serif;">Signika</option>
+              <option value="Yanone Kaffeesatz" style="font-family:'Yanone Kaffeesatz',sans-serif;">Yanone Kaffee…</option>
+              <option value="Chivo" style="font-family:'Chivo',sans-serif;">Chivo</option>
+              <option value="Exo 2" style="font-family:'Exo 2',sans-serif;">Exo 2</option>
+              <option value="Orbitron" style="font-family:'Orbitron',sans-serif;">Orbitron</option>
+              <option value="Audiowide" style="font-family:'Audiowide',sans-serif;">Audiowide</option>
+              <option value="Michroma" style="font-family:'Michroma',sans-serif;">Michroma</option>
+              <option value="Syncopate" style="font-family:'Syncopate',sans-serif;">Syncopate</option>
+              <option value="Krona One" style="font-family:'Krona One',sans-serif;">Krona One</option>
+              <option value="Russo One" style="font-family:'Russo One',sans-serif;">Russo One</option>
+              <option value="Play" style="font-family:'Play',sans-serif;">Play</option>
+              <option value="Saira" style="font-family:'Saira',sans-serif;">Saira</option>
+              <option value="Jost" style="font-family:'Jost',sans-serif;">Jost</option>
+              <option value="Prompt" style="font-family:'Prompt',sans-serif;">Prompt</option>
+              <option value="Kanit" style="font-family:'Kanit',sans-serif;">Kanit</option>
+              <option value="Mitr" style="font-family:'Mitr',sans-serif;">Mitr</option>
+              <option value="Chakra Petch" style="font-family:'Chakra Petch',sans-serif;">Chakra Petch</option>
+              <option value="Maven Pro" style="font-family:'Maven Pro',sans-serif;">Maven Pro</option>
+              <option value="Questrial" style="font-family:'Questrial',sans-serif;">Questrial</option>
+              <option value="Cardo" style="font-family:'Cardo',sans-serif;">Cardo</option>
+              <option value="Alegreya" style="font-family:'Alegreya',sans-serif;">Alegreya</option>
+              <option value="Alegreya Sans" style="font-family:'Alegreya Sans',sans-serif;">Alegreya Sans</option>
+              <option value="Yrsa" style="font-family:'Yrsa',sans-serif;">Yrsa</option>
+              <option value="Frank Ruhl Libre" style="font-family:'Frank Ruhl Libre',sans-serif;">Frank Ruhl Li…</option>
+              <option value="Marcellus" style="font-family:'Marcellus',sans-serif;">Marcellus</option>
+              <option value="Cinzel" style="font-family:'Cinzel',sans-serif;">Cinzel</option>
+              <option value="Cormorant" style="font-family:'Cormorant',sans-serif;">Cormorant</option>
+              <option value="Allura" style="font-family:'Allura',sans-serif;">Allura</option>
+              <option value="Tangerine" style="font-family:'Tangerine',sans-serif;">Tangerine</option>
+              <option value="Parisienne" style="font-family:'Parisienne',sans-serif;">Parisienne</option>
+              <option value="Kaushan Script" style="font-family:'Kaushan Script',sans-serif;">Kaushan Scrip…</option>
+              <option value="Courgette" style="font-family:'Courgette',sans-serif;">Courgette</option>
+              <option value="Pattaya" style="font-family:'Pattaya',sans-serif;">Pattaya</option>
+              <option value="Comic Neue" style="font-family:'Comic Neue',sans-serif;">Comic Neue</option>
+              <option value="Patrick Hand" style="font-family:'Patrick Hand',sans-serif;">Patrick Hand</option>
+              <option value="Architects Daughter" style="font-family:'Architects Daughter',sans-serif;">Architects Da…</option>
+              <option value="Gochi Hand" style="font-family:'Gochi Hand',sans-serif;">Gochi Hand</option>
+              <option value="Merienda" style="font-family:'Merienda',sans-serif;">Merienda</option>
+              <option value="Yellowtail" style="font-family:'Yellowtail',sans-serif;">Yellowtail</option>
+              <option value="Cookie" style="font-family:'Cookie',sans-serif;">Cookie</option>
+              <option value="Style Script" style="font-family:'Style Script',sans-serif;">Style Script</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTORY LIST -->
+      <div class="setting-card">
+        <div class="setting-card-title">HISTORY LIST</div>
         <div class="controls-row">
           <div class="control-group">
             <span class="control-label">COLOR</span>
@@ -3691,6 +3937,20 @@
         <span class="tab-active">Hide Page</span>
       </div>
       <div class="hide-settings-body">
+        <div class="ra-mini-row ra-mini-row-right" style="margin-bottom:20px;">
+          <button type="button" id="haHistoryBtn" style="
+            border:none;
+            border-radius:16px;
+            padding:14px 22px;
+            font-size:16px;
+            font-weight:700;
+            letter-spacing:0.3px;
+            cursor:pointer;
+            background:linear-gradient(180deg,#bdbdbd 0%,#9e9e9e 55%,#8a8a8a 100%);
+            color:#ffffff;
+            box-shadow:0 3px 0 #757575, 0 6px 12px rgba(0,0,0,0.18);
+          ">Hide History</button>
+        </div>
         <div class="setting-card">
           <div class="setting-card-title">HIDE TITLE</div>
           <div class="controls-row">
@@ -3996,6 +4256,7 @@
     </div>
     <div class="page">
       <div class="page-name" id="title-history">History</div>
+      <div class="reminder-page-heading" id="historyPageHeading" style="display:none;"></div>
       <div id="historyCountBall" aria-hidden="true"><span id="historyCountNum">0</span></div>
       <div class="history-ball-popup" id="historyBallPopup">
         <div class="hb-dpad">
@@ -4040,9 +4301,9 @@
       </div>
     </div>
     <div class="page">
+      <div class="today-date" id="date-hide"></div>
       <div class="page-name line-item" id="title-hide">Hide</div>
       <div class="reminder-list-container" id="hideListContainer" style="padding-top:40px;"></div>
-      <button type="button" class="hide-history-fab" id="hideHistoryFabBtn">History</button>
     </div>
   </div>
 
@@ -4053,7 +4314,7 @@
         <h2>Hide History</h2>
         <button class="close-btn" id="closeHideHistory">×</button>
       </div>
-      <div id="hideHistoryList" style="display:flex;flex-direction:column;gap:12px;margin-bottom:12px;"></div>
+      <div id="hideHistoryList"></div>
     </div>
   </div>
 
@@ -4098,7 +4359,7 @@
     // to usse ek baar cloud mein copy kar do (isse purana data delete nahi hota,
     // sirf Firestore mein bhi save ho jata hai)
     const REMINDER_APP_KEYS = [
-      'reminderLists', 'reminderPageSettings', 'currentPage',
+      'reminderLists', 'reminderPageSettings',
       'lineTextOverrides', 'linePositions', 'alertPageSettings', 'lineAnimations', 'historyPageSettings', 'historyPhotoState', 'historyCountBallState', 'reminderCountBallState'
     ];
     let didMigrate = false;
@@ -4229,6 +4490,7 @@
     let reminderSettings = JSON.parse(localStorage.getItem('reminderPageSettings') || 'null') || { ...reminderDefaultSettings };
     const historyDefaultSettings = {
       htSize: 45, htColor: '#111111', htBold: false, htFont: 'Segoe UI',
+      hlistSize: 23, hlistColor: '#152238', hlistBold: false, hlistFont: 'Segoe UI',
       listColor: '#22c55e'
     };
     let historySettings = JSON.parse(localStorage.getItem('historyPageSettings') || 'null') || { ...historyDefaultSettings };
@@ -4239,8 +4501,9 @@
     };
     let hideSettings = JSON.parse(localStorage.getItem('hidePageSettings') || 'null') || { ...hideDefaultSettings };
     const total = 4;
+    // sessionStorage: refresh → same page; browser/tab close → cleared → always Alert (0)
     try {
-      const savedPage = parseInt(localStorage.getItem('currentPage') || '0', 10);
+      const savedPage = parseInt(sessionStorage.getItem('currentPage') || '0', 10);
       if (!isNaN(savedPage) && savedPage >= 0 && savedPage < total) current = savedPage;
     } catch (e) {}
     if (current !== 0) {
@@ -4250,15 +4513,16 @@
     // Custom text a user has typed into an editable line (date lines, headings) via the ✏️ popup.
     // Keyed by element id. If a line has no override, its normal auto-generated text is used.
     let lineTextOverrides = JSON.parse(localStorage.getItem('lineTextOverrides') || '{}');
-    if (lineTextOverrides['date-alert'] || lineTextOverrides['date-reminder']) {
+    if (lineTextOverrides['date-alert'] || lineTextOverrides['date-reminder'] || lineTextOverrides['date-hide']) {
       delete lineTextOverrides['date-alert'];
       delete lineTextOverrides['date-reminder'];
+      delete lineTextOverrides['date-hide'];
       localStorage.setItem('lineTextOverrides', JSON.stringify(lineTextOverrides));
     }
     function applyLineText(el, defaultText) {
       if (!el) return;
       // Today-date lines must always show the live date — never a frozen saved override
-      if (el.id === 'date-alert' || el.id === 'date-reminder') {
+      if (el.id === 'date-alert' || el.id === 'date-reminder' || el.id === 'date-hide') {
         el.textContent = defaultText;
         return;
       }
@@ -4280,7 +4544,7 @@
         current = next;
         slider.style.transform = `translateX(-${current * 25}%)`;
       }
-      try { localStorage.setItem('currentPage', String(current)); } catch (e) {}
+      try { sessionStorage.setItem('currentPage', String(current)); } catch (e) {}
     }
 
     const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -4292,8 +4556,10 @@
       const t = formatToday();
       const a = document.getElementById('date-alert');
       const r = document.getElementById('date-reminder');
+      const h = document.getElementById('date-hide');
       if (a) applyLineText(a, t);
       if (r) applyLineText(r, t);
+      if (h) applyLineText(h, t);
       if (typeof renderReminderList === 'function') renderReminderList();
     }
     updateDates();
@@ -4377,6 +4643,7 @@
     function applySettingsToPage() {
       const dateEl = document.getElementById('date-alert');
       const dateElReminder = document.getElementById('date-reminder');
+      const dateElHide = document.getElementById('date-hide');
       const titleEl = document.getElementById('title-alert');
 
       // Apply background to ALL pages
@@ -4385,8 +4652,8 @@
       });
       document.body.style.background = settings.bgColor;
 
-      // Today-date styling is SHARED between Alert page and Reminder page
-      [dateEl, dateElReminder].forEach(el => {
+      // Today-date styling is SHARED between Alert, Reminder, and Hide pages
+      [dateEl, dateElReminder, dateElHide].forEach(el => {
         if (!el) return;
         if (settings.dateVisible) {
           el.style.display = 'block';
@@ -4764,6 +5031,13 @@
       document.getElementById('htBold').classList.toggle('on', historySettings.htBold);
       document.getElementById('htFont').value = historySettings.htFont;
       syncFontSelectPreview(document.getElementById('htFont'));
+
+      document.getElementById('hlistSize').value = historySettings.hlistSize ?? historyDefaultSettings.hlistSize;
+      document.getElementById('hlistColorSwatch').style.background = historySettings.hlistColor || historyDefaultSettings.hlistColor;
+      document.getElementById('hlistBold').classList.toggle('on', !!historySettings.hlistBold);
+      document.getElementById('hlistFont').value = historySettings.hlistFont || historyDefaultSettings.hlistFont;
+      syncFontSelectPreview(document.getElementById('hlistFont'));
+
       const hlSw = document.getElementById('hlColorSwatch');
       if (hlSw) hlSw.style.background = historySettings.listColor || historyDefaultSettings.listColor;
     }
@@ -4775,7 +5049,7 @@
       if (e.target.id === 'historySettingsOverlay') e.target.classList.remove('show');
     });
 
-    ['htBold'].forEach(id => {
+    ['htBold','hlistBold'].forEach(id => {
       document.getElementById(id).addEventListener('click', function() { this.classList.toggle('on'); });
     });
 
@@ -4784,6 +5058,20 @@
       historySettings.htColor = rgbToHex(document.getElementById('htColorSwatch').style.background) || historySettings.htColor;
       historySettings.htBold = document.getElementById('htBold').classList.contains('on');
       historySettings.htFont = document.getElementById('htFont').value;
+
+      historySettings.hlistSize = parseInt(document.getElementById('hlistSize').value) || historyDefaultSettings.hlistSize;
+      historySettings.hlistColor = rgbToHex(document.getElementById('hlistColorSwatch').style.background) || historySettings.hlistColor;
+      historySettings.hlistBold = document.getElementById('hlistBold').classList.contains('on');
+      historySettings.hlistFont = document.getElementById('hlistFont').value;
+
+      try {
+        const posStore = JSON.parse(localStorage.getItem('linePositions') || '{}');
+        if (posStore['historyPageHeading'] && posStore['historyPageHeading'].fontSize) {
+          delete posStore['historyPageHeading'].fontSize;
+          localStorage.setItem('linePositions', JSON.stringify(posStore));
+        }
+      } catch (e) {}
+
       const hlSw = document.getElementById('hlColorSwatch');
       if (hlSw) {
         historySettings.listColor = rgbToHex(hlSw.style.background) || historySettings.listColor || historyDefaultSettings.listColor;
@@ -5024,7 +5312,8 @@
 
       // Countdown: fewest days on top, most at bottom.
       // Count items always stay at the bottom (not mixed into day-left order).
-      // Hidden lists (Hide page) are excluded from Reminder + Alert.
+      // Hidden lists (Hide page) are excluded from Reminder page only.
+      // Alert page still shows them when alert condition is met.
       const sortedLists = reminderLists
         .filter(r => !isListHidden(r.id))
         .map(r => ({ r, dayVal: computeDayValue(r, today) }))
@@ -5039,8 +5328,13 @@
         });
 
       const cardsHTML = sortedLists.map(({ r, dayVal }) => {
-        if (isAlertTriggered(r, dayVal)) alertCards.push(buildCardHTML(r, dayVal));
         return buildCardHTML(r, dayVal);
+      });
+
+      // Alert: include ALL lists (visible + hidden on Hide page) when triggered
+      (reminderLists || []).forEach(r => {
+        const dayVal = computeDayValue(r, today);
+        if (isAlertTriggered(r, dayVal)) alertCards.push(buildCardHTML(r, dayVal));
       });
 
       container.innerHTML = cardsHTML.join('');
@@ -5178,6 +5472,45 @@
         // Skip lists user deleted from History page settings + hidden lists
         const visibleHistory = historyOrdered.filter(g => !historyPageHiddenIds.includes(g.id) && !isListHidden(g.id));
         historyContainer.innerHTML = visibleHistory.map(r => buildHistoryCardHTML(r)).join('');
+        // Keep History title separate (no count on title line)
+        const titleHist = document.getElementById('title-history');
+        if (titleHist) {
+          const ov = lineTextOverrides['title-history'];
+          titleHist.textContent = (ov !== undefined && ov !== null && ov !== '') ? ov : 'History';
+          try {
+            const conf = animState && animState['title-history'];
+            if (conf && conf.names && conf.names.length) {
+              applyToTarget('title-history', conf.names, conf.speed || 'normal');
+            }
+          } catch (e) {}
+        }
+        // History List line (separate from History title) — live count like Reminder 🔔
+        const histHeading = document.getElementById('historyPageHeading');
+        if (histHeading) {
+          const liveHistCount = visibleHistory.length;
+          if (liveHistCount > 0) {
+            histHeading.style.display = 'block';
+            const headingOv = lineTextOverrides['historyPageHeading'];
+            if (headingOv !== undefined && headingOv !== null && headingOv !== '') {
+              const base = String(headingOv).replace(/[\s\-–—:]*\d+\s*$/, '').trim();
+              histHeading.textContent = base ? `${base} - ${liveHistCount}` : `🔔 ${liveHistCount}`;
+            } else {
+              histHeading.textContent = `🔔 ${liveHistCount}`;
+            }
+            histHeading.style.fontSize = (historySettings.hlistSize ?? 23) + 'px';
+            histHeading.style.color = historySettings.hlistColor || '#152238';
+            histHeading.style.fontWeight = historySettings.hlistBold ? '700' : '500';
+            histHeading.style.fontFamily = historySettings.hlistFont || 'Segoe UI';
+            try {
+              const conf = animState && animState['historyPageHeading'];
+              if (conf && conf.names && conf.names.length) {
+                applyToTarget('historyPageHeading', conf.names, conf.speed || 'normal');
+              }
+            } catch (e) {}
+          } else {
+            histHeading.style.display = 'none';
+          }
+        }
         // History page round count ball — same live count behaviour as Reminder heading
         const histBall = document.getElementById('historyCountBall');
         const histNum = document.getElementById('historyCountNum');
@@ -5262,7 +5595,7 @@
       if (!listEl) return;
       const hidden = (reminderLists || []).filter(r => isListHidden(r.id));
       if (!hidden.length) {
-        listEl.innerHTML = '<div style="text-align:center;color:#999;font-size:16px;font-weight:600;padding:30px 10px;">No History</div>';
+        listEl.innerHTML = '<div class="hide-history-empty">No History</div>';
         return;
       }
       listEl.innerHTML = hidden.map(r => {
@@ -5275,10 +5608,11 @@
         `;
       }).join('');
     }
-    const hideHistoryFabBtn = document.getElementById('hideHistoryFabBtn');
-    if (hideHistoryFabBtn) {
-      hideHistoryFabBtn.addEventListener('click', e => {
+    const haHistoryBtn = document.getElementById('haHistoryBtn');
+    if (haHistoryBtn) {
+      haHistoryBtn.addEventListener('click', e => {
         e.stopPropagation();
+        document.getElementById('hideSettingsOverlay').classList.remove('show');
         renderHideHistoryPanel();
         document.getElementById('hideHistoryOverlay').classList.add('show');
       });
@@ -6374,6 +6708,8 @@
       document.getElementById('date-alert').style.display = 'none';
       const dr = document.getElementById('date-reminder');
       if (dr) dr.style.display = 'none';
+      const dh = document.getElementById('date-hide');
+      if (dh) dh.style.display = 'none';
     });
     document.getElementById('titleDelete').addEventListener('click', () => {
       settings.titleVisible = false;
@@ -6399,7 +6735,7 @@
       // warna wahi hamesha jeet jata hai aur naya size dikhta hi nahi
       try {
         const posStore = JSON.parse(localStorage.getItem('linePositions') || '{}');
-        ['title-alert', 'date-alert', 'date-reminder'].forEach(id => {
+        ['title-alert', 'date-alert', 'date-reminder', 'date-hide'].forEach(id => {
           if (posStore[id] && posStore[id].fontSize) delete posStore[id].fontSize;
         });
         localStorage.setItem('linePositions', JSON.stringify(posStore));
@@ -6560,7 +6896,7 @@
           if (s.bottom) el.style.bottom = s.bottom;
           if (s.transform) el.style.transform = s.transform;
           // fontSize for reminder heading / dates is owned by page settings — do not restore from linePositions
-          if (s.fontSize && el.id !== 'reminderPageHeading' && el.id !== 'date-alert' && el.id !== 'date-reminder') {
+          if (s.fontSize && el.id !== 'reminderPageHeading' && el.id !== 'historyPageHeading' && el.id !== 'date-alert' && el.id !== 'date-reminder' && el.id !== 'date-hide') {
             el.style.fontSize = s.fontSize;
           }
           el.dataset.pinned = s.pinned ? 'true' : 'false';
@@ -6582,7 +6918,7 @@
       (function resetDateLinePosition() {
         const store = loadStore();
         let changed = false;
-        ['date-alert', 'date-reminder'].forEach(id => {
+        ['date-alert', 'date-reminder', 'date-hide'].forEach(id => {
           if (store[id]) { delete store[id]; changed = true; }
           const el = document.getElementById(id);
           if (el) {
@@ -6630,9 +6966,9 @@
         hidePopup();
         const pinned = el.dataset.pinned === 'true';
         const isHeading = el.id === 'alertPageHeading';
-        const isDateLine = el.id === 'date-alert' || el.id === 'date-reminder';
+        const isDateLine = el.id === 'date-alert' || el.id === 'date-reminder' || el.id === 'date-hide';
         const isAlertTitle = el.id === 'title-alert';
-        const isReminderCountLine = el.id === 'reminderPageHeading';
+        const isReminderCountLine = el.id === 'reminderPageHeading' || el.id === 'historyPageHeading';
         const isHideTitle = el.id === 'title-hide';
 
         popupEl = document.createElement('div');
@@ -6786,8 +7122,8 @@
         function onMove(e) {
           if (!dragging) return;
           if (el.dataset.pinned === 'true') return; // pinned: no movement, but tap still registers on release
-          if (el.id === 'date-alert' || el.id === 'date-reminder') return; // date line: position always locked
-          if (el.id === 'reminderPageHeading') return; // bell/count line: move only via popup arrows
+          if (el.id === 'date-alert' || el.id === 'date-reminder' || el.id === 'date-hide') return; // date line: position always locked
+          if (el.id === 'reminderPageHeading' || el.id === 'historyPageHeading') return; // bell/count line: move only via popup arrows
           const p = e.touches ? e.touches[0] : e;
           const dx = p.clientX - startX, dy = p.clientY - startY;
           if (!moved && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
@@ -6940,8 +7276,14 @@
         });
         return lines;
       }
-      if (pageIndex === 2) return [{ id: 'title-history', label: 'History Title' }];
-      if (pageIndex === 3) return [{ id: 'title-hide', label: 'Hide Title' }];
+      if (pageIndex === 2) return [
+        { id: 'title-history', label: 'History Title' },
+        { id: 'historyPageHeading', label: 'History List' }
+      ];
+      if (pageIndex === 3) return [
+        { id: 'date-hide', label: 'Today Date' },
+        { id: 'title-hide', label: 'Hide Title' }
+      ];
       return [];
     }
 
