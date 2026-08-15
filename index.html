@@ -697,40 +697,99 @@
 
     .switch-page-btn {
       position: fixed;
-      top: 10px;
+      top: 12px;
       right: 8px;
-      width: 42px;
-      height: 42px;
-      background: transparent;
+      width: 34px;
+      height: 34px;
       border: none;
       cursor: pointer;
       z-index: 200;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #222;
-      font-size: 26px;
-      line-height: 1;
+      color: #1a73e8;
+      font-size: 22px;
+      line-height: 34px;
       padding: 0;
+      text-align: center;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #ffffff 0%, #eef3ff 55%, #e3ebff 100%);
+      box-shadow:
+        0 4px 12px rgba(26, 115, 232, 0.22),
+        0 1px 3px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95),
+        inset 0 -2px 4px rgba(26, 115, 232, 0.08);
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
+      animation: topBtnGlow 2.4s ease-in-out infinite;
+      -webkit-tap-highlight-color: transparent;
+      overflow: visible;
     }
 
     .settings-side-btn {
       position: fixed;
-      top: 10px;
-      right: 54px;
-      width: 42px;
-      height: 42px;
-      background: transparent;
+      top: 12px;
+      right: 58px;
+      width: 34px;
+      height: 34px;
       border: none;
       cursor: pointer;
       z-index: 200;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #222;
-      font-size: 22px;
+      color: #1a73e8;
+      font-size: 20px;
       line-height: 1;
       padding: 0;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #ffffff 0%, #eef3ff 55%, #e3ebff 100%);
+      box-shadow:
+        0 4px 12px rgba(26, 115, 232, 0.22),
+        0 1px 3px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95),
+        inset 0 -2px 4px rgba(26, 115, 232, 0.08);
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
+      animation: topBtnGlow 2.4s ease-in-out infinite;
+      animation-delay: 0.35s;
+      -webkit-tap-highlight-color: transparent;
+      overflow: visible;
+    }
+
+    /* Multi-color spinning ring (like a clock hand going around) */
+    .switch-page-btn::before,
+    .settings-side-btn::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 50%;
+      background: conic-gradient(
+        from 0deg,
+        #ff1744,
+        #ff9100,
+        #ffea00,
+        #00e676,
+        #00e5ff,
+        #2979ff,
+        #d500f9,
+        #ff1744
+      );
+      z-index: -1;
+      animation: topBtnRingSpin 2.2s linear infinite;
+      -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 1.5px), #000 calc(100% - 1px));
+      mask: radial-gradient(farthest-side, transparent calc(100% - 1.5px), #000 calc(100% - 1px));
+      pointer-events: none;
+    }
+    .settings-side-btn::before {
+      animation-delay: 0.35s;
+    }
+
+    .switch-page-btn:active,
+    .settings-side-btn:active {
+      transform: scale(0.9);
+      box-shadow:
+        0 2px 6px rgba(26, 115, 232, 0.18),
+        inset 0 2px 4px rgba(0, 0, 0, 0.08);
+      animation: none;
     }
 
     .switch-page-btn.spin {
@@ -743,6 +802,28 @@
       }
       to {
         transform: rotate(360deg);
+      }
+    }
+
+    @keyframes topBtnRingSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes topBtnGlow {
+      0%, 100% {
+        box-shadow:
+          0 4px 12px rgba(26, 115, 232, 0.20),
+          0 1px 3px rgba(0, 0, 0, 0.08),
+          inset 0 1px 0 rgba(255, 255, 255, 0.95),
+          inset 0 -2px 4px rgba(26, 115, 232, 0.08);
+      }
+      50% {
+        box-shadow:
+          0 6px 18px rgba(26, 115, 232, 0.38),
+          0 2px 6px rgba(26, 115, 232, 0.16),
+          inset 0 1px 0 rgba(255, 255, 255, 0.98),
+          inset 0 -2px 4px rgba(26, 115, 232, 0.10);
       }
     }
 
@@ -1057,7 +1138,7 @@
       gap: 22px;
       min-width: 0;
     }
-    /* Left: Hide List / Hide Page — small, stuck to left */
+    /* Left: Add New Notes / Add New Reminder — small, stuck to left */
     .ra-text-actions-grid .ra-col:first-child {
       flex: 0 0 auto;
       align-items: flex-start;
@@ -1069,7 +1150,7 @@
       font-size: 14px;
       border-radius: 12px;
     }
-    /* Center: Add New Notes / Add New Reminder */
+    /* Center: Hide List / Hide Page */
     .ra-text-actions-grid .ra-col:nth-child(2) {
       flex: 1 1 auto;
       align-items: center;
@@ -1244,6 +1325,113 @@
       min-height: 0 !important;
       margin: 0 auto !important;
       border-radius: 18px !important;
+    }
+
+    /* Delete confirm: first popup — larger than previous */
+    #deleteConfirmOverlay.show {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    #deleteConfirmOverlay .settings-panel {
+      width: auto !important;
+      max-width: 640px !important;
+      min-width: 360px !important;
+      height: auto !important;
+      max-height: none !important;
+      min-height: 0 !important;
+      margin: 0 auto !important;
+      border-radius: 26px !important;
+      padding: 44px 40px 36px !important;
+    }
+    #deleteConfirmOverlay .settings-footer {
+      margin-top: 0 !important;
+      gap: 18px !important;
+    }
+    #deleteConfirmOverlay .btn-reset,
+    #deleteConfirmOverlay .btn-apply {
+      min-width: 150px !important;
+      padding: 18px 30px !important;
+      font-size: 19px !important;
+      border-radius: 16px !important;
+    }
+    #deleteConfirmOverlay #deleteConfirmTitle {
+      font-size: 28px !important;
+      font-weight: 700 !important;
+      margin-bottom: 16px !important;
+    }
+    #deleteConfirmOverlay #deleteConfirmMessage {
+      font-size: 20px !important;
+      line-height: 1.5 !important;
+      margin-bottom: 28px !important;
+    }
+
+    /* Second delete confirm: "Really?" — previous first-popup size */
+    #deleteReallyOverlay.show {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    #deleteReallyOverlay .settings-panel {
+      width: auto !important;
+      max-width: 520px !important;
+      min-width: 320px !important;
+      height: auto !important;
+      max-height: none !important;
+      min-height: 0 !important;
+      margin: 0 auto !important;
+      border-radius: 22px !important;
+      padding: 32px 32px 28px !important;
+    }
+    #deleteReallyOverlay .settings-footer {
+      margin-top: 0 !important;
+      gap: 16px !important;
+    }
+    #deleteReallyOverlay .btn-reset,
+    #deleteReallyOverlay .btn-apply {
+      min-width: 130px !important;
+      padding: 16px 26px !important;
+      font-size: 17px !important;
+      border-radius: 14px !important;
+    }
+    #deleteReallyOverlay #deleteReallyTitle {
+      font-size: 22px !important;
+      font-weight: 700 !important;
+      margin-bottom: 14px !important;
+    }
+    #deleteReallyOverlay #deleteReallyMessage {
+      font-size: 17px !important;
+      line-height: 1.45 !important;
+      margin-bottom: 24px !important;
+    }
+
+    /* Price required popup (Add New Reminder) */
+    #priceRequiredOverlay.show {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    #priceRequiredOverlay .settings-panel {
+      width: auto !important;
+      max-width: 420px !important;
+      min-width: 280px !important;
+      height: auto !important;
+      max-height: none !important;
+      min-height: 0 !important;
+      margin: 0 auto !important;
+      border-radius: 20px !important;
+      padding: 28px 26px 22px !important;
+    }
+    #priceRequiredOverlay .settings-footer {
+      margin-top: 0 !important;
+      gap: 12px !important;
+      justify-content: center !important;
+    }
+    #priceRequiredOverlay .btn-apply {
+      min-width: 120px !important;
+      padding: 14px 24px !important;
+      font-size: 16px !important;
+      border-radius: 14px !important;
     }
 
     /* Hide settings: compact panel — only as tall as content needs */
@@ -1869,6 +2057,118 @@
       min-height: 44px; display: flex; align-items: center; justify-content: center;
     }
     .anim-preview-card.none-card .anim-preview-text { font-size: 26px; }
+
+    /* Multi-color spinning ring — usable on any line / letter / card via Animation list.
+       Shape stays fixed (no oval tilt); only the gradient colors spin around the border. */
+    @property --mc-ring-angle {
+      syntax: '<angle>';
+      inherits: false;
+      initial-value: 0deg;
+    }
+    .has-multicolor-ring,
+    .anim-inner.has-multicolor-ring,
+    .anim-preview-text.has-multicolor-ring {
+      position: relative !important;
+      display: inline-block;
+      isolation: isolate;
+      padding: 2px 6px;
+    }
+    .reminder-list-item.has-multicolor-ring {
+      position: relative !important;
+      isolation: isolate;
+    }
+    .has-multicolor-ring::before,
+    .anim-inner.has-multicolor-ring::before,
+    .anim-preview-text.has-multicolor-ring::before,
+    .reminder-list-item.has-multicolor-ring::before {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 12px;
+      background: conic-gradient(
+        from var(--mc-ring-angle),
+        #ff1744,
+        #ff9100,
+        #ffea00,
+        #00e676,
+        #00e5ff,
+        #2979ff,
+        #d500f9,
+        #ff1744
+      );
+      z-index: -1;
+      animation: multicolorRingSpin 2.2s linear infinite;
+      /* hollow center → only a thin border ring shows */
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      mask-composite: exclude;
+      padding: 2px;
+      pointer-events: none;
+      box-sizing: border-box;
+    }
+    @keyframes multicolorRingSpin {
+      from { --mc-ring-angle: 0deg; }
+      to { --mc-ring-angle: 360deg; }
+    }
+    /* Keep name in animation engine (no visual change on the letter itself) */
+    @keyframes multicolorRing {
+      0%, 100% { opacity: 1; }
+    }
+    @keyframes multicolorRingSingle {
+      0%, 100% { opacity: 1; }
+    }
+
+    /* Single-line (thinner) multi-color ring */
+    .has-multicolor-ring-single,
+    .anim-inner.has-multicolor-ring-single,
+    .anim-preview-text.has-multicolor-ring-single {
+      position: relative !important;
+      display: inline-block;
+      isolation: isolate;
+      padding: 1px 5px;
+    }
+    .reminder-list-item.has-multicolor-ring-single {
+      position: relative !important;
+      isolation: isolate;
+    }
+    .has-multicolor-ring-single::before,
+    .anim-inner.has-multicolor-ring-single::before,
+    .anim-preview-text.has-multicolor-ring-single::before,
+    .reminder-list-item.has-multicolor-ring-single::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 10px;
+      background: conic-gradient(
+        from var(--mc-ring-angle),
+        #ff1744,
+        #ff9100,
+        #ffea00,
+        #00e676,
+        #00e5ff,
+        #2979ff,
+        #d500f9,
+        #ff1744
+      );
+      z-index: -1;
+      animation: multicolorRingSpin 2.2s linear infinite;
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      mask-composite: exclude;
+      padding: 1px;
+      pointer-events: none;
+      box-sizing: border-box;
+    }
     .anim-preview-card.long-press-active { transform: scale(0.97); }
     .anim-green-dot {
       width: 8px; height: 8px; border-radius: 50%; background: #22c55e;
@@ -2477,23 +2777,17 @@
         <span class="tab-active">Alerts Page</span>
       </div>
 
-      <div class="ra-mini-row ra-mini-row-right">
-        <div class="mini-setting-box" title="Hide Page">
-          <button class="action-btn ra-text-btn" id="aaHidePage"><span>Hide</span><span>Page</span></button>
-        </div>
-      </div>
-
       <!-- PAGE BACKGROUND -->
       <div class="setting-card">
         <div class="setting-card-title">PAGE BACKGROUND</div>
-        <div class="controls-row">
+        <div class="controls-row" style="align-items:center;">
           <div class="control-group">
             <span class="control-label">COLOR</span>
             <div class="color-swatch" id="bgColorSwatch" data-target="bgColor" style="background:#ffffff;"></div>
           </div>
-          <div class="control-group">
-            <span class="control-label">ANIMATION</span>
-            <button class="action-btn" id="aaAnimation" style="font-weight:700;font-size:18px;">A</button>
+          <div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:18px;">
+            <button type="button" class="ra-name-btn" id="aaHidePage" style="min-width:88px;padding:11px 14px;font-size:14px;border-radius:12px;">Hide Page</button>
+            <button type="button" class="ra-name-btn" id="aaAnimation" style="min-width:88px;padding:11px 14px;font-size:14px;border-radius:12px;">Animation</button>
           </div>
         </div>
       </div>
@@ -2823,12 +3117,12 @@
       <!-- REMINDER ACTIONS: 2 rows × 3 cols (pair stacked), light grey + white text -->
       <div class="ra-text-actions-grid">
         <div class="ra-col">
-          <button type="button" class="ra-name-btn" id="raHideList">Hide List</button>
-          <button type="button" class="ra-name-btn" id="raHidePage">Hide Page</button>
-        </div>
-        <div class="ra-col">
           <button type="button" class="ra-name-btn" id="raAddNotes">Add New Notes</button>
           <button type="button" class="ra-name-btn" id="raAddReminder">Add New Reminder</button>
+        </div>
+        <div class="ra-col">
+          <button type="button" class="ra-name-btn" id="raHideList">Hide List</button>
+          <button type="button" class="ra-name-btn" id="raHidePage">Hide Page</button>
         </div>
         <div class="ra-col">
           <button type="button" class="ra-name-btn" id="raDelete">Delete</button>
@@ -3601,10 +3895,8 @@
       </div>
 
       <div class="history-settings-body">
-      <div class="ra-mini-row ra-mini-row-right">
-        <div class="mini-setting-box" title="Hide Page">
-          <button class="action-btn ra-text-btn" id="haHidePage"><span>Hide</span><span>Page</span></button>
-        </div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:20px;">
+        <button type="button" class="ra-name-btn" id="haHidePage" style="min-width:88px;padding:11px 14px;font-size:14px;border-radius:12px;">Hide Page</button>
       </div>
       <!-- HISTORY TITLE -->
       <div class="setting-card">
@@ -4150,14 +4442,37 @@
     </div>
   </div>
 
-  <!-- Delete confirmation popup -->
+  <!-- Delete confirmation popup (first, larger) -->
   <div class="settings-overlay" id="deleteConfirmOverlay" style="z-index:99999;">
-    <div class="settings-panel" style="max-width:320px;text-align:center;padding:24px 20px;">
-      <div style="font-size:17px;font-weight:700;color:#222;margin-bottom:10px;">Delete Confirmation</div>
-      <div style="font-size:14.5px;color:#555;margin-bottom:22px;" id="deleteConfirmMessage">Are you sure you want to delete this?</div>
-      <div class="settings-footer" style="justify-content:center;gap:14px;">
+    <div class="settings-panel" style="max-width:640px;min-width:360px;width:auto !important;height:auto !important;max-height:none !important;min-height:0 !important;text-align:center;padding:44px 40px 36px;margin:0 auto;border-radius:26px !important;">
+      <div id="deleteConfirmTitle" style="font-size:28px;font-weight:700;color:#222;margin-bottom:16px;">Delete Confirmation</div>
+      <div style="font-size:20px;color:#555;margin-bottom:28px;line-height:1.5;" id="deleteConfirmMessage">Are you sure you want to delete this?</div>
+      <div class="settings-footer" style="justify-content:center;gap:18px;margin-top:0;">
         <button class="btn-reset" id="deleteConfirmNoBtn">No</button>
         <button class="btn-apply" id="deleteConfirmYesBtn" style="background:linear-gradient(180deg,#42a5f5 0%,#1a73e8 55%,#0d47a1 100%);box-shadow:0 4px 0 #0b3d91, 0 8px 16px rgba(26,115,232,0.35);">Yes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Second delete confirmation — "Really?" (previous first-popup size) -->
+  <div class="settings-overlay" id="deleteReallyOverlay" style="z-index:100000;">
+    <div class="settings-panel" style="max-width:520px;min-width:320px;width:auto !important;height:auto !important;max-height:none !important;min-height:0 !important;text-align:center;padding:32px 32px 28px;margin:0 auto;border-radius:22px !important;">
+      <div id="deleteReallyTitle" style="font-size:22px;font-weight:700;color:#222;margin-bottom:14px;">Really?</div>
+      <div id="deleteReallyMessage" style="font-size:17px;color:#555;margin-bottom:24px;line-height:1.45;">Are you really sure?</div>
+      <div class="settings-footer" style="justify-content:center;gap:16px;margin-top:0;">
+        <button class="btn-reset" id="deleteReallyNoBtn">No</button>
+        <button class="btn-apply" id="deleteReallyYesBtn" style="background:linear-gradient(180deg,#42a5f5 0%,#1a73e8 55%,#0d47a1 100%);box-shadow:0 4px 0 #0b3d91, 0 8px 16px rgba(26,115,232,0.35);">Yes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Price required popup (Add / Edit Reminder) -->
+  <div class="settings-overlay" id="priceRequiredOverlay" style="z-index:100001;">
+    <div class="settings-panel" style="max-width:420px;min-width:280px;width:auto !important;height:auto !important;max-height:none !important;min-height:0 !important;text-align:center;padding:28px 26px 22px;margin:0 auto;border-radius:20px !important;">
+      <div style="font-size:20px;font-weight:700;color:#222;margin-bottom:12px;">Price Required</div>
+      <div id="priceRequiredMessage" style="font-size:16px;color:#555;margin-bottom:22px;line-height:1.45;">Please enter the price first. Save will work after you add the price.</div>
+      <div class="settings-footer" style="justify-content:center;gap:12px;margin-top:0;">
+        <button class="btn-apply" id="priceRequiredOkBtn" style="background:linear-gradient(180deg,#42a5f5 0%,#1a73e8 55%,#0d47a1 100%);box-shadow:0 4px 0 #0b3d91, 0 8px 16px rgba(26,115,232,0.35);">OK</button>
       </div>
     </div>
   </div>
@@ -6256,7 +6571,7 @@
       pendingDeleteIds = checked;
       pendingDeleteMode = 'reminder';
       const msg = document.getElementById('deleteConfirmMessage');
-      if (msg) msg.textContent = 'Kya aap sach mein yeh list delete karna chahte hain?';
+      if (msg) msg.textContent = 'Are you sure you want to delete this list?';
       document.getElementById('deleteConfirmOverlay').classList.add('show');
     });
 
@@ -6323,29 +6638,39 @@
       pendingDeleteIds = checked;
       pendingDeleteMode = 'history';
       const msg = document.getElementById('deleteConfirmMessage');
-      if (msg) msg.textContent = 'Kya aap sach mein yeh history list delete karna chahte hain?';
+      if (msg) msg.textContent = 'Are you sure you want to delete this history list?';
       document.getElementById('deleteConfirmOverlay').classList.add('show');
     });
 
-    document.getElementById('deleteConfirmNoBtn').addEventListener('click', () => {
+    function cancelPendingDelete() {
       pendingDeleteIds = [];
       pendingDeleteMode = 'reminder';
       document.getElementById('deleteConfirmOverlay').classList.remove('show');
-    });
-    document.getElementById('deleteConfirmOverlay').addEventListener('click', e => {
-      if (e.target.id === 'deleteConfirmOverlay') {
-        pendingDeleteIds = [];
-        pendingDeleteMode = 'reminder';
-        e.target.classList.remove('show');
+      document.getElementById('deleteReallyOverlay').classList.remove('show');
+    }
+
+    function performPendingDelete() {
+      if (pendingDeleteMode === 'alertDate') {
+        settings.dateVisible = false;
+        localStorage.setItem('alertPageSettings', JSON.stringify(settings));
+        applySettingsToPage();
+        cancelPendingDelete();
+        return;
       }
-    });
-    document.getElementById('deleteConfirmYesBtn').addEventListener('click', () => {
+      if (pendingDeleteMode === 'alertTitle') {
+        settings.titleVisible = false;
+        localStorage.setItem('alertPageSettings', JSON.stringify(settings));
+        applySettingsToPage();
+        cancelPendingDelete();
+        return;
+      }
       if (!pendingDeleteIds.length) {
-        document.getElementById('deleteConfirmOverlay').classList.remove('show');
+        cancelPendingDelete();
         return;
       }
       if (pendingDeleteMode === 'history') {
         // Remove all history snapshots for selected reminderIds + hide from History page
+        const count = pendingDeleteIds.length;
         historyLists = historyLists.filter(h => !pendingDeleteIds.includes(h.reminderId));
         saveHistoryLists();
         pendingDeleteIds.forEach(id => {
@@ -6353,19 +6678,40 @@
         });
         saveHistoryPageHiddenIds();
         renderReminderList();
-        document.getElementById('deleteConfirmOverlay').classList.remove('show');
+        cancelPendingDelete();
         document.getElementById('deleteHistoryListsOverlay').classList.remove('show');
-        showReminderToast(`Deleted ${pendingDeleteIds.length}`);
+        showReminderToast(`Deleted ${count}`);
       } else {
+        const count = pendingDeleteIds.length;
         reminderLists = reminderLists.filter(r => !pendingDeleteIds.includes(r.id));
         saveReminderLists();
         renderReminderList();
-        document.getElementById('deleteConfirmOverlay').classList.remove('show');
+        cancelPendingDelete();
         document.getElementById('deleteRemindersOverlay').classList.remove('show');
-        showReminderToast(`Deleted ${pendingDeleteIds.length}`);
+        showReminderToast(`Deleted ${count}`);
       }
-      pendingDeleteIds = [];
-      pendingDeleteMode = 'reminder';
+    }
+
+    document.getElementById('deleteConfirmNoBtn').addEventListener('click', () => {
+      cancelPendingDelete();
+    });
+    document.getElementById('deleteConfirmOverlay').addEventListener('click', e => {
+      if (e.target.id === 'deleteConfirmOverlay') cancelPendingDelete();
+    });
+    // First Yes → open small "Really?" popup
+    document.getElementById('deleteConfirmYesBtn').addEventListener('click', () => {
+      document.getElementById('deleteConfirmOverlay').classList.remove('show');
+      document.getElementById('deleteReallyOverlay').classList.add('show');
+    });
+    document.getElementById('deleteReallyNoBtn').addEventListener('click', () => {
+      cancelPendingDelete();
+    });
+    document.getElementById('deleteReallyOverlay').addEventListener('click', e => {
+      if (e.target.id === 'deleteReallyOverlay') cancelPendingDelete();
+    });
+    // Second Yes → actually delete
+    document.getElementById('deleteReallyYesBtn').addEventListener('click', () => {
+      performPendingDelete();
     });
 
     /* ===== Tap a card once -> small popup with a pencil (Edit) icon.
@@ -6662,8 +7008,8 @@
       const card = e.target.closest('.reminder-list-item');
       if (card) {
         e.stopPropagation();
-        // Edit pencil only on Reminder page — never on Alert page
-        if (current === 1) showReminderCardPopup(card, card.dataset.id);
+        // Edit pencil on Reminder page and Hide page — never on Alert page
+        if (current === 1 || current === 3) showReminderCardPopup(card, card.dataset.id);
         // History page: tap a card -> open its (History) detail sheet
         if (current === 2) openHistoryDetail(card.dataset.id);
         return;
@@ -6671,12 +7017,36 @@
       if (!e.target.closest('.line-popup')) hideReminderCardPopup();
     });
 
+    function showPriceRequiredPopup() {
+      const ov = document.getElementById('priceRequiredOverlay');
+      if (ov) ov.classList.add('show');
+    }
+    function hidePriceRequiredPopup() {
+      const ov = document.getElementById('priceRequiredOverlay');
+      if (ov) ov.classList.remove('show');
+    }
+    (function setupPriceRequiredPopup() {
+      const okBtn = document.getElementById('priceRequiredOkBtn');
+      const ov = document.getElementById('priceRequiredOverlay');
+      if (okBtn) okBtn.addEventListener('click', () => {
+        hidePriceRequiredPopup();
+        const priceInput = document.getElementById('reminderPrice');
+        if (priceInput) priceInput.focus();
+      });
+      if (ov) ov.addEventListener('click', e => {
+        if (e.target.id === 'priceRequiredOverlay') {
+          hidePriceRequiredPopup();
+          const priceInput = document.getElementById('reminderPrice');
+          if (priceInput) priceInput.focus();
+        }
+      });
+    })();
+
     document.getElementById('saveReminderBtn').addEventListener('click', () => {
       const priceInput = document.getElementById('reminderPrice');
       const priceVal = parseFloat(priceInput.value);
       if (!priceInput.value || isNaN(priceVal) || priceVal <= 0) {
-        showReminderToast('Please enter price first');
-        priceInput.focus();
+        showPriceRequiredPopup();
         return;
       }
       const nameInput = document.getElementById('reminderListName');
@@ -6740,16 +7110,18 @@
     });
 
     document.getElementById('dateDelete').addEventListener('click', () => {
-      settings.dateVisible = false;
-      document.getElementById('date-alert').style.display = 'none';
-      const dr = document.getElementById('date-reminder');
-      if (dr) dr.style.display = 'none';
-      const dh = document.getElementById('date-hide');
-      if (dh) dh.style.display = 'none';
+      pendingDeleteIds = [];
+      pendingDeleteMode = 'alertDate';
+      const msg = document.getElementById('deleteConfirmMessage');
+      if (msg) msg.textContent = 'Are you sure you want to delete Today Date?';
+      document.getElementById('deleteConfirmOverlay').classList.add('show');
     });
     document.getElementById('titleDelete').addEventListener('click', () => {
-      settings.titleVisible = false;
-      document.getElementById('title-alert').style.display = 'none';
+      pendingDeleteIds = [];
+      pendingDeleteMode = 'alertTitle';
+      const msg = document.getElementById('deleteConfirmMessage');
+      if (msg) msg.textContent = 'Are you sure you want to delete Alert Title?';
+      document.getElementById('deleteConfirmOverlay').classList.add('show');
     });
 
     document.getElementById('applyBtn').addEventListener('click', () => {
@@ -6758,13 +7130,13 @@
       settings.dateColor = rgbToHex(document.getElementById('dateColorSwatch').style.background) || settings.dateColor;
       settings.dateBold = document.getElementById('dateBold').classList.contains('on');
       settings.dateFont = document.getElementById('dateFont').value;
-      settings.dateVisible = true;
+      // dateVisible kept as-is (delete icon controls it via confirmation)
 
       settings.titleSize = parseInt(document.getElementById('titleSize').value) || 45;
       settings.titleColor = rgbToHex(document.getElementById('titleColorSwatch').style.background) || settings.titleColor;
       settings.titleBold = document.getElementById('titleBold').classList.contains('on');
       settings.titleFont = document.getElementById('titleFont').value;
-      settings.titleVisible = true;
+      // titleVisible kept as-is (delete icon controls it via confirmation)
 
       // Settings panel se size change ho to purana "manual resize" override
       // (jo drag/resize feature se save hua tha) bhi clear kar do,
@@ -6824,7 +7196,15 @@
       // Bright accents
       '#FF1744','#D50000','#00E676','#69F0AE','#2979FF','#448AFF',
       '#18FFFF','#00B0FF','#7C4DFF','#B388FF','#76FF03','#FF9100',
-      '#F50057','#E040FB','#FF4081','#FF5252'
+      '#F50057','#E040FB','#FF4081','#FF5252',
+      // Pure / Original 100% colors (full color wheel, no mixing)
+      '#FF0000','#FF8000','#FFFF00','#80FF00','#00FF00','#00FF80',
+      '#00FFFF','#0080FF','#0000FF','#8000FF','#FF00FF','#FF0080',
+      // Naye Pure 100% colors (10° steps — poore color wheel ko aur fine bana diya)
+      '#FF2A00','#FF5500','#FFAA00','#FFD400','#D4FF00','#AAFF00',
+      '#55FF00','#2AFF00','#00FF2A','#00FF55','#00FFAA','#00FFD4',
+      '#00D4FF','#00AAFF','#0055FF','#002BFF','#2A00FF','#5500FF',
+      '#AA00FF','#D500FF','#FF00D4','#FF00AA','#FF0055','#FF002B',
     ];
     const uniquePalette = [...new Set(palette)];
 
@@ -7203,26 +7583,26 @@
     const ANIM_STORE_KEY = 'lineAnimations';
     const SPEED_MAP = { slow: 3.2, normal: 2.0, medium: 1.3, high: 0.65 };
     const TRENDING_ANIMS = [
-      'bounce','flash','pulse','rubberBand','shakeX','shakeY','headShake','swing','tada','wobble',
-      'jello','heartBeat','fadeIn','fadeOut','fadeInDown','fadeInUp','fadeInLeft','fadeInRight','slideInDown','slideInUp',
-      'slideInLeft','slideInRight','zoomIn','zoomOut','bounceIn','flip','flipInX','flipInY','rotateIn','lightSpeedInRight',
-      'lightSpeedInLeft','rollIn','jackInTheBox','float','glow','blurIn','spin','spinReverse','pendulum','breathe',
-      'vibrate','pop','squeeze','stretch','tilt','wave','glitch','spiral','dropIn','riseUp',
-      'expand','blink','softPulse','textFocus','trackingIn','shadowPop','bounceSoft','slideFadeLeft','slideFadeRight','flicker',
-      'rubberX','rubberY','wiggle','jump','elastic','floatRotate','scaleBounce','fadeScale','rotateScale','blurFocus',
-      'softGlow','attention','heartbeatSoft','drift','opacityWave','scalePulse','rotate3d','bounceInLeft','bounceInRight','bounceInUp',
-      'bounceInDown','zoomInUp','zoomInDown','zoomRotate','slideSkew','flipDown','flipUp','swingIn','letterPop','kenBurns',
-      'morph','reveal','maskWipe','orbit','slideBounce','fadeInTopLeft','fadeInTopRight','fadeInBottomLeft','fadeInBottomRight','zoomInLeft',
-      'zoomInRight','neon','hinge','rgbPulse','rgbGlow','rgbCycle','rgbFlash','rgbBreath','rgbRipple','rgbBounce',
-      'rgbZoom','rgbShake','rgbWave','rgbDrift','rgbTilt','rgbSpin','rgbPop','rgbFade','neonFlicker','neonPulse',
-      'hueSpin','chromaShift','partyLights','letterFall','letterDrop','letterRain','letterBounceFall','letterFloatDown','letterSlideDown','letterSpinFall',
-      'letterFadeFall','letterZoomFall','letterWobbleFall','charDrop','charRain','charCascade','charLand','charTumble','fallSoft','fallHard',
-      'fallBounce','fallSpin','fallGlide','popIn','snapIn','softIn','liftUp','pressDown','nudgeLeft','nudgeRight',
-      'nudgeUp','nudgeDown','sway','rock','bob','hoverFloat','gentleRise','gentleFall','gentlePulse','gentleShake',
-      'gentleSpin','gentleZoom','gentleFade','quickPulse','quickShake','quickSpin','quickZoom','quickFade','quickBounce','quickWiggle',
-      'quickPop','slowFloat','slowPulse','slowSpin','slowZoom','slowFade','slowBounce','slowGlow','slowBreath','zoomPulse',
-      'zoomBounce','zoomPop','slidePulse','slidePop','fadePulse','fadePop','spinPulse','spinPop','bouncePulse','bouncePop',
-      'wigglePulse','wigglePop','tiltPulse','tiltBounce','wavePulse','waveBounce','glowPulse','glowBounce','elasticIn','elasticPulse'
+      'multicolorRing','multicolorRingSingle','attention','attentionBounce','attentionGlow','attentionTilt','attentionWave','auroraWave','blink','blurBounce','blurDrift','blurFade',
+      'blurFocus','blurIn','blurPop','blurPulse','blurShake','blurSpin','blurTilt','blurWave','blurZoom','bob',
+      'bounce','bounceGlow','bounceIn','bounceInDown','bounceInLeft','bounceInRight','bounceInUp','bouncePop','bouncePulse','bounceSoft',
+      'bounceZoomSoft','breathe','brightPulse','brighten','charCascade','charDrop','charLand','charRain','charTumble','chromaShift',
+      'clearIn','clearOut','colorCycle','cyberGlow','defocus','dim','dimPulse','discoFlash','drift','driftCosine',
+      'driftFigure8','driftRandom','driftSine','dropIn','elastic','elasticBounce','elasticIn','elasticPulse','elasticZoom','electricPulse',
+      'expand','fadeGlow','fadeIn','fadeInBottomLeft','fadeInBottomRight','fadeInDown','fadeInLeft','fadeInRight','fadeInTopLeft','fadeInTopRight',
+      'fadeInUp','fadeOut','fadePop','fadePulse','fadeScale','fadeScaleSoft','fallBounce','fallGlide','fallHard','fallSoft',
+      'fallSpin','flash','flicker','flip','flipBounce','flipDown','flipFade','flipGlow','flipInX','flipInY',
+      'flipUp','flipZoom','float','floatRotate','focusIn','focusOut','gentleFade','gentleFall','gentlePulse','gentleRise',
+      'gentleShake','gentleSpin','gentleZoom','glitch','glow','glowBounce','glowDrift','glowFade','glowPop','glowPulse',
+      'glowShake','glowSpin','glowTilt','glowWave','glowZoom','hazeIn','hazeOut','headShake','heartBeat','heartbeatBounce',
+      'heartbeatGlow','heartbeatSoft','heartbeatTilt','heartbeatWave','hinge','hoverFloat','hueSpin','jackInTheBox','jello','jellyBounce',
+      'jellyFade','jellyPop','jellyZoom','jump','kenBurns','laserSweep','letterBounceFall','letterDrop','letterFadeFall','letterFall',
+      'letterFloatDown','letterGlow','letterPop','letterRain','letterShake','letterSlideDown','letterSpinFall','letterWave','letterWobbleFall','letterZoomFall',
+      'liftUp','lightSpeedInLeft','lightSpeedInRight','maskWipe','morph','neon','neonBorder','neonFlicker','neonPulse','nudgeDown',
+      'nudgeLeft','nudgeRight','nudgeUp','opacityGlow','opacitySpin','opacityTilt','opacityWave','orbit','orbitBounce','orbitFade',
+      'orbitGlow','orbitZoom','partyLights','pendulum','pendulumBounce','pendulumFade','pendulumGlow','pendulumPop','pendulumZoom','plasmaGlow',
+      'pop','pressDown','pressGlow','pressSpin','pressTilt','pressWave','pressZoom','prismShift','pulse','quickBounce',
+      'quickFade','quickPop','quickPulse','quickShake','quickSpin','quickWiggle','quickZoom','rainbow','refocus','reveal'
     ];
 
     const FAV_ANIM_STORE_KEY = 'favouriteAnimations';
@@ -7347,13 +7727,22 @@
 
     function applyAnimationToElement(el, names, speedKey) {
       if (!el) return;
+      const list = names || [];
+      const wantsRing = list.indexOf('multicolorRing') >= 0;
+      const wantsRingSingle = list.indexOf('multicolorRingSingle') >= 0;
       if (el.classList.contains('reminder-list-item')) {
         // Cards: animate whole card
         el.style.animation = (!names || !names.length) ? '' : buildAnimCSS(names, speedKey);
+        el.classList.toggle('has-multicolor-ring', wantsRing);
+        el.classList.toggle('has-multicolor-ring-single', wantsRingSingle);
         return;
       }
       const target = ensureAnimInner(el);
       target.style.animation = (!names || !names.length) ? '' : buildAnimCSS(names, speedKey);
+      target.classList.toggle('has-multicolor-ring', wantsRing);
+      target.classList.toggle('has-multicolor-ring-single', wantsRingSingle);
+      el.classList.toggle('has-multicolor-ring', wantsRing);
+      el.classList.toggle('has-multicolor-ring-single', wantsRingSingle);
     }
 
     function applyToTarget(lineId, names, speed) {
@@ -7463,9 +7852,12 @@
       listToShow.forEach((name, idx) => {
         const isSel = selectedAnims.includes(name);
         const isBatch = batchSelection.includes(name);
+        let ringCls = '';
+        if (name === 'multicolorRing') ringCls = ' has-multicolor-ring';
+        else if (name === 'multicolorRingSingle') ringCls = ' has-multicolor-ring-single';
         html += `<div class="anim-preview-card${isSel ? ' selected' : ''}${isBatch ? ' batch-selected' : ''}" data-anim="${name}">
           <span class="anim-num">${idx + 1}</span>
-          <div class="anim-preview-text" style="animation:${name} ${dur}s ease-in-out infinite;">A</div>
+          <div class="anim-preview-text${ringCls}" style="animation:${name} ${dur}s ease-in-out infinite;">A</div>
         </div>`;
       });
       list.innerHTML = html;
