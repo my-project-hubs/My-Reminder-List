@@ -848,6 +848,43 @@
       overflow: visible;
     }
 
+    .notify-side-btn {
+      position: fixed;
+      top: 12px;
+      right: 104px;
+      width: 34px;
+      height: 34px;
+      border: none;
+      cursor: pointer;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1a73e8;
+      font-size: 18px;
+      line-height: 1;
+      padding: 0;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #ffffff 0%, #eef3ff 55%, #e3ebff 100%);
+      box-shadow:
+        0 4px 12px rgba(26, 115, 232, 0.22),
+        0 1px 3px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95),
+        inset 0 -2px 4px rgba(26, 115, 232, 0.08);
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
+      animation: topBtnGlow 2.4s ease-in-out infinite;
+      animation-delay: 0.7s;
+      -webkit-tap-highlight-color: transparent;
+      overflow: visible;
+    }
+    .notify-side-btn:active {
+      transform: scale(0.9);
+      box-shadow:
+        0 2px 6px rgba(26, 115, 232, 0.18),
+        inset 0 2px 4px rgba(0, 0, 0, 0.08);
+      animation: none;
+    }
+
     /* Multi-color spinning ring (like a clock hand going around) */
     .switch-page-btn::before,
     .settings-side-btn::before {
@@ -2859,6 +2896,7 @@
 
   <button class="settings-side-btn" id="settingsSideBtn" aria-label="Settings">⚙</button>
   <button class="switch-page-btn" id="switchPageBtn" aria-label="Switch Page">⇄</button>
+  <button class="notify-side-btn" id="notifySideBtn" aria-label="Notification Settings">🔔</button>
 
   <div class="settings-overlay" id="settingsOverlay">
     <div class="settings-panel">
@@ -3959,6 +3997,33 @@
       </div>
 
       <button class="btn-apply" style="display:block;margin:16px auto 0;" id="saveReminderBtn">Save New List</button>
+    </div>
+  </div>
+
+  <div class="reminder-overlay" id="notifySettingsOverlay">
+    <div class="reminder-panel">
+      <div class="sheet-handle"></div>
+      <div class="settings-header">
+        <h2>Notification Settings</h2>
+        <button class="close-btn" id="closeNotifySettings">×</button>
+      </div>
+
+      <div class="setting-card">
+        <div class="field-label">SELECT LIST</div>
+        <select class="field-input" id="notifySelectList" style="width:100%;"></select>
+      </div>
+
+      <div class="setting-card">
+        <div class="field-label">MESSAGES PER DAY</div>
+        <input type="number" class="field-input" id="notifyMessagesPerDay" min="0" max="20" value="0">
+      </div>
+
+      <div class="setting-card" id="notifyTimesCard" style="display:none;">
+        <div class="field-label">TIMES</div>
+        <div id="notifyTimesContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+
+      <button class="btn-apply" style="display:block;margin:16px auto 0;" id="saveNotifySettingsBtn">Save Notification Settings</button>
     </div>
   </div>
 
@@ -6910,6 +6975,80 @@
       document.getElementById('addReminderOverlay').classList.remove('show');
       showReminderToast(toastMsg);
     });
+
+    /* ====================== NOTIFICATION SETTINGS PAGE ====================== */
+    function renderNotifyTimeInputs(count, existingTimes) {
+      const container = document.getElementById('notifyTimesContainer');
+      const card = document.getElementById('notifyTimesCard');
+      container.innerHTML = '';
+      const n = Math.max(0, parseInt(count, 10) || 0);
+      card.style.display = n > 0 ? 'block' : 'none';
+      for (let i = 0; i < n; i++) {
+        const wrap = document.createElement('div');
+        wrap.style.display = 'flex';
+        wrap.style.alignItems = 'center';
+        wrap.style.gap = '10px';
+        const label = document.createElement('span');
+        label.textContent = `Time ${i + 1}`;
+        label.style.minWidth = '58px';
+        label.style.fontSize = '13px';
+        label.style.color = '#555';
+        const input = document.createElement('input');
+        input.type = 'time';
+        input.className = 'field-input notify-time-input';
+        input.value = (existingTimes && existingTimes[i]) ? existingTimes[i] : '';
+        wrap.appendChild(label);
+        wrap.appendChild(input);
+        container.appendChild(wrap);
+      }
+    }
+
+    function populateNotifyListDropdown(selectedId) {
+      const sel = document.getElementById('notifySelectList');
+      sel.innerHTML = '';
+      (reminderLists || []).forEach(r => {
+        const opt = document.createElement('option');
+        opt.value = r.id;
+        opt.textContent = r.listName || 'Untitled';
+        sel.appendChild(opt);
+      });
+      if (selectedId) sel.value = selectedId;
+      loadNotifySettingsForSelected();
+    }
+
+    function loadNotifySettingsForSelected() {
+      const sel = document.getElementById('notifySelectList');
+      const r = reminderLists.find(x => x.id === sel.value);
+      const perDay = (r && r.notifyMessagesPerDay) ? r.notifyMessagesPerDay : 0;
+      document.getElementById('notifyMessagesPerDay').value = perDay;
+      renderNotifyTimeInputs(perDay, r ? r.notifyTimes : []);
+    }
+
+    document.getElementById('notifySideBtn').addEventListener('click', () => {
+      populateNotifyListDropdown();
+      document.getElementById('notifySettingsOverlay').classList.add('show');
+    });
+    document.getElementById('closeNotifySettings').addEventListener('click', () => {
+      document.getElementById('notifySettingsOverlay').classList.remove('show');
+    });
+    document.getElementById('notifySelectList').addEventListener('change', loadNotifySettingsForSelected);
+    document.getElementById('notifyMessagesPerDay').addEventListener('input', (e) => {
+      const sel = document.getElementById('notifySelectList');
+      const r = reminderLists.find(x => x.id === sel.value);
+      renderNotifyTimeInputs(e.target.value, r ? r.notifyTimes : []);
+    });
+    document.getElementById('saveNotifySettingsBtn').addEventListener('click', () => {
+      const sel = document.getElementById('notifySelectList');
+      const idx = reminderLists.findIndex(x => x.id === sel.value);
+      if (idx === -1) return;
+      const perDay = Math.max(0, parseInt(document.getElementById('notifyMessagesPerDay').value, 10) || 0);
+      const times = Array.from(document.querySelectorAll('.notify-time-input')).map(inp => inp.value).filter(Boolean);
+      reminderLists[idx] = { ...reminderLists[idx], notifyMessagesPerDay: perDay, notifyTimes: times };
+      saveReminderLists();
+      document.getElementById('notifySettingsOverlay').classList.remove('show');
+      showReminderToast('Notification settings saved');
+    });
+    /* ==================== NOTIFICATION SETTINGS PAGE END ==================== */
 
     document.getElementById('dateBold').addEventListener('click', function() { this.classList.toggle('on'); });
     document.getElementById('titleBold').addEventListener('click', function() { this.classList.toggle('on'); });
