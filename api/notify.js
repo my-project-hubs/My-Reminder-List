@@ -1,5 +1,5 @@
 // api/notify.js
-// Ye file cron-job.org se baar-baar call hogi (recommend: har 15 minute mein).
+// Ye file cron-job.org se baar-baar call hogi (recommend: har 1 minute mein).
 // Ye Firestore se reminder list padhta hai, jo lists "Alert" mein hain unhi ko
 // dekhta hai, aur un mein se jinka koi "notify time" abhi (IST) match karta hai
 // unhe Telegram pe alag-alag message bhejta hai.
@@ -7,9 +7,10 @@
 const FIREBASE_PROJECT_ID = "life-tracker-3a3a8";
 const FIRESTORE_DOC_PATH = "reminderApp/mainData";
 
-// Cron kitni der mein chalta hai (minutes) — isi ke barabar tolerance window
-// rakhte hain taaki koi bhi set kiya hua time miss na ho.
-const CRON_INTERVAL_MINUTES = 15;
+// Cron kitni der mein chalta hai (minutes). 0 = exact-minute match — website ka
+// time-picker sirf HH:MM (minute-level) precision deta hai, isse zyada tight
+// karne ka koi fayda nahi, isliye ye sabse chhota practical tolerance hai.
+const CRON_INTERVAL_MINUTES = 0;
 
 function parseDMY(str) {
   const parts = (str || "").split("/");
