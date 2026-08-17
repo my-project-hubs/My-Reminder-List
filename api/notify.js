@@ -152,12 +152,20 @@ async function sendTelegramMessage(botToken, chatId, text) {
   return tgRes.json();
 }
 
+const DIVIDER_LINE = "_".repeat(CARD_WIDTH + 6);
+
 function buildCombinedMessage(matched) {
   const dateStr = new Date().toLocaleDateString("en-GB");
   const lines = [BLANK_PAD_LINE, centerText(`TODAY — ${dateStr}`, CARD_WIDTH), BLANK_PAD_LINE];
   matched.forEach(({ r, text }, idx) => {
+    if (idx !== 0) {
+      lines.push(DIVIDER_LINE);
+      lines.push(BLANK_PAD_LINE);
+    }
     lines.push(centerText(r.listName || "Untitled", CARD_WIDTH));
+    lines.push(BLANK_PAD_LINE);
     lines.push(centerText(text, CARD_WIDTH));
+    lines.push(BLANK_PAD_LINE);
     lines.push(centerText(`(${r.targetDate || "--"})`, CARD_WIDTH));
     if (idx !== matched.length - 1) lines.push(BLANK_PAD_LINE);
   });
@@ -182,7 +190,7 @@ export default async function handler(req, res) {
     const matched = [];
     for (const r of lists) {
       const dayVal = computeDayValue(r, today);
-      if (!isAlertTriggered(r, dayVal)) continue; // list abhi Alert mein nahi hai
+      if (!r.notifyIgnoreAlert && !isAlertTriggered(r, dayVal)) continue; // list abhi Alert mein nahi hai (jab tak ignore-flag na ho)
 
       const perDay = parseInt(r.notifyMessagesPerDay, 10) || 0;
       if (perDay <= 0) continue; // is list ke liye notification set hi nahi hai
