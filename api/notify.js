@@ -168,9 +168,15 @@ function buildCombinedMessage(matched) {
   const now = new Date();
   const dateStr = now.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata" });
   const weekdayShort = now.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", weekday: "short" });
+  // Notification Settings mein jo mode select kiya gaya hai (Alert Page ya
+  // Reminder Page) — saari lists pe uniform apply hota hai, isliye pehli
+  // list se hi pata chal jaata hai.
+  const pageMode = (matched[0] && matched[0].r.notifyIgnoreAlert) ? "Reminder Page" : "Alert Page";
   const lines = [
     BLANK_PAD_LINE,
     centerText(`Today - ${dateStr} (${weekdayShort})`, CARD_WIDTH),
+    BLANK_PAD_LINE,
+    centerText(pageMode, CARD_WIDTH),
     BLANK_PAD_LINE,
     centerText(`Total List - ${matched.length}`, CARD_WIDTH),
     BLANK_PAD_LINE,
