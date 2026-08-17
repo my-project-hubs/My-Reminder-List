@@ -218,8 +218,17 @@ export default async function handler(req, res) {
       if (perDay <= 0) continue; // is list ke liye notification set hi nahi hai
       if (!hasMatchingTimeNow(r.notifyTimes, nowHHMM)) continue; // abhi iska time nahi hai
 
-      matched.push({ r, text: formatDayLeftText(r, dayVal) });
+      matched.push({ r, text: formatDayLeftText(r, dayVal), dayVal });
     }
+
+    // Kam se kam din baaki wali list sabse upar, aur jyada din baaki wali
+    // sabse niche — dayVal ke hisaab se chhote se bade order mein sort.
+    // Jinka date hi valid nahi (dayVal null/NaN), unhe sabse neeche daal dete hain.
+    matched.sort((a, b) => {
+      const av = (a.dayVal === null || isNaN(a.dayVal)) ? Infinity : a.dayVal;
+      const bv = (b.dayVal === null || isNaN(b.dayVal)) ? Infinity : b.dayVal;
+      return av - bv;
+    });
 
     let sent = false;
     let tgData = null;
