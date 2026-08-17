@@ -8106,9 +8106,12 @@
     }, 2000);
   </script>
 
+  <script src="https://cdn.jsdelivr.net/npm/morphdom@2/dist/morphdom-umd.min.js"></script>
   <script>
     // Auto-refresh: jab GitHub se naya code Vercel par deploy ho jaye,
-    // yeh page khud-ba-khud check karke turant reload ho jayega — bina user ko refresh karna padega.
+    // yeh page khud-ba-khud check karke sirf jo cheez badli hai wahi DOM mein
+    // "morph" (patch) kar dega — chupke se, poora page kabhi gayab/reload
+    // nahi hoga, na hi flash dikhega.
     (function () {
       let lastContent = null;
       const CHECK_INTERVAL_MS = 500; // har aadhe second mein check karega
@@ -8123,6 +8126,28 @@
         }
       }
 
+      function applyUpdateSilently(freshHTML) {
+        try {
+          const newDoc = new DOMParser().parseFromString(freshHTML, 'text/html');
+          if (typeof morphdom === 'function') {
+            morphdom(document.documentElement, newDoc.documentElement, {
+              onBeforeElUpdated: function (fromEl, toEl) {
+                // <script> tags ko dobara load/run mat karo — sirf HTML/CSS/
+                // content patch hoga chupke se. Naye JS logic ke liye ek baar
+                // manual refresh chahiye hoga, lekin page kabhi gayab nahi hoga.
+                if (fromEl.tagName === 'SCRIPT') return false;
+                if (fromEl.isEqualNode(toEl)) return false;
+                return true;
+              },
+            });
+          } else {
+            location.reload(); // morphdom load na ho paaya to purana tareeka
+          }
+        } catch (e) {
+          location.reload(); // kuch gadbad ho to fallback
+        }
+      }
+
       async function checkForUpdate() {
         const fresh = await fetchCurrentContent();
         if (fresh === null) return;
@@ -8131,8 +8156,8 @@
           return;
         }
         if (fresh !== lastContent) {
-          // Naya deployment mil gaya — page reload karo
-          location.reload();
+          lastContent = fresh; // naya baseline set karo taaki dobara-dobara patch na ho
+          applyUpdateSilently(fresh);
         }
       }
 
