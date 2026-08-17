@@ -153,6 +153,10 @@ async function sendTelegramMessage(botToken, chatId, text) {
 }
 
 const DIVIDER_LINE = "_".repeat(CARD_WIDTH + 6);
+// Day-left aur target-date lines ko poore card ki width (divider jitni chauda)
+// ke hisaab se center karna hai — list-name ka centering (CARD_WIDTH) waisa hi
+// rehne diya hai, sirf yeh dono line poora center mein aayengi.
+const FULL_WIDTH = DIVIDER_LINE.length;
 
 // Target date sirf "DD/MM/YYYY" dikhna chahiye — agar kahin se bhi "()"
 // (ya extra spaces) saath aa jaaye to yahan clean kar dete hain.
@@ -161,11 +165,14 @@ function cleanTargetDate(td) {
 }
 
 function buildCombinedMessage(matched) {
-  const dateStr = new Date().toLocaleDateString("en-GB");
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata" });
+  const weekdayShort = now.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", weekday: "short" });
   const lines = [
     BLANK_PAD_LINE,
-    centerText(`Today - ${dateStr}`, CARD_WIDTH),
-    centerText(`Total List ${matched.length}`, CARD_WIDTH),
+    centerText(`Today - ${dateStr} (${weekdayShort})`, CARD_WIDTH),
+    BLANK_PAD_LINE,
+    centerText(`Total List - ${matched.length}`, CARD_WIDTH),
     BLANK_PAD_LINE,
     DIVIDER_LINE,
     BLANK_PAD_LINE,
@@ -177,9 +184,9 @@ function buildCombinedMessage(matched) {
     }
     lines.push(centerText(r.listName || "Untitled", CARD_WIDTH));
     lines.push(BLANK_PAD_LINE);
-    lines.push(centerText(text, CARD_WIDTH));
+    lines.push(centerText(text, FULL_WIDTH));
     lines.push(BLANK_PAD_LINE);
-    lines.push(centerText(cleanTargetDate(r.targetDate), CARD_WIDTH));
+    lines.push(centerText(cleanTargetDate(r.targetDate), FULL_WIDTH));
     lines.push(BLANK_PAD_LINE);
   });
   lines.push(DIVIDER_LINE);
