@@ -583,6 +583,22 @@
       pointer-events: auto;
     }
     .hd-delete-btn:active { transform: scale(0.9); }
+    /* Notes-type History detail: eye icon (right side) opens full note text popup */
+    .hd-view-btn {
+      position: absolute;
+      top: 14px;
+      right: 52px;
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: transparent;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .hd-view-btn:active { transform: scale(0.9); }
     .hd-status {
       display: flex;
       align-items: center;
@@ -4529,6 +4545,7 @@
         alertPage: entry.alertPage,
         counter: entry.counter,
         itemType: entry.itemType || null,
+        notes: entry.itemType === 'notes' ? (entry.notes || '') : undefined,
         created: Date.now()
       });
       saveHistoryLists();
@@ -6801,6 +6818,7 @@
       return `
         <div class="history-detail-card" data-hid="${r.id}">
           <button type="button" class="hd-delete-btn" aria-label="Delete"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1z"/><path d="M5 6h14"/><path d="M7 6v13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V6"/><line x1="10" y1="10" x2="10" y2="17"/><line x1="14" y1="10" x2="14" y2="17"/></svg></button>
+          ${r.itemType === 'notes' ? `<button type="button" class="hd-view-btn" aria-label="View note">👁️</button>` : ''}
           <div class="hd-status ${status}"><span class="hd-dot"></span><span>${statusLabel}</span></div>
           <div class="hd-dates"><span class="hd-start">${startDate ? formatDMY(startDate) : '--'}</span><span class="hd-arrow">→</span><span class="hd-end">${endDate ? formatDMY(endDate) : (r.targetDate || '--')}</span></div>
           ${r.itemType === 'notes' ? `<div class="hd-days-price">${(totalDays !== null && !isNaN(totalDays)) ? totalDays : '--'} days</div>` : `
@@ -6863,6 +6881,26 @@
       if (!card) return;
       e.stopPropagation();
       const hid = card.dataset.hid;
+      const viewBtn = e.target.closest('.hd-view-btn');
+      if (viewBtn) {
+        const entry = historyLists.find(x => x.id === hid);
+        const liveReminder = entry ? reminderLists.find(x => x.id === entry.reminderId) : null;
+        const notesText = ((entry && entry.notes) || (liveReminder && liveReminder.notes) || '').trim();
+        const titleEl = document.getElementById('viewNotesTitle');
+        if (titleEl) titleEl.textContent = (entry && entry.listName) || (liveReminder && liveReminder.listName) || 'Notes';
+        const bodyEl = document.getElementById('viewNotesBody');
+        if (bodyEl) {
+          if (notesText) {
+            bodyEl.className = 'notes-view-body';
+            bodyEl.textContent = notesText;
+          } else {
+            bodyEl.className = 'notes-view-body notes-view-empty';
+            bodyEl.textContent = 'No notes written';
+          }
+        }
+        document.getElementById('viewNotesOverlay').classList.add('show');
+        return;
+      }
       const delBtn = e.target.closest('.hd-delete-btn');
       if (delBtn) {
         if (hdDeleteTimers[hid]) { clearTimeout(hdDeleteTimers[hid]); delete hdDeleteTimers[hid]; }
