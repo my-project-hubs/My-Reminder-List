@@ -1803,6 +1803,28 @@
       color: #222;
     }
 
+    /* Notification Settings: compact time row (hh:mm input + AM/PM buttons) */
+    .notify-time-input {
+      width: 70px !important;
+      padding: 10px 8px !important;
+      text-align: center;
+    }
+    .ampm-btn {
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background: #fafbff;
+      color: #444;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .ampm-btn.active {
+      background: #1a73e8;
+      border-color: #1a73e8;
+      color: #fff;
+    }
+
     /* Target date: slightly narrower (horizontal) */
     #reminderTargetDate {
       width: 85%;
@@ -4021,13 +4043,16 @@
       </div>
 
       <div class="setting-card">
-        <div class="field-label">MESSAGES PER DAY</div>
-        <input type="number" class="field-input" id="notifyMessagesPerDay" min="0" max="20" value="0">
-      </div>
-
-      <div class="setting-card" id="notifyTimesCard" style="display:none;">
-        <div class="field-label">TIMES (hh:mm AM/PM likho, jaise 06:30 AM)</div>
-        <div id="notifyTimesContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
+        <div style="display:flex;align-items:flex-start;gap:14px;">
+          <div style="flex:0 0 auto;">
+            <div class="field-label">MSG/DAY</div>
+            <input type="number" class="field-input" id="notifyMessagesPerDay" min="0" max="20" value="0" style="width:64px;padding:14px 8px;text-align:center;">
+          </div>
+          <div style="flex:1 1 auto;display:none;" id="notifyTimesCard">
+            <div class="field-label">TIMES</div>
+            <div id="notifyTimesContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
+          </div>
+        </div>
       </div>
 
       <button class="btn-apply" style="display:block;margin:16px auto 0;" id="saveNotifySettingsBtn">Save Notification Settings</button>
@@ -7010,6 +7035,16 @@
       return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
     }
 
+    // hh:mm text input mein type karte hi apne-aap ":" laga deta hai
+    // (jaise "0630" type karne par "06:30" ban jaata hai) — colon khud
+    // nahi likhna padta.
+    function attachTimeAutoColon(input) {
+      input.addEventListener('input', () => {
+        const digits = input.value.replace(/[^0-9]/g, '').slice(0, 4);
+        input.value = digits.length > 2 ? digits.slice(0, 2) + ':' + digits.slice(2) : digits;
+      });
+    }
+
     function renderNotifyTimeInputs(count, existingTimes24) {
       const container = document.getElementById('notifyTimesContainer');
       const card = document.getElementById('notifyTimesCard');
@@ -7018,23 +7053,64 @@
       card.style.display = n > 0 ? 'block' : 'none';
       for (let i = 0; i < n; i++) {
         const wrap = document.createElement('div');
+        wrap.className = 'notify-time-row';
         wrap.style.display = 'flex';
         wrap.style.alignItems = 'center';
-        wrap.style.gap = '10px';
+        wrap.style.gap = '8px';
+
         const label = document.createElement('span');
-        label.textContent = `Time ${i + 1}`;
-        label.style.minWidth = '58px';
+        label.textContent = `T${i + 1}`;
+        label.style.minWidth = '18px';
         label.style.fontSize = '13px';
         label.style.color = '#555';
+
         const input = document.createElement('input');
         input.type = 'text';
-        input.placeholder = 'hh:mm AM/PM';
+        input.inputMode = 'numeric';
+        input.placeholder = 'hh:mm';
+        input.maxLength = 5;
         input.className = 'field-input notify-time-input';
-        input.value = (existingTimes24 && existingTimes24[i]) ? to12Hour(existingTimes24[i]) : '';
+        attachTimeAutoColon(input);
+
+        const amBtn = document.createElement('button');
+        amBtn.type = 'button';
+        amBtn.className = 'ampm-btn';
+        amBtn.textContent = 'AM';
+        const pmBtn = document.createElement('button');
+        pmBtn.type = 'button';
+        pmBtn.className = 'ampm-btn';
+        pmBtn.textContent = 'PM';
+        function selectAmPm(which) {
+          wrap.dataset.ampm = which;
+          amBtn.classList.toggle('active', which === 'AM');
+          pmBtn.classList.toggle('active', which === 'PM');
+        }
+        amBtn.addEventListener('click', () => selectAmPm('AM'));
+        pmBtn.addEventListener('click', () => selectAmPm('PM'));
+
+        if (existingTimes24 && existingTimes24[i]) {
+          const full12 = to12Hour(existingTimes24[i]); // "06:30 AM"
+          const [timePart, ampmPart] = full12.split(' ');
+          input.value = timePart;
+          if (ampmPart) selectAmPm(ampmPart);
+        }
+
         wrap.appendChild(label);
         wrap.appendChild(input);
+        wrap.appendChild(amBtn);
+        wrap.appendChild(pmBtn);
         container.appendChild(wrap);
       }
+    }
+
+    // Ek time-row (hh:mm input + AM/PM button) se "HH:MM" (24hr) nikalta hai.
+    // Format galat ho ya AM/PM select na kiya ho to null deta hai.
+    function readTimeRow24(wrap) {
+      const input = wrap.querySelector('.notify-time-input');
+      const ampm = wrap.dataset.ampm;
+      const timeVal = (input ? input.value.trim() : '');
+      if (!timeVal || !ampm) return timeVal || ampm ? null : ''; // dono khaali = row skip; ek hi bhara = error
+      return to24Hour(`${timeVal} ${ampm}`);
     }
 
     // Group ke saare lists mein se jinke notifyMessagesPerDay > 0 hai unhi ko
@@ -7062,7 +7138,7 @@
       document.getElementById('notifySettingsOverlay').classList.remove('show');
     });
     document.getElementById('notifyMessagesPerDay').addEventListener('input', (e) => {
-      const existing = Array.from(document.querySelectorAll('.notify-time-input')).map(inp => to24Hour(inp.value)).filter(Boolean);
+      const existing = Array.from(document.querySelectorAll('.notify-time-row')).map(readTimeRow24).filter(t => t && t !== null);
       renderNotifyTimeInputs(e.target.value, existing);
     });
     document.getElementById('saveNotifySettingsBtn').addEventListener('click', () => {
@@ -7077,12 +7153,13 @@
         return;
       }
       const perDay = Math.max(0, parseInt(document.getElementById('notifyMessagesPerDay').value, 10) || 0);
-      const rawTimes = Array.from(document.querySelectorAll('.notify-time-input')).map(inp => inp.value.trim()).filter(Boolean);
-      const times24 = rawTimes.map(to24Hour);
-      if (times24.some(t => t === null)) {
-        showReminderToast('Time galat format mein hai — hh:mm AM/PM likho (jaise 06:30 AM)');
+      const rows = Array.from(document.querySelectorAll('.notify-time-row'));
+      const rawResults = rows.map(readTimeRow24).filter(t => t !== ''); // poori khaali rows ignore
+      if (rawResults.some(t => t === null)) {
+        showReminderToast('Time poora nahi hai — hh:mm likho aur AM ya PM select karo');
         return;
       }
+      const times24 = rawResults;
       // Reminder Page ON hone ka matlab hai "sabka message, Alert Page ignore karke" —
       // ye already Alert-wali lists ko bhi shaamil karta hai, isliye dono checked
       // hone par bhi effectively "poori list" hi bhejni hai.
