@@ -125,9 +125,8 @@ async function fetchReminderLists() {
   }
 }
 
-// Card ki width (characters mein) — border aur centering isi ke hisaab se hoti hai.
+// Card ki width (characters mein) — centering isi ke hisaab se hoti hai.
 const CARD_WIDTH = 24;
-const BORDER_LINE = "▬".repeat(CARD_WIDTH);
 // Braille blank character — dikhta khaali hai, lekin Telegram "asli" blank lines
 // ki tarah usse hata (trim) nahi karta, isliye upar-neeche padding ke liye kaam aata hai.
 const BLANK_PAD_LINE = "⠀";
@@ -161,17 +160,13 @@ function buildMessageForList(r, dayVal) {
   const listIcon = guessListIcon(r.listName);
   const lines = [
     BLANK_PAD_LINE,
-    BLANK_PAD_LINE,
-    BORDER_LINE,
     centerText(`🔔 REMINDER — ${dateStr}`, CARD_WIDTH),
-    BORDER_LINE,
-    "",
-    centerText(`${listIcon} ${r.listName || "Untitled"}`, CARD_WIDTH),
-    centerText(`⏳ ${text}`, CARD_WIDTH),
-    centerText(`📅 (${r.targetDate || "--"})`, CARD_WIDTH),
-    "",
-    BORDER_LINE,
     BLANK_PAD_LINE,
+    centerText(`${listIcon} ${r.listName || "Untitled"}`, CARD_WIDTH),
+    BLANK_PAD_LINE,
+    centerText(`⏳ ${text}`, CARD_WIDTH),
+    BLANK_PAD_LINE,
+    centerText(`📅 (${r.targetDate || "--"})`, CARD_WIDTH),
     BLANK_PAD_LINE,
   ];
   return lines.join("\n");
