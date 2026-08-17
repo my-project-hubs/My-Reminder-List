@@ -583,7 +583,8 @@
       pointer-events: auto;
     }
     .hd-delete-btn:active { transform: scale(0.9); }
-    /* Notes-type History detail: eye icon (right side) opens full note text popup */
+    /* Notes-type History detail: eye icon (right side) opens full note text popup.
+       Same reveal-on-tap / auto-hide behaviour as the delete icon. */
     .hd-view-btn {
       position: absolute;
       top: 14px;
@@ -597,6 +598,13 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .history-detail-card.show-delete .hd-view-btn {
+      opacity: 1;
+      pointer-events: auto;
     }
     .hd-view-btn:active { transform: scale(0.9); }
     .hd-status {
@@ -1771,6 +1779,8 @@
     }
 
     .reminder-overlay.show { display: flex !important; }
+    /* When Notes view popup is opened from inside History detail, it must render on top */
+    #viewNotesOverlay { z-index: 320; }
 
     .reminder-panel {
       width: 100% !important;
