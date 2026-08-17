@@ -154,9 +154,22 @@ async function sendTelegramMessage(botToken, chatId, text) {
 
 const DIVIDER_LINE = "_".repeat(CARD_WIDTH + 6);
 
+// Target date sirf "DD/MM/YYYY" dikhna chahiye — agar kahin se bhi "()"
+// (ya extra spaces) saath aa jaaye to yahan clean kar dete hain.
+function cleanTargetDate(td) {
+  return String(td || "--").replace(/[()]/g, "").trim();
+}
+
 function buildCombinedMessage(matched) {
   const dateStr = new Date().toLocaleDateString("en-GB");
-  const lines = [BLANK_PAD_LINE, centerText(`TODAY — ${dateStr}`, CARD_WIDTH), BLANK_PAD_LINE];
+  const lines = [
+    BLANK_PAD_LINE,
+    centerText(`Today - ${dateStr}`, CARD_WIDTH),
+    centerText(`Total List ${matched.length}`, CARD_WIDTH),
+    BLANK_PAD_LINE,
+    DIVIDER_LINE,
+    BLANK_PAD_LINE,
+  ];
   matched.forEach(({ r, text }, idx) => {
     if (idx !== 0) {
       lines.push(DIVIDER_LINE);
@@ -166,12 +179,14 @@ function buildCombinedMessage(matched) {
     lines.push(BLANK_PAD_LINE);
     lines.push(centerText(text, CARD_WIDTH));
     lines.push(BLANK_PAD_LINE);
-    lines.push(centerText(`(${r.targetDate || "--"})`, CARD_WIDTH));
-    if (idx !== matched.length - 1) lines.push(BLANK_PAD_LINE);
+    lines.push(centerText(cleanTargetDate(r.targetDate), CARD_WIDTH));
+    lines.push(BLANK_PAD_LINE);
   });
+  lines.push(DIVIDER_LINE);
   lines.push(BLANK_PAD_LINE);
   return lines.join("\n");
 }
+
 
 export default async function handler(req, res) {
   try {
