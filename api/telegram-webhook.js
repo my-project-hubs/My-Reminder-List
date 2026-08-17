@@ -104,7 +104,15 @@ function buildHistoryMessage(entries, requestedCount) {
     lines.push(centerText(h.listName || "Untitled", CARD_WIDTH));
     lines.push(BLANK_PAD_LINE);
     lines.push(centerText(cleanTargetDate(h.targetDate), FULL_WIDTH));
-    if (h.price !== undefined && h.price !== null && h.price !== "") {
+    if (h.itemType === "notes") {
+      const noteText = String(h.notes || "").trim();
+      if (noteText) {
+        lines.push(BLANK_PAD_LINE);
+        noteText.split("\n").forEach(line => {
+          lines.push(centerText(line, FULL_WIDTH));
+        });
+      }
+    } else if (h.price !== undefined && h.price !== null && h.price !== "") {
       lines.push(BLANK_PAD_LINE);
       lines.push(centerText(`₹ ${h.price}`, FULL_WIDTH));
     }
