@@ -111,18 +111,120 @@ function hasMatchingTimeNow(notifyTimes, nowHHMM) {
   });
 }
 
-async function fetchReminderLists() {
+async function fetchFirestoreDoc() {
   const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/${FIRESTORE_DOC_PATH}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Firestore fetch failed: ${res.status}`);
-  const data = await res.json();
-  const raw = data?.fields?.reminderLists?.stringValue;
-  if (!raw) return [];
+  return res.json();
+}
+
+function readJsonField(docData, fieldName, fallback) {
+  const raw = docData?.fields?.[fieldName]?.stringValue;
+  if (!raw) return fallback;
   try {
     return JSON.parse(raw);
   } catch (e) {
-    return [];
+    return fallback;
   }
+}
+
+// Ek field ko Firestore mein likh do (sirf usi field ko — updateMask ki wajah
+// se document ke baaki fields chhue tak nahi jaate).
+async function writeFirestoreField(fieldName, value) {
+  const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/${FIRESTORE_DOC_PATH}?updateMask.fieldPaths=${fieldName}`;
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fields: { [fieldName]: { stringValue: JSON.stringify(value) } } }),
+  });
+  if (!res.ok) throw new Error(`Firestore write failed: ${res.status}`);
+  return res.json();
+}
+
+async function fetchReminderLists(docData) {
+  return readJsonField(docData, "reminderLists", []);
+}
+
+function formatEntryTimeIST(ms) {
+  const d = new Date(ms);
+  const dateStr = d.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata" });
+  const timeStr = d.toLocaleTimeString("en-GB", {
+    timeZone: "Asia/Kolkata",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+  return `${dateStr}  ${timeStr}`;
+}
+
+// Nayi History banne ke 1 ghante baad Telegram par batana hai.
+// "historyNotifiedIds" field mein woh entries track hoti hain jinka message
+// bhej diya gaya hai — taaki dobara wahi entry na bheji jaaye.
+const ONE_HOUR_MS = 60 * 60 * 1000;
+
+async function processDelayedHistoryNotify(docData, BOT_TOKEN, CHAT_ID) {
+  const historyLists = readJsonField(docData, "historyLists", []);
+  const hasNotifiedField = !!(docData?.fields?.historyNotifiedIds);
+  const notifiedIds = readJsonField(docData, "historyNotifiedIds", []);
+
+  // Pehli baar chal raha hai (field abhi tak Firestore mein bana hi nahi) —
+  // is waqt maujood saari purani entries ko "already notified" maan lo,
+  // taaki deploy hote hi ek saath sabka message na phat jaaye. Sirf ab ke
+  // baad banne wali NAYI history hi 1-ghante-baad notify hogi.
+  if (!hasNotifiedField) {
+    const baselineIds = historyLists.map((h) => h.id);
+    await writeFirestoreField("historyNotifiedIds", baselineIds);
+    return { baselined: true, sent: 0 };
+  }
+
+  const now = Date.now();
+  const notifiedSet = new Set(notifiedIds);
+  const due = historyLists.filter(
+    (h) => h && h.id && !notifiedSet.has(h.id) && (now - (h.created || 0)) >= ONE_HOUR_MS
+  );
+
+  if (due.length === 0) {
+    return { baselined: false, sent: 0 };
+  }
+
+  const lines = [
+    BLANK_PAD_LINE,
+    centerText("New History", CARD_WIDTH),
+    BLANK_PAD_LINE,
+    centerText(`Total - ${due.length}`, CARD_WIDTH),
+    BLANK_PAD_LINE,
+    DIVIDER_LINE,
+    BLANK_PAD_LINE,
+  ];
+  due.forEach((h, idx) => {
+    if (idx !== 0) {
+      lines.push(DIVIDER_LINE);
+      lines.push(BLANK_PAD_LINE);
+    }
+    lines.push(centerText(h.listName || "Untitled", CARD_WIDTH));
+    lines.push(BLANK_PAD_LINE);
+    lines.push(centerText(cleanTargetDate(h.targetDate), FULL_WIDTH));
+    if (h.price !== undefined && h.price !== null && h.price !== "") {
+      lines.push(BLANK_PAD_LINE);
+      lines.push(centerText(`₹ ${h.price}`, FULL_WIDTH));
+    }
+    lines.push(BLANK_PAD_LINE);
+    lines.push(centerText(`Added - ${formatEntryTimeIST(h.created)}`, FULL_WIDTH));
+    lines.push(BLANK_PAD_LINE);
+  });
+  lines.push(DIVIDER_LINE);
+  lines.push(BLANK_PAD_LINE);
+
+  await sendTelegramMessage(BOT_TOKEN, CHAT_ID, lines.join("\n"));
+
+  // notified list ko update karo: jo abhi bheja + jo pehle se bheja hua tha
+  // (aur history mein ab bhi maujood hai — delete ho chuki purani ids hata do
+  // taaki list hamesha ke liye badhti na jaaye).
+  const stillExistingIds = new Set(historyLists.map((h) => h.id));
+  const updatedNotified = [...notifiedIds.filter((id) => stillExistingIds.has(id)), ...due.map((h) => h.id)];
+  await writeFirestoreField("historyNotifiedIds", updatedNotified);
+
+  return { baselined: false, sent: due.length };
 }
 
 // Card ki width (characters mein) — centering isi ke hisaab se hoti hai.
@@ -205,7 +307,8 @@ export default async function handler(req, res) {
       return res.status(500).json({ ok: false, error: "BOT_TOKEN or CHAT_ID missing in environment variables" });
     }
 
-    const lists = await fetchReminderLists();
+    const docData = await fetchFirestoreDoc();
+    const lists = await fetchReminderLists(docData);
     const today = new Date();
     const nowHHMM = currentISTTimeString();
 
@@ -267,10 +370,15 @@ export default async function handler(req, res) {
       });
     }
 
+    // Feature 2: nayi History bane ke 1 ghante baad alag se batana (Alert/Reminder
+    // ke schedule se bilkul independent — yeh sirf "elapsed time" dekhta hai).
+    const historyNotifyResult = await processDelayedHistoryNotify(docData, BOT_TOKEN, CHAT_ID);
+
     return res.status(200).json({
       ok: true,
       checkedAtIST: nowHHMM,
       results,
+      historyDelayedNotify: historyNotifyResult,
     });
   } catch (err) {
     return res.status(500).json({ ok: false, error: String(err) });
