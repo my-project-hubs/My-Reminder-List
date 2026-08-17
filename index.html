@@ -4043,26 +4043,35 @@
       </div>
 
       <div class="setting-card">
-        <div class="field-label">MODE</div>
-        <label style="display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:10px;">
+        <label style="display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:12px;">
           <input type="checkbox" id="notifyAlertPageCheckbox">
           Alert Page
         </label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:14px;">
-          <input type="checkbox" id="notifyReminderPageCheckbox">
-          Reminder Page
-        </label>
-      </div>
-
-      <div class="setting-card">
         <div style="display:flex;align-items:flex-start;gap:14px;">
           <div style="flex:0 0 auto;">
             <div class="field-label">MSG/DAY</div>
-            <input type="number" class="field-input" id="notifyMessagesPerDay" min="0" max="20" value="0" style="width:64px;padding:14px 8px;text-align:center;">
+            <input type="number" class="field-input" id="notifyAlertMessagesPerDay" min="0" max="20" value="0" style="width:64px;padding:14px 8px;text-align:center;">
           </div>
-          <div style="flex:0 0 auto;margin-left:auto;display:none;" id="notifyTimesCard">
+          <div style="flex:0 0 auto;margin-left:auto;display:none;" id="notifyAlertTimesCard">
             <div class="field-label">TIMES</div>
-            <div id="notifyTimesContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
+            <div id="notifyAlertTimesContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="setting-card">
+        <label style="display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:12px;">
+          <input type="checkbox" id="notifyReminderPageCheckbox">
+          Reminder Page
+        </label>
+        <div style="display:flex;align-items:flex-start;gap:14px;">
+          <div style="flex:0 0 auto;">
+            <div class="field-label">MSG/DAY</div>
+            <input type="number" class="field-input" id="notifyReminderMessagesPerDay" min="0" max="20" value="0" style="width:64px;padding:14px 8px;text-align:center;">
+          </div>
+          <div style="flex:0 0 auto;margin-left:auto;display:none;" id="notifyReminderTimesCard">
+            <div class="field-label">TIMES</div>
+            <div id="notifyReminderTimesContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
           </div>
         </div>
       </div>
@@ -4070,6 +4079,7 @@
       <button class="btn-apply" style="display:block;margin:16px auto 0;" id="saveNotifySettingsBtn">Save Notification Settings</button>
     </div>
   </div>
+
 
   <div class="reminder-overlay" id="addNotesOverlay">
     <div class="reminder-panel">
@@ -7057,9 +7067,13 @@
       });
     }
 
-    function renderNotifyTimeInputs(count, existingTimes24) {
-      const container = document.getElementById('notifyTimesContainer');
-      const card = document.getElementById('notifyTimesCard');
+    function timesContainerId(mode) { return mode === 'alert' ? 'notifyAlertTimesContainer' : 'notifyReminderTimesContainer'; }
+    function timesCardId(mode) { return mode === 'alert' ? 'notifyAlertTimesCard' : 'notifyReminderTimesCard'; }
+    function perDayInputId(mode) { return mode === 'alert' ? 'notifyAlertMessagesPerDay' : 'notifyReminderMessagesPerDay'; }
+
+    function renderNotifyTimeInputs(mode, count, existingTimes24) {
+      const container = document.getElementById(timesContainerId(mode));
+      const card = document.getElementById(timesCardId(mode));
       container.innerHTML = '';
       const n = Math.max(0, parseInt(count, 10) || 0);
       card.style.display = n > 0 ? 'block' : 'none';
@@ -7125,19 +7139,16 @@
       return to24Hour(`${timeVal} ${ampm}`);
     }
 
-    // Alert Page aur Reminder Page ab do ALAG-ALAG (independent) setup rakhte
-    // hain — apna apna MSG/DAY aur apni apni Times. Ek ko save karne se
-    // doosre ka setup kabhi overwrite/delete nahi hota. Dono checkbox ek
-    // saath bhi ON ho sakte hain (dono independently fire karenge).
-    //
-    // notifyEditingMode batata hai ki abhi form (MSG/DAY + Times boxes) mein
-    // kis mode ka setup dikh/edit ho raha hai — jab bhi user kisi checkbox
-    // ko chhuta hai (tick ya untick), usi mode ka apna saved setup form mein
-    // load ho jaata hai, taaki wahi (same) boxes reuse ho sakein.
-    let notifyEditingMode = 'alert';
+    function readTimeRows24(mode) {
+      const rows = Array.from(document.querySelectorAll(`#${timesContainerId(mode)} .notify-time-row`));
+      return rows.map(readTimeRow24);
+    }
 
-    // Kisi ek (representative) list se ek mode ('alert' ya 'reminder') ka
-    // apna independent saved setup nikalta hai.
+    // Alert Page aur Reminder Page ke apne-apne ALAG (independent) box hain —
+    // dono apna MSG/DAY aur apni Times ek saath screen par dikhte hain.
+    // Ek ko save karne se doosre ka setup kabhi overwrite/delete nahi hota,
+    // kyunki jo box chhua hi nahi gaya, usmein pehle se saved values hi
+    // dikh rahi hoti hain aur save par wahi wapas likh di jaati hain.
     function getNotifyModeConfig(mode) {
       const list0 = (reminderLists && reminderLists[0]) || {};
       if (mode === 'alert') {
@@ -7154,23 +7165,16 @@
       };
     }
 
-    // Diye gaye mode ka saved setup MSG/DAY + Times boxes mein load karta hai
-    // (yehi wahi shared boxes hain — koi naya box nahi banta).
-    function loadNotifyModeIntoForm(mode) {
-      notifyEditingMode = mode;
-      const cfg = getNotifyModeConfig(mode);
-      document.getElementById('notifyMessagesPerDay').value = cfg.perDay;
-      renderNotifyTimeInputs(cfg.perDay, cfg.times);
-    }
-
     function loadNotifySettingsGlobal() {
       const alertCfg = getNotifyModeConfig('alert');
-      const reminderCfg = getNotifyModeConfig('reminder');
       document.getElementById('notifyAlertPageCheckbox').checked = alertCfg.on;
+      document.getElementById(perDayInputId('alert')).value = alertCfg.perDay;
+      renderNotifyTimeInputs('alert', alertCfg.perDay, alertCfg.times);
+
+      const reminderCfg = getNotifyModeConfig('reminder');
       document.getElementById('notifyReminderPageCheckbox').checked = reminderCfg.on;
-      // Jo mode abhi ON hai (ya koi bhi ON na ho to Alert by default) usi ka
-      // setup form mein dikhate hain jab panel khulta hai.
-      loadNotifyModeIntoForm(alertCfg.on || !reminderCfg.on ? 'alert' : 'reminder');
+      document.getElementById(perDayInputId('reminder')).value = reminderCfg.perDay;
+      renderNotifyTimeInputs('reminder', reminderCfg.perDay, reminderCfg.times);
     }
 
     document.getElementById('notifySideBtn').addEventListener('click', () => {
@@ -7180,43 +7184,37 @@
     document.getElementById('closeNotifySettings').addEventListener('click', () => {
       document.getElementById('notifySettingsOverlay').classList.remove('show');
     });
-    // Checkbox ko tick/untick karte hi uska apna (independent) setup form
-    // mein load ho jaata hai — doosre mode ka setup isse touch nahi hota.
-    document.getElementById('notifyAlertPageCheckbox').addEventListener('change', () => {
-      loadNotifyModeIntoForm('alert');
+    document.getElementById(perDayInputId('alert')).addEventListener('input', (e) => {
+      const existing = readTimeRows24('alert').filter(t => t && t !== null);
+      renderNotifyTimeInputs('alert', e.target.value, existing);
     });
-    document.getElementById('notifyReminderPageCheckbox').addEventListener('change', () => {
-      loadNotifyModeIntoForm('reminder');
-    });
-    document.getElementById('notifyMessagesPerDay').addEventListener('input', (e) => {
-      const existing = Array.from(document.querySelectorAll('.notify-time-row')).map(readTimeRow24).filter(t => t && t !== null);
-      renderNotifyTimeInputs(e.target.value, existing);
+    document.getElementById(perDayInputId('reminder')).addEventListener('input', (e) => {
+      const existing = readTimeRows24('reminder').filter(t => t && t !== null);
+      renderNotifyTimeInputs('reminder', e.target.value, existing);
     });
     document.getElementById('saveNotifySettingsBtn').addEventListener('click', () => {
       const alertOn = document.getElementById('notifyAlertPageCheckbox').checked;
       const reminderOn = document.getElementById('notifyReminderPageCheckbox').checked;
 
-      const perDay = Math.max(0, parseInt(document.getElementById('notifyMessagesPerDay').value, 10) || 0);
-      const rows = Array.from(document.querySelectorAll('.notify-time-row'));
-      const rawResults = rows.map(readTimeRow24).filter(t => t !== ''); // poori khaali rows ignore
-      if (rawResults.some(t => t === null)) {
-        showReminderToast('Time poora nahi hai — hh:mm likho aur AM ya PM select karo');
+      const alertPerDay = Math.max(0, parseInt(document.getElementById(perDayInputId('alert')).value, 10) || 0);
+      const alertRaw = readTimeRows24('alert').filter(t => t !== ''); // poori khaali rows ignore
+      if (alertRaw.some(t => t === null)) {
+        showReminderToast('Alert Page ka Time poora nahi hai — hh:mm likho aur AM ya PM select karo');
         return;
       }
-      const times24 = rawResults;
+      const alertTimes = alertRaw;
 
-      // Sirf jis mode ka setup abhi form mein edit ho raha tha (notifyEditingMode)
-      // uska hi MSG/DAY + Times update hota hai. Doosre mode ka pehle se saved
-      // setup bilkul waisa ka waisa (untouched) rehta hai — isliye Alert aur
-      // Reminder ek dusre ko kabhi overwrite nahi karte.
-      const otherMode = notifyEditingMode === 'alert' ? 'reminder' : 'alert';
-      const otherCfg = getNotifyModeConfig(otherMode);
+      const reminderPerDay = Math.max(0, parseInt(document.getElementById(perDayInputId('reminder')).value, 10) || 0);
+      const reminderRaw = readTimeRows24('reminder').filter(t => t !== '');
+      if (reminderRaw.some(t => t === null)) {
+        showReminderToast('Reminder Page ka Time poora nahi hai — hh:mm likho aur AM ya PM select karo');
+        return;
+      }
+      const reminderTimes = reminderRaw;
 
-      const alertPerDay = notifyEditingMode === 'alert' ? perDay : otherCfg.perDay;
-      const alertTimes = notifyEditingMode === 'alert' ? times24 : otherCfg.times;
-      const reminderPerDay = notifyEditingMode === 'reminder' ? perDay : otherCfg.perDay;
-      const reminderTimes = notifyEditingMode === 'reminder' ? times24 : otherCfg.times;
-
+      // Dono box ek hi save button se ek saath save hote hain — jo box chhua
+      // nahi gaya usmein pehle se saved values hi thi (upar load ho chuki thi),
+      // isliye woh apne aap "waisi ki waisi" bach jaati hain.
       reminderLists = reminderLists.map(r => ({
         ...r,
         notifyAlertOn: alertOn,
