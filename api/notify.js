@@ -140,22 +140,7 @@ function centerText(text, width) {
   return " ".repeat(Math.max(0, leftPad)) + t;
 }
 
-function buildMessageForList(r, dayVal) {
-  const text = formatDayLeftText(r, dayVal);
-  const dateStr = new Date().toLocaleDateString("en-GB");
-  const lines = [
-    BLANK_PAD_LINE,
-    centerText(`TODAY — ${dateStr}`, CARD_WIDTH),
-    BLANK_PAD_LINE,
-    centerText(r.listName || "Untitled", CARD_WIDTH),
-    BLANK_PAD_LINE,
-    centerText(text, CARD_WIDTH),
-    BLANK_PAD_LINE,
-    centerText(`(${r.targetDate || "--"})`, CARD_WIDTH),
-    BLANK_PAD_LINE,
-  ];
-  return lines.join("\n");
-}
+
 
 async function sendTelegramMessage(botToken, chatId, text) {
   const tgUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
@@ -165,6 +150,19 @@ async function sendTelegramMessage(botToken, chatId, text) {
     body: JSON.stringify({ chat_id: chatId, text }),
   });
   return tgRes.json();
+}
+
+function buildCombinedMessage(matched) {
+  const dateStr = new Date().toLocaleDateString("en-GB");
+  const lines = [BLANK_PAD_LINE, centerText(`TODAY — ${dateStr}`, CARD_WIDTH), BLANK_PAD_LINE];
+  matched.forEach(({ r, text }, idx) => {
+    lines.push(centerText(r.listName || "Untitled", CARD_WIDTH));
+    lines.push(centerText(text, CARD_WIDTH));
+    lines.push(centerText(`(${r.targetDate || "--"})`, CARD_WIDTH));
+    if (idx !== matched.length - 1) lines.push(BLANK_PAD_LINE);
+  });
+  lines.push(BLANK_PAD_LINE);
+  return lines.join("\n");
 }
 
 export default async function handler(req, res) {
@@ -179,7 +177,9 @@ export default async function handler(req, res) {
     const today = new Date();
     const nowHHMM = currentISTTimeString();
 
-    const results = [];
+    // Jitni bhi lists ka abhi time match kare, unhe ek jagah collect karo —
+    // taaki sabka ek hi combined message bane, alag-alag na jayein.
+    const matched = [];
     for (const r of lists) {
       const dayVal = computeDayValue(r, today);
       if (!isAlertTriggered(r, dayVal)) continue; // list abhi Alert mein nahi hai
@@ -188,16 +188,24 @@ export default async function handler(req, res) {
       if (perDay <= 0) continue; // is list ke liye notification set hi nahi hai
       if (!hasMatchingTimeNow(r.notifyTimes, nowHHMM)) continue; // abhi iska time nahi hai
 
-      const message = buildMessageForList(r, dayVal);
-      const tgData = await sendTelegramMessage(BOT_TOKEN, CHAT_ID, message);
-      results.push({ list: r.listName, sent: !!tgData.ok, error: tgData.ok ? undefined : tgData });
+      matched.push({ r, text: formatDayLeftText(r, dayVal) });
+    }
+
+    let sent = false;
+    let tgData = null;
+    if (matched.length > 0) {
+      const message = buildCombinedMessage(matched);
+      tgData = await sendTelegramMessage(BOT_TOKEN, CHAT_ID, message);
+      sent = !!tgData.ok;
     }
 
     return res.status(200).json({
       ok: true,
       checkedAtIST: nowHHMM,
-      sentCount: results.filter((r) => r.sent).length,
-      results,
+      matchedCount: matched.length,
+      sent,
+      lists: matched.map((m) => m.r.listName),
+      error: sent || !tgData ? undefined : tgData,
     });
   } catch (err) {
     return res.status(500).json({ ok: false, error: String(err) });
