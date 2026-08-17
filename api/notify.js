@@ -140,33 +140,18 @@ function centerText(text, width) {
   return " ".repeat(Math.max(0, leftPad)) + t;
 }
 
-// List ke naam se uska relevant icon guess karta hai (TV, Gas, Recharge, etc.)
-function guessListIcon(listName) {
-  const n = String(listName || "").toLowerCase();
-  if (n.includes("gas") || n.includes("cylinder")) return "🔥";
-  if (n.includes("cinema") || n.includes("movie")) return "🎬";
-  if (n.includes("tv") || n.includes("dish") || n.includes("colors") || n.includes("zing")) return "📺";
-  if (n.includes("recharge") || n.includes("mobile") || n.includes("sim") || n.includes("vi") || n.includes("jio") || n.includes("airtel")) return "📱";
-  if (n.includes("net") || n.includes("wifi") || n.includes("broadband")) return "🌐";
-  if (n.includes("insurance") || n.includes("policy")) return "📄";
-  if (n.includes("rent")) return "🏠";
-  if (n.includes("bill") || n.includes("electric") || n.includes("light")) return "💡";
-  return "📌";
-}
-
 function buildMessageForList(r, dayVal) {
   const text = formatDayLeftText(r, dayVal);
   const dateStr = new Date().toLocaleDateString("en-GB");
-  const listIcon = guessListIcon(r.listName);
   const lines = [
     BLANK_PAD_LINE,
-    centerText(`🔔 REMINDER — ${dateStr}`, CARD_WIDTH),
+    centerText(`TODAY — ${dateStr}`, CARD_WIDTH),
     BLANK_PAD_LINE,
-    centerText(`${listIcon} ${r.listName || "Untitled"}`, CARD_WIDTH),
+    centerText(r.listName || "Untitled", CARD_WIDTH),
     BLANK_PAD_LINE,
-    centerText(`⏳ ${text}`, CARD_WIDTH),
+    centerText(text, CARD_WIDTH),
     BLANK_PAD_LINE,
-    centerText(`📅 (${r.targetDate || "--"})`, CARD_WIDTH),
+    centerText(`(${r.targetDate || "--"})`, CARD_WIDTH),
     BLANK_PAD_LINE,
   ];
   return lines.join("\n");
