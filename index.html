@@ -6797,8 +6797,9 @@
           <button type="button" class="hd-delete-btn" aria-label="Delete"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1z"/><path d="M5 6h14"/><path d="M7 6v13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V6"/><line x1="10" y1="10" x2="10" y2="17"/><line x1="14" y1="10" x2="14" y2="17"/></svg></button>
           <div class="hd-status ${isActive ? 'active' : 'expired'}"><span class="hd-dot"></span><span>${isActive ? 'ACTIVE' : 'EXPIRED'}</span></div>
           <div class="hd-dates"><span class="hd-start">${startDate ? formatDMY(startDate) : '--'}</span><span class="hd-arrow">→</span><span class="hd-end">${endDate ? formatDMY(endDate) : (r.targetDate || '--')}</span></div>
+          ${r.itemType === 'notes' ? `<div class="hd-days-price">${(totalDays !== null && !isNaN(totalDays)) ? totalDays : '--'} days</div>` : `
           <div class="hd-days-price">${(totalDays !== null && !isNaN(totalDays)) ? totalDays : '--'} days - ₹${price}</div>
-          <div class="hd-daily-cost">Daily Cost ₹${isFinite(dailyCost) ? dailyCost.toFixed(2) : '--'}</div>
+          <div class="hd-daily-cost">Daily Cost ₹${isFinite(dailyCost) ? dailyCost.toFixed(2) : '--'}</div>`}
           <div class="hd-timestamp">${formatTimestamp(r.created)}</div>
         </div>
       `;
