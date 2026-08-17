@@ -4009,8 +4009,15 @@
       </div>
 
       <div class="setting-card">
-        <div class="field-label">SELECT LISTS (jitni chaho utni choose karo)</div>
-        <div id="notifyListCheckboxes" style="display:flex;flex-direction:column;gap:8px;"></div>
+        <div class="field-label">MODE (jitni lists hain sabpe apply hoga)</div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:10px;">
+          <input type="checkbox" id="notifyAlertPageCheckbox">
+          Alert Page
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:14px;">
+          <input type="checkbox" id="notifyReminderPageCheckbox">
+          Reminder Page
+        </label>
       </div>
 
       <div class="setting-card">
@@ -7033,39 +7040,22 @@
     // Group ke saare lists mein se jinke notifyMessagesPerDay > 0 hai unhi ko
     // "currently selected" maan ke checkbox pre-check karte hain, aur unki
     // (sab ek jaisi hone chahiye) settings ko form mein load karte hain.
-    function populateNotifyListCheckboxes() {
-      const box = document.getElementById('notifyListCheckboxes');
-      box.innerHTML = '';
-      let sharedPerDay = 0;
-      let sharedTimes = [];
-      (reminderLists || []).forEach(r => {
-        const row = document.createElement('label');
-        row.style.display = 'flex';
-        row.style.alignItems = 'center';
-        row.style.gap = '8px';
-        row.style.fontSize = '14px';
-        const cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.className = 'notify-list-checkbox';
-        cb.value = r.id;
-        const isActive = (r.notifyMessagesPerDay || 0) > 0;
-        cb.checked = isActive;
-        if (isActive) {
-          sharedPerDay = r.notifyMessagesPerDay;
-          sharedTimes = r.notifyTimes || [];
-        }
-        const span = document.createElement('span');
-        span.textContent = r.listName || 'Untitled';
-        row.appendChild(cb);
-        row.appendChild(span);
-        box.appendChild(row);
-      });
-      document.getElementById('notifyMessagesPerDay').value = sharedPerDay;
-      renderNotifyTimeInputs(sharedPerDay, sharedTimes);
+    function loadNotifySettingsGlobal() {
+      // Kisi bhi ek list se abhi ki settings uठा lete hain (save hamesha
+      // saari lists pe uniform apply hoti hai, isliye koi bhi ek list
+      // representative hai).
+      const active = (reminderLists || []).find(r => (r.notifyMessagesPerDay || 0) > 0);
+      const perDay = active ? active.notifyMessagesPerDay : 0;
+      const times = active ? (active.notifyTimes || []) : [];
+      const ignoreAlert = active ? !!active.notifyIgnoreAlert : false;
+      document.getElementById('notifyMessagesPerDay').value = perDay;
+      document.getElementById('notifyAlertPageCheckbox').checked = perDay > 0 && !ignoreAlert;
+      document.getElementById('notifyReminderPageCheckbox').checked = perDay > 0 && ignoreAlert;
+      renderNotifyTimeInputs(perDay, times);
     }
 
     document.getElementById('notifySideBtn').addEventListener('click', () => {
-      populateNotifyListCheckboxes();
+      loadNotifySettingsGlobal();
       document.getElementById('notifySettingsOverlay').classList.add('show');
     });
     document.getElementById('closeNotifySettings').addEventListener('click', () => {
@@ -7076,6 +7066,16 @@
       renderNotifyTimeInputs(e.target.value, existing);
     });
     document.getElementById('saveNotifySettingsBtn').addEventListener('click', () => {
+      const alertPageOn = document.getElementById('notifyAlertPageCheckbox').checked;
+      const reminderPageOn = document.getElementById('notifyReminderPageCheckbox').checked;
+      if (!alertPageOn && !reminderPageOn) {
+        // Dono OFF — matlab notification bilkul band karo (saari lists se clear).
+        reminderLists = reminderLists.map(r => ({ ...r, notifyMessagesPerDay: 0, notifyTimes: [], notifyIgnoreAlert: false }));
+        saveReminderLists();
+        document.getElementById('notifySettingsOverlay').classList.remove('show');
+        showReminderToast('Notifications band kar diye');
+        return;
+      }
       const perDay = Math.max(0, parseInt(document.getElementById('notifyMessagesPerDay').value, 10) || 0);
       const rawTimes = Array.from(document.querySelectorAll('.notify-time-input')).map(inp => inp.value.trim()).filter(Boolean);
       const times24 = rawTimes.map(to24Hour);
@@ -7083,17 +7083,11 @@
         showReminderToast('Time galat format mein hai — hh:mm AM/PM likho (jaise 06:30 AM)');
         return;
       }
-      const checkedIds = Array.from(document.querySelectorAll('.notify-list-checkbox:checked')).map(cb => cb.value);
-      reminderLists = reminderLists.map(r => {
-        if (checkedIds.includes(r.id)) {
-          return { ...r, notifyMessagesPerDay: perDay, notifyTimes: times24 };
-        }
-        // Jo list uncheck hai, uski notification settings clear kar do.
-        if ((r.notifyMessagesPerDay || 0) > 0) {
-          return { ...r, notifyMessagesPerDay: 0, notifyTimes: [] };
-        }
-        return r;
-      });
+      // Reminder Page ON hone ka matlab hai "sabka message, Alert Page ignore karke" —
+      // ye already Alert-wali lists ko bhi shaamil karta hai, isliye dono checked
+      // hone par bhi effectively "poori list" hi bhejni hai.
+      const ignoreAlert = reminderPageOn;
+      reminderLists = reminderLists.map(r => ({ ...r, notifyMessagesPerDay: perDay, notifyTimes: times24, notifyIgnoreAlert: ignoreAlert }));
       saveReminderLists();
       document.getElementById('notifySettingsOverlay').classList.remove('show');
       showReminderToast('Notification settings saved');
