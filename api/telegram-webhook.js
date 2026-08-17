@@ -82,7 +82,7 @@ function formatEntryTimeIST(ms) {
   return `${dateStr}  ${timeStr}`;
 }
 
-function buildHistoryMessage(entries, requestedCount) {
+function buildHistoryMessage(entries, requestedCount, reminderById) {
   const lines = [
     BLANK_PAD_LINE,
     centerText("Latest History", CARD_WIDTH),
@@ -105,7 +105,9 @@ function buildHistoryMessage(entries, requestedCount) {
     lines.push(BLANK_PAD_LINE);
     lines.push(centerText(cleanTargetDate(h.targetDate), FULL_WIDTH));
     if (h.itemType === "notes") {
-      const noteText = String(h.notes || "").trim();
+      // Purani snapshots mein notes save nahi hoti thi — us waqt live item se fallback.
+      const liveItem = reminderById && reminderById[h.reminderId];
+      const noteText = String(h.notes || (liveItem && liveItem.notes) || "").trim();
       if (noteText) {
         lines.push(BLANK_PAD_LINE);
         noteText.split("\n").forEach(line => {
@@ -163,11 +165,14 @@ export default async function handler(req, res) {
 
     const docData = await fetchDocData();
     const historyLists = readJsonField(docData, "historyLists", []);
+    const reminderLists = readJsonField(docData, "reminderLists", []);
+    const reminderById = {};
+    reminderLists.forEach(r => { if (r && r.id) reminderById[r.id] = r; });
 
     const sorted = [...historyLists].sort((a, b) => (b.created || 0) - (a.created || 0));
     const top = sorted.slice(0, requestedCount);
 
-    const msgText = buildHistoryMessage(top, requestedCount);
+    const msgText = buildHistoryMessage(top, requestedCount, reminderById);
     const tgData = await sendTelegramMessage(BOT_TOKEN, CHAT_ID, msgText);
 
     return res.status(200).json({ ok: true, sent: !!tgData.ok, count: top.length });
