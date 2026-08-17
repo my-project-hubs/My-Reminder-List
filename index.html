@@ -7125,21 +7125,52 @@
       return to24Hour(`${timeVal} ${ampm}`);
     }
 
-    // Group ke saare lists mein se jinke notifyMessagesPerDay > 0 hai unhi ko
-    // "currently selected" maan ke checkbox pre-check karte hain, aur unki
-    // (sab ek jaisi hone chahiye) settings ko form mein load karte hain.
+    // Alert Page aur Reminder Page ab do ALAG-ALAG (independent) setup rakhte
+    // hain — apna apna MSG/DAY aur apni apni Times. Ek ko save karne se
+    // doosre ka setup kabhi overwrite/delete nahi hota. Dono checkbox ek
+    // saath bhi ON ho sakte hain (dono independently fire karenge).
+    //
+    // notifyEditingMode batata hai ki abhi form (MSG/DAY + Times boxes) mein
+    // kis mode ka setup dikh/edit ho raha hai — jab bhi user kisi checkbox
+    // ko chhuta hai (tick ya untick), usi mode ka apna saved setup form mein
+    // load ho jaata hai, taaki wahi (same) boxes reuse ho sakein.
+    let notifyEditingMode = 'alert';
+
+    // Kisi ek (representative) list se ek mode ('alert' ya 'reminder') ka
+    // apna independent saved setup nikalta hai.
+    function getNotifyModeConfig(mode) {
+      const list0 = (reminderLists && reminderLists[0]) || {};
+      if (mode === 'alert') {
+        return {
+          on: !!list0.notifyAlertOn,
+          perDay: list0.notifyAlertPerDay || 0,
+          times: list0.notifyAlertTimes || [],
+        };
+      }
+      return {
+        on: !!list0.notifyReminderOn,
+        perDay: list0.notifyReminderPerDay || 0,
+        times: list0.notifyReminderTimes || [],
+      };
+    }
+
+    // Diye gaye mode ka saved setup MSG/DAY + Times boxes mein load karta hai
+    // (yehi wahi shared boxes hain — koi naya box nahi banta).
+    function loadNotifyModeIntoForm(mode) {
+      notifyEditingMode = mode;
+      const cfg = getNotifyModeConfig(mode);
+      document.getElementById('notifyMessagesPerDay').value = cfg.perDay;
+      renderNotifyTimeInputs(cfg.perDay, cfg.times);
+    }
+
     function loadNotifySettingsGlobal() {
-      // Kisi bhi ek list se abhi ki settings uठा lete hain (save hamesha
-      // saari lists pe uniform apply hoti hai, isliye koi bhi ek list
-      // representative hai).
-      const active = (reminderLists || []).find(r => (r.notifyMessagesPerDay || 0) > 0);
-      const perDay = active ? active.notifyMessagesPerDay : 0;
-      const times = active ? (active.notifyTimes || []) : [];
-      const ignoreAlert = active ? !!active.notifyIgnoreAlert : false;
-      document.getElementById('notifyMessagesPerDay').value = perDay;
-      document.getElementById('notifyAlertPageCheckbox').checked = perDay > 0 && !ignoreAlert;
-      document.getElementById('notifyReminderPageCheckbox').checked = perDay > 0 && ignoreAlert;
-      renderNotifyTimeInputs(perDay, times);
+      const alertCfg = getNotifyModeConfig('alert');
+      const reminderCfg = getNotifyModeConfig('reminder');
+      document.getElementById('notifyAlertPageCheckbox').checked = alertCfg.on;
+      document.getElementById('notifyReminderPageCheckbox').checked = reminderCfg.on;
+      // Jo mode abhi ON hai (ya koi bhi ON na ho to Alert by default) usi ka
+      // setup form mein dikhate hain jab panel khulta hai.
+      loadNotifyModeIntoForm(alertCfg.on || !reminderCfg.on ? 'alert' : 'reminder');
     }
 
     document.getElementById('notifySideBtn').addEventListener('click', () => {
@@ -7149,21 +7180,22 @@
     document.getElementById('closeNotifySettings').addEventListener('click', () => {
       document.getElementById('notifySettingsOverlay').classList.remove('show');
     });
+    // Checkbox ko tick/untick karte hi uska apna (independent) setup form
+    // mein load ho jaata hai — doosre mode ka setup isse touch nahi hota.
+    document.getElementById('notifyAlertPageCheckbox').addEventListener('change', () => {
+      loadNotifyModeIntoForm('alert');
+    });
+    document.getElementById('notifyReminderPageCheckbox').addEventListener('change', () => {
+      loadNotifyModeIntoForm('reminder');
+    });
     document.getElementById('notifyMessagesPerDay').addEventListener('input', (e) => {
       const existing = Array.from(document.querySelectorAll('.notify-time-row')).map(readTimeRow24).filter(t => t && t !== null);
       renderNotifyTimeInputs(e.target.value, existing);
     });
     document.getElementById('saveNotifySettingsBtn').addEventListener('click', () => {
-      const alertPageOn = document.getElementById('notifyAlertPageCheckbox').checked;
-      const reminderPageOn = document.getElementById('notifyReminderPageCheckbox').checked;
-      if (!alertPageOn && !reminderPageOn) {
-        // Dono OFF — matlab notification bilkul band karo (saari lists se clear).
-        reminderLists = reminderLists.map(r => ({ ...r, notifyMessagesPerDay: 0, notifyTimes: [], notifyIgnoreAlert: false }));
-        saveReminderLists();
-        document.getElementById('notifySettingsOverlay').classList.remove('show');
-        showReminderToast('Notifications band kar diye');
-        return;
-      }
+      const alertOn = document.getElementById('notifyAlertPageCheckbox').checked;
+      const reminderOn = document.getElementById('notifyReminderPageCheckbox').checked;
+
       const perDay = Math.max(0, parseInt(document.getElementById('notifyMessagesPerDay').value, 10) || 0);
       const rows = Array.from(document.querySelectorAll('.notify-time-row'));
       const rawResults = rows.map(readTimeRow24).filter(t => t !== ''); // poori khaali rows ignore
@@ -7172,11 +7204,28 @@
         return;
       }
       const times24 = rawResults;
-      // Reminder Page ON hone ka matlab hai "sabka message, Alert Page ignore karke" —
-      // ye already Alert-wali lists ko bhi shaamil karta hai, isliye dono checked
-      // hone par bhi effectively "poori list" hi bhejni hai.
-      const ignoreAlert = reminderPageOn;
-      reminderLists = reminderLists.map(r => ({ ...r, notifyMessagesPerDay: perDay, notifyTimes: times24, notifyIgnoreAlert: ignoreAlert }));
+
+      // Sirf jis mode ka setup abhi form mein edit ho raha tha (notifyEditingMode)
+      // uska hi MSG/DAY + Times update hota hai. Doosre mode ka pehle se saved
+      // setup bilkul waisa ka waisa (untouched) rehta hai — isliye Alert aur
+      // Reminder ek dusre ko kabhi overwrite nahi karte.
+      const otherMode = notifyEditingMode === 'alert' ? 'reminder' : 'alert';
+      const otherCfg = getNotifyModeConfig(otherMode);
+
+      const alertPerDay = notifyEditingMode === 'alert' ? perDay : otherCfg.perDay;
+      const alertTimes = notifyEditingMode === 'alert' ? times24 : otherCfg.times;
+      const reminderPerDay = notifyEditingMode === 'reminder' ? perDay : otherCfg.perDay;
+      const reminderTimes = notifyEditingMode === 'reminder' ? times24 : otherCfg.times;
+
+      reminderLists = reminderLists.map(r => ({
+        ...r,
+        notifyAlertOn: alertOn,
+        notifyAlertPerDay: alertPerDay,
+        notifyAlertTimes: alertTimes,
+        notifyReminderOn: reminderOn,
+        notifyReminderPerDay: reminderPerDay,
+        notifyReminderTimes: reminderTimes,
+      }));
       saveReminderLists();
       document.getElementById('notifySettingsOverlay').classList.remove('show');
       showReminderToast('Notification settings saved');
