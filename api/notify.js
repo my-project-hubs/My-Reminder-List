@@ -164,14 +164,10 @@ function cleanTargetDate(td) {
   return String(td || "--").replace(/[()]/g, "").trim();
 }
 
-function buildCombinedMessage(matched) {
+function buildCombinedMessage(matched, pageMode) {
   const now = new Date();
   const dateStr = now.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata" });
   const weekdayShort = now.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", weekday: "short" });
-  // Notification Settings mein jo mode select kiya gaya hai (Alert Page ya
-  // Reminder Page) — saari lists pe uniform apply hota hai, isliye pehli
-  // list se hi pata chal jaata hai.
-  const pageMode = (matched[0] && matched[0].r.notifyIgnoreAlert) ? "Reminder Page" : "Alert Page";
   const lines = [
     BLANK_PAD_LINE,
     centerText(`Today - ${dateStr} (${weekdayShort})`, CARD_WIDTH),
@@ -213,44 +209,68 @@ export default async function handler(req, res) {
     const today = new Date();
     const nowHHMM = currentISTTimeString();
 
-    // Jitni bhi lists ka abhi time match kare, unhe ek jagah collect karo —
-    // taaki sabka ek hi combined message bane, alag-alag na jayein.
-    const matched = [];
-    for (const r of lists) {
-      const dayVal = computeDayValue(r, today);
-      if (!r.notifyIgnoreAlert && !isAlertTriggered(r, dayVal)) continue; // list abhi Alert mein nahi hai (jab tak ignore-flag na ho)
-
-      const perDay = parseInt(r.notifyMessagesPerDay, 10) || 0;
-      if (perDay <= 0) continue; // is list ke liye notification set hi nahi hai
-      if (!hasMatchingTimeNow(r.notifyTimes, nowHHMM)) continue; // abhi iska time nahi hai
-
-      matched.push({ r, text: formatDayLeftText(r, dayVal), dayVal });
-    }
-
     // Kam se kam din baaki wali list sabse upar, aur jyada din baaki wali
     // sabse niche — dayVal ke hisaab se chhote se bade order mein sort.
     // Jinka date hi valid nahi (dayVal null/NaN), unhe sabse neeche daal dete hain.
-    matched.sort((a, b) => {
-      const av = (a.dayVal === null || isNaN(a.dayVal)) ? Infinity : a.dayVal;
-      const bv = (b.dayVal === null || isNaN(b.dayVal)) ? Infinity : b.dayVal;
-      return av - bv;
-    });
+    function sortByDayVal(matched) {
+      matched.sort((a, b) => {
+        const av = (a.dayVal === null || isNaN(a.dayVal)) ? Infinity : a.dayVal;
+        const bv = (b.dayVal === null || isNaN(b.dayVal)) ? Infinity : b.dayVal;
+        return av - bv;
+      });
+      return matched;
+    }
 
-    let sent = false;
-    let tgData = null;
-    if (matched.length > 0) {
-      const message = buildCombinedMessage(matched);
-      tgData = await sendTelegramMessage(BOT_TOKEN, CHAT_ID, message);
-      sent = !!tgData.ok;
+    // Alert Page aur Reminder Page ab apna-apna independent ON/OFF, MSG/DAY
+    // aur Times rakhte hain (Notification Settings mein set kiya hua) —
+    // dono ek dusre se bilkul alag check hote hain, isliye dono ka apna
+    // schedule chal sakta hai bina ek dusre ko overwrite/block kiye.
+    function buildMatchesForMode(mode) {
+      const matched = [];
+      for (const r of lists) {
+        const on = mode === "alert" ? r.notifyAlertOn : r.notifyReminderOn;
+        if (!on) continue; // is list ke group mein yeh mode hi ON nahi hai
+
+        const perDay = parseInt(mode === "alert" ? r.notifyAlertPerDay : r.notifyReminderPerDay, 10) || 0;
+        if (perDay <= 0) continue; // is mode ke liye notification set hi nahi hai
+
+        const times = mode === "alert" ? r.notifyAlertTimes : r.notifyReminderTimes;
+        if (!hasMatchingTimeNow(times, nowHHMM)) continue; // abhi iska time nahi hai
+
+        const dayVal = computeDayValue(r, today);
+        // Alert Page: sirf jinka "day left" alert-condition trigger ho rahi hai.
+        // Reminder Page: saari lists (alert-condition ignore karke).
+        if (mode === "alert" && !isAlertTriggered(r, dayVal)) continue;
+
+        matched.push({ r, text: formatDayLeftText(r, dayVal), dayVal });
+      }
+      return sortByDayVal(matched);
+    }
+
+    const alertMatches = buildMatchesForMode("alert");
+    const reminderMatches = buildMatchesForMode("reminder");
+
+    const results = [];
+    for (const [pageMode, matched] of [
+      ["Alert Page", alertMatches],
+      ["Reminder Page", reminderMatches],
+    ]) {
+      if (matched.length === 0) continue;
+      const message = buildCombinedMessage(matched, pageMode);
+      const tgData = await sendTelegramMessage(BOT_TOKEN, CHAT_ID, message);
+      results.push({
+        pageMode,
+        matchedCount: matched.length,
+        sent: !!tgData.ok,
+        lists: matched.map((m) => m.r.listName),
+        error: tgData.ok ? undefined : tgData,
+      });
     }
 
     return res.status(200).json({
       ok: true,
       checkedAtIST: nowHHMM,
-      matchedCount: matched.length,
-      sent,
-      lists: matched.map((m) => m.r.listName),
-      error: sent || !tgData ? undefined : tgData,
+      results,
     });
   } catch (err) {
     return res.status(500).json({ ok: false, error: String(err) });
