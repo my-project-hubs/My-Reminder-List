@@ -2896,7 +2896,7 @@
 
   <button class="settings-side-btn" id="settingsSideBtn" aria-label="Settings">⚙</button>
   <button class="switch-page-btn" id="switchPageBtn" aria-label="Switch Page">⇄</button>
-  <button class="notify-side-btn" id="notifySideBtn" aria-label="Notification Settings">🔔</button>
+  <button class="notify-side-btn" id="notifySideBtn" aria-label="Notification Settings">💬</button>
 
   <div class="settings-overlay" id="settingsOverlay">
     <div class="settings-panel">
@@ -4009,8 +4009,8 @@
       </div>
 
       <div class="setting-card">
-        <div class="field-label">SELECT LIST</div>
-        <select class="field-input" id="notifySelectList" style="width:100%;"></select>
+        <div class="field-label">SELECT LISTS (jitni chaho utni choose karo)</div>
+        <div id="notifyListCheckboxes" style="display:flex;flex-direction:column;gap:8px;"></div>
       </div>
 
       <div class="setting-card">
@@ -4019,7 +4019,7 @@
       </div>
 
       <div class="setting-card" id="notifyTimesCard" style="display:none;">
-        <div class="field-label">TIMES</div>
+        <div class="field-label">TIMES (hh:mm AM/PM likho, jaise 06:30 AM)</div>
         <div id="notifyTimesContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
       </div>
 
@@ -6977,7 +6977,33 @@
     });
 
     /* ====================== NOTIFICATION SETTINGS PAGE ====================== */
-    function renderNotifyTimeInputs(count, existingTimes) {
+
+    // "HH:MM" (24hr, stored) <-> "hh:mm AM/PM" (12hr, shown to user)
+    function to12Hour(hhmm) {
+      if (!hhmm) return '';
+      const [hStr, mStr] = hhmm.split(':');
+      let h = parseInt(hStr, 10);
+      const m = parseInt(mStr, 10);
+      if (isNaN(h) || isNaN(m)) return '';
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12;
+      if (h === 0) h = 12;
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} ${ampm}`;
+    }
+    function to24Hour(input) {
+      const s = String(input || '').trim().toUpperCase();
+      const match = s.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/);
+      if (!match) return null;
+      let h = parseInt(match[1], 10);
+      const m = parseInt(match[2], 10);
+      const ampm = match[3];
+      if (h < 1 || h > 12 || m < 0 || m > 59) return null;
+      if (ampm === 'AM') { if (h === 12) h = 0; }
+      else { if (h !== 12) h += 12; }
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    }
+
+    function renderNotifyTimeInputs(count, existingTimes24) {
       const container = document.getElementById('notifyTimesContainer');
       const card = document.getElementById('notifyTimesCard');
       container.innerHTML = '';
@@ -6994,56 +7020,80 @@
         label.style.fontSize = '13px';
         label.style.color = '#555';
         const input = document.createElement('input');
-        input.type = 'time';
+        input.type = 'text';
+        input.placeholder = 'hh:mm AM/PM';
         input.className = 'field-input notify-time-input';
-        input.value = (existingTimes && existingTimes[i]) ? existingTimes[i] : '';
+        input.value = (existingTimes24 && existingTimes24[i]) ? to12Hour(existingTimes24[i]) : '';
         wrap.appendChild(label);
         wrap.appendChild(input);
         container.appendChild(wrap);
       }
     }
 
-    function populateNotifyListDropdown(selectedId) {
-      const sel = document.getElementById('notifySelectList');
-      sel.innerHTML = '';
+    // Group ke saare lists mein se jinke notifyMessagesPerDay > 0 hai unhi ko
+    // "currently selected" maan ke checkbox pre-check karte hain, aur unki
+    // (sab ek jaisi hone chahiye) settings ko form mein load karte hain.
+    function populateNotifyListCheckboxes() {
+      const box = document.getElementById('notifyListCheckboxes');
+      box.innerHTML = '';
+      let sharedPerDay = 0;
+      let sharedTimes = [];
       (reminderLists || []).forEach(r => {
-        const opt = document.createElement('option');
-        opt.value = r.id;
-        opt.textContent = r.listName || 'Untitled';
-        sel.appendChild(opt);
+        const row = document.createElement('label');
+        row.style.display = 'flex';
+        row.style.alignItems = 'center';
+        row.style.gap = '8px';
+        row.style.fontSize = '14px';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.className = 'notify-list-checkbox';
+        cb.value = r.id;
+        const isActive = (r.notifyMessagesPerDay || 0) > 0;
+        cb.checked = isActive;
+        if (isActive) {
+          sharedPerDay = r.notifyMessagesPerDay;
+          sharedTimes = r.notifyTimes || [];
+        }
+        const span = document.createElement('span');
+        span.textContent = r.listName || 'Untitled';
+        row.appendChild(cb);
+        row.appendChild(span);
+        box.appendChild(row);
       });
-      if (selectedId) sel.value = selectedId;
-      loadNotifySettingsForSelected();
-    }
-
-    function loadNotifySettingsForSelected() {
-      const sel = document.getElementById('notifySelectList');
-      const r = reminderLists.find(x => x.id === sel.value);
-      const perDay = (r && r.notifyMessagesPerDay) ? r.notifyMessagesPerDay : 0;
-      document.getElementById('notifyMessagesPerDay').value = perDay;
-      renderNotifyTimeInputs(perDay, r ? r.notifyTimes : []);
+      document.getElementById('notifyMessagesPerDay').value = sharedPerDay;
+      renderNotifyTimeInputs(sharedPerDay, sharedTimes);
     }
 
     document.getElementById('notifySideBtn').addEventListener('click', () => {
-      populateNotifyListDropdown();
+      populateNotifyListCheckboxes();
       document.getElementById('notifySettingsOverlay').classList.add('show');
     });
     document.getElementById('closeNotifySettings').addEventListener('click', () => {
       document.getElementById('notifySettingsOverlay').classList.remove('show');
     });
-    document.getElementById('notifySelectList').addEventListener('change', loadNotifySettingsForSelected);
     document.getElementById('notifyMessagesPerDay').addEventListener('input', (e) => {
-      const sel = document.getElementById('notifySelectList');
-      const r = reminderLists.find(x => x.id === sel.value);
-      renderNotifyTimeInputs(e.target.value, r ? r.notifyTimes : []);
+      const existing = Array.from(document.querySelectorAll('.notify-time-input')).map(inp => to24Hour(inp.value)).filter(Boolean);
+      renderNotifyTimeInputs(e.target.value, existing);
     });
     document.getElementById('saveNotifySettingsBtn').addEventListener('click', () => {
-      const sel = document.getElementById('notifySelectList');
-      const idx = reminderLists.findIndex(x => x.id === sel.value);
-      if (idx === -1) return;
       const perDay = Math.max(0, parseInt(document.getElementById('notifyMessagesPerDay').value, 10) || 0);
-      const times = Array.from(document.querySelectorAll('.notify-time-input')).map(inp => inp.value).filter(Boolean);
-      reminderLists[idx] = { ...reminderLists[idx], notifyMessagesPerDay: perDay, notifyTimes: times };
+      const rawTimes = Array.from(document.querySelectorAll('.notify-time-input')).map(inp => inp.value.trim()).filter(Boolean);
+      const times24 = rawTimes.map(to24Hour);
+      if (times24.some(t => t === null)) {
+        showReminderToast('Time galat format mein hai — hh:mm AM/PM likho (jaise 06:30 AM)');
+        return;
+      }
+      const checkedIds = Array.from(document.querySelectorAll('.notify-list-checkbox:checked')).map(cb => cb.value);
+      reminderLists = reminderLists.map(r => {
+        if (checkedIds.includes(r.id)) {
+          return { ...r, notifyMessagesPerDay: perDay, notifyTimes: times24 };
+        }
+        // Jo list uncheck hai, uski notification settings clear kar do.
+        if ((r.notifyMessagesPerDay || 0) > 0) {
+          return { ...r, notifyMessagesPerDay: 0, notifyTimes: [] };
+        }
+        return r;
+      });
       saveReminderLists();
       document.getElementById('notifySettingsOverlay').classList.remove('show');
       showReminderToast('Notification settings saved');
