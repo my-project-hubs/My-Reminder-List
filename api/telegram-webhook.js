@@ -103,24 +103,28 @@ function buildHistoryMessage(entries, requestedCount, reminderById) {
     }
     lines.push(centerText(h.listName || "Untitled", CARD_WIDTH));
     lines.push(BLANK_PAD_LINE);
-    lines.push(centerText(cleanTargetDate(h.targetDate), FULL_WIDTH));
     if (h.itemType === "notes") {
       // Purani snapshots mein notes save nahi hoti thi — us waqt live item se fallback.
       const liveItem = reminderById && reminderById[h.reminderId];
       const noteText = String(h.notes || (liveItem && liveItem.notes) || "").trim();
       if (noteText) {
-        lines.push(BLANK_PAD_LINE);
         noteText.split("\n").forEach(line => {
           lines.push(centerText(line, FULL_WIDTH));
         });
+        lines.push(BLANK_PAD_LINE);
       }
-    } else if (h.price !== undefined && h.price !== null && h.price !== "") {
+      lines.push(centerText(cleanTargetDate(h.targetDate), FULL_WIDTH));
       lines.push(BLANK_PAD_LINE);
-      lines.push(centerText(`₹ ${h.price}`, FULL_WIDTH));
+    } else {
+      lines.push(centerText(cleanTargetDate(h.targetDate), FULL_WIDTH));
+      if (h.price !== undefined && h.price !== null && h.price !== "") {
+        lines.push(BLANK_PAD_LINE);
+        lines.push(centerText(`₹ ${h.price}`, FULL_WIDTH));
+      }
+      lines.push(BLANK_PAD_LINE);
+      lines.push(centerText(`Added - ${formatEntryTimeIST(h.created)}`, FULL_WIDTH));
+      lines.push(BLANK_PAD_LINE);
     }
-    lines.push(BLANK_PAD_LINE);
-    lines.push(centerText(`Added - ${formatEntryTimeIST(h.created)}`, FULL_WIDTH));
-    lines.push(BLANK_PAD_LINE);
   });
   lines.push(DIVIDER_LINE);
   lines.push(BLANK_PAD_LINE);
