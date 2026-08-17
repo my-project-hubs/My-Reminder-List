@@ -125,10 +125,56 @@ async function fetchReminderLists() {
   }
 }
 
+// Card ki width (characters mein) — border aur centering isi ke hisaab se hoti hai.
+const CARD_WIDTH = 24;
+const BORDER_LINE = "▬".repeat(CARD_WIDTH);
+// Braille blank character — dikhta khaali hai, lekin Telegram "asli" blank lines
+// ki tarah usse hata (trim) nahi karta, isliye upar-neeche padding ke liye kaam aata hai.
+const BLANK_PAD_LINE = "⠀";
+
+// Text ko (approx) beech mein laane ke liye left side spaces jodta hai.
+// Telegram ka font monospace nahi hai, isliye ye perfect-center nahi, roughly-center hoga.
+function centerText(text, width) {
+  const t = String(text || "");
+  if (t.length >= width) return t;
+  const leftPad = Math.floor((width - t.length) / 2);
+  return " ".repeat(Math.max(0, leftPad)) + t;
+}
+
+// List ke naam se uska relevant icon guess karta hai (TV, Gas, Recharge, etc.)
+function guessListIcon(listName) {
+  const n = String(listName || "").toLowerCase();
+  if (n.includes("gas") || n.includes("cylinder")) return "🔥";
+  if (n.includes("cinema") || n.includes("movie")) return "🎬";
+  if (n.includes("tv") || n.includes("dish") || n.includes("colors") || n.includes("zing")) return "📺";
+  if (n.includes("recharge") || n.includes("mobile") || n.includes("sim") || n.includes("vi") || n.includes("jio") || n.includes("airtel")) return "📱";
+  if (n.includes("net") || n.includes("wifi") || n.includes("broadband")) return "🌐";
+  if (n.includes("insurance") || n.includes("policy")) return "📄";
+  if (n.includes("rent")) return "🏠";
+  if (n.includes("bill") || n.includes("electric") || n.includes("light")) return "💡";
+  return "📌";
+}
+
 function buildMessageForList(r, dayVal) {
   const text = formatDayLeftText(r, dayVal);
   const dateStr = new Date().toLocaleDateString("en-GB");
-  return `🔔 Reminder — ${dateStr}\n\n${r.listName || "Untitled"}\n${text} (${r.targetDate || "--"})`;
+  const listIcon = guessListIcon(r.listName);
+  const lines = [
+    BLANK_PAD_LINE,
+    BLANK_PAD_LINE,
+    BORDER_LINE,
+    centerText(`🔔 REMINDER — ${dateStr}`, CARD_WIDTH),
+    BORDER_LINE,
+    "",
+    centerText(`${listIcon} ${r.listName || "Untitled"}`, CARD_WIDTH),
+    centerText(`⏳ ${text}`, CARD_WIDTH),
+    centerText(`📅 (${r.targetDate || "--"})`, CARD_WIDTH),
+    "",
+    BORDER_LINE,
+    BLANK_PAD_LINE,
+    BLANK_PAD_LINE,
+  ];
+  return lines.join("\n");
 }
 
 async function sendTelegramMessage(botToken, chatId, text) {
