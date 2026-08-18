@@ -1,15 +1,9 @@
 // api/notify.js
 // Ye file cron-job.org se baar-baar call hogi (recommend: har 1 minute mein).
-// Ye Firestore se reminder list padhta hai, jo lists "Alert" mein hain unhi ko
-// dekhta hai, aur un mein se jinka koi "notify time" abhi (IST) match karta hai
-// unhe Telegram pe alag-alag message bhejta hai.
 
 const FIREBASE_PROJECT_ID = "life-tracker-3a3a8";
 const FIRESTORE_DOC_PATH = "reminderApp/mainData";
 
-// Cron kitni der mein chalta hai (minutes). 0 = exact-minute match — website ka
-// time-picker sirf HH:MM (minute-level) precision deta hai, isse zyada tight
-// karne ka koi fayda nahi, isliye ye sabse chhota practical tolerance hai.
 const CRON_INTERVAL_MINUTES = 0;
 
 function parseDMY(str) {
@@ -55,7 +49,6 @@ function computeDayValue(r, today) {
   return daysBetween(today, target);
 }
 
-// Same logic as website's isAlertTriggered() — list "Alert" mein hai ya nahi.
 function isAlertTriggered(r, dayVal) {
   if (dayVal === null || isNaN(dayVal)) return false;
   const alertPageNum = parseInt(r.alertPage, 10);
@@ -67,23 +60,39 @@ function isAlertTriggered(r, dayVal) {
   return dayVal <= alertPageNum;
 }
 
+// 15 din se kam wale par LEFT side Siren Emoji lagane ka function
 function formatDayLeftText(r, dayVal) {
+  let text = "";
   if (dayVal === null || isNaN(dayVal)) {
-    return r.counter === "count" ? "-- . Months - -- . Days" : "-- . Day Left";
-  }
-  if (r.counter === "count") {
+    text = r.counter === "count" ? "-- . Months - -- . Days" : "-- . Day Left";
+  } else if (r.counter === "count") {
     const elapsed = Math.max(0, dayVal);
-    if (elapsed <= 30) return `${elapsed} . Days`;
-    const targetForCount = parseDMY(r.targetDate);
-    const { months, days } = targetForCount
-      ? calendarMonthsDaysBetween(targetForCount, new Date())
-      : { months: Math.floor((elapsed - 1) / 30), days: ((elapsed - 1) % 30) + 1 };
-    return `${months} . Months - ${days} . Days`;
+    if (elapsed <= 30) text = `${elapsed} . Days`;
+    else {
+      const targetForCount = parseDMY(r.targetDate);
+      const { months, days } = targetForCount
+        ? calendarMonthsDaysBetween(targetForCount, new Date())
+        : { months: Math.floor((elapsed - 1) / 30), days: ((elapsed - 1) % 30) + 1 };
+      text = `${months} . Months - ${days} . Days`;
+    }
+  } else {
+    text = dayVal <= 0 ? "Expire" : `${dayVal} . Day Left`;
   }
-  return dayVal <= 0 ? "Expire" : `${dayVal} . Day Left`;
+
+  // AGAR 15 DIN SE KAM HAIN (YA EXPIRE HAI), TO SIRF LEFT SIDE SIREN ADD KARO
+  // Agar aapke paas Telegram Premium Animated Emoji ID hai, to niche wali line me ID daal sakte hain
+  const CUSTOM_EMOJI_ID = ""; // Example: "5368324170671202286"
+  const sirenEmoji = CUSTOM_EMOJI_ID 
+    ? `<tg-emoji emoji-id="${CUSTOM_EMOJI_ID}">🚨</tg-emoji>` 
+    : "🚨";
+
+  if (dayVal !== null && !isNaN(dayVal) && r.counter !== "count" && dayVal < 15) {
+    return `${sirenEmoji} ${text}`;
+  }
+
+  return text;
 }
 
-// Current time in IST as "HH:MM" (Vercel server clock is UTC, so convert).
 function currentISTTimeString() {
   const now = new Date();
   return now.toLocaleString("en-GB", {
@@ -91,7 +100,7 @@ function currentISTTimeString() {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-  }); // "HH:MM"
+  });
 }
 
 function minutesSinceMidnight(hhmm) {
@@ -100,7 +109,6 @@ function minutesSinceMidnight(hhmm) {
   return h * 60 + m;
 }
 
-// Kya koi notifyTime abhi (tolerance window ke andar) match karta hai.
 function hasMatchingTimeNow(notifyTimes, nowHHMM) {
   const nowMin = minutesSinceMidnight(nowHHMM);
   if (nowMin === null || !Array.isArray(notifyTimes)) return false;
@@ -128,8 +136,6 @@ function readJsonField(docData, fieldName, fallback) {
   }
 }
 
-// Ek field ko Firestore mein likh do (sirf usi field ko — updateMask ki wajah
-// se document ke baaki fields chhue tak nahi jaate).
 async function writeFirestoreField(fieldName, value) {
   const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/${FIRESTORE_DOC_PATH}?updateMask.fieldPaths=${fieldName}`;
   const res = await fetch(url, {
@@ -157,7 +163,6 @@ function formatEntryTimeIST(ms) {
   return `${dateStr}  ${timeStr}`;
 }
 
-// Nayi History banne ke 1 ghante baad Telegram par batana hai.
 const ONE_HOUR_MS = 60 * 60 * 1000;
 
 async function processDelayedHistoryNotify(docData, BOT_TOKEN, CHAT_ID) {
@@ -218,7 +223,6 @@ async function processDelayedHistoryNotify(docData, BOT_TOKEN, CHAT_ID) {
   return { baselined: false, sent: due.length };
 }
 
-// Card ki width (characters mein)
 const CARD_WIDTH = 24;
 const BLANK_PAD_LINE = "⠀";
 
@@ -229,11 +233,6 @@ function centerText(text, width) {
   return " ".repeat(Math.max(0, leftPad)) + t;
 }
 
-// Helper function: Kisi bhi Animated Custom Emoji tag ko easily format karne ke liye
-function createAnimatedEmoji(emojiId, fallbackEmoji = "🚨") {
-  return `<tg-emoji emoji-id="${emojiId}">${fallbackEmoji}</tg-emoji>`;
-}
-
 async function sendTelegramMessage(botToken, chatId, text) {
   const tgUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
   const tgRes = await fetch(tgUrl, {
@@ -242,7 +241,7 @@ async function sendTelegramMessage(botToken, chatId, text) {
     body: JSON.stringify({
       chat_id: chatId,
       text: text,
-      parse_mode: "HTML" // Animation & Formatting support enabled
+      parse_mode: "HTML"
     }),
   });
   return tgRes.json();
@@ -329,22 +328,18 @@ export default async function handler(req, res) {
       return sortByDayVal(matched);
     }
 
-    const alertMatches = buildMatchesForMode("alert");
+    // SIRF REMINDER PAGE KA MESSAGE BHEJNA HAI
     const reminderMatches = buildMatchesForMode("reminder");
 
     const results = [];
-    for (const [pageMode, matched] of [
-      ["Alert Page", alertMatches],
-      ["Reminder Page", reminderMatches],
-    ]) {
-      if (matched.length === 0) continue;
-      const message = buildCombinedMessage(matched, pageMode);
+    if (reminderMatches.length > 0) {
+      const message = buildCombinedMessage(reminderMatches, "Reminder Page");
       const tgData = await sendTelegramMessage(BOT_TOKEN, CHAT_ID, message);
       results.push({
-        pageMode,
-        matchedCount: matched.length,
+        pageMode: "Reminder Page",
+        matchedCount: reminderMatches.length,
         sent: !!tgData.ok,
-        lists: matched.map((m) => m.r.listName),
+        lists: reminderMatches.map((m) => m.r.listName),
         error: tgData.ok ? undefined : tgData,
       });
     }
@@ -360,5 +355,5 @@ export default async function handler(req, res) {
   } catch (err) {
     return res.status(500).json({ ok: false, error: String(err) });
   }
-    }
-      
+                     }
+    
