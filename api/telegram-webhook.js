@@ -4,10 +4,10 @@
 // nahi hai, ye instant hai).
 //
 // SUPPORTED MESSAGE (on-demand latest history):
-//   /history          -> latest 1 history
-//   /history 5        -> latest 5 history
-//   /history 10       -> latest 10 history (maximum)
-//   history 3         -> (slash ke bina bhi chalega)
+//   /h                 -> latest 1 history
+//   /h 5               -> latest 5 history
+//   /h 10              -> latest 10 history (maximum)
+//   h 3                -> (slash ke bina bhi chalega)
 //
 // ONE-TIME SETUP (isko ek baar apne browser mein khol dena, bas):
 //   https://api.telegram.org/bot<BOT_TOKEN>/setWebhook?url=https://<aapka-vercel-domain>/api/telegram-webhook
@@ -67,9 +67,9 @@ async function sendTelegramMessage(botToken, chatId, text) {
   return tgRes.json();
 }
 
-// "/history", "history", "/history 5", "history10" — sab match ho jayenge.
+// "/h", "h", "/h 5", "h10" — sab match ho jayenge. "/history" ab support nahi hai.
 function parseHistoryCommand(text) {
-  const m = String(text || "").trim().match(/^\/?history\s*(\d{1,2})?\s*$/i);
+  const m = String(text || "").trim().match(/^\/?h\s*(\d{1,2})?\s*$/i);
   if (!m) return null;
   let n = parseInt(m[1], 10);
   if (isNaN(n) || n < 1) n = 1;
