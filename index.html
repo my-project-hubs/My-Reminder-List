@@ -1821,32 +1821,67 @@
 
     .notify-picker-panel {
       width: calc(100% - 28px);
-      max-width: 420px;
+      max-width: 460px;
       background: #fff;
       border-radius: 16px;
       margin: 14px auto;
-      padding: 6px 0;
+      padding: 8px 0;
       box-sizing: border-box;
       overflow: hidden;
       animation: fadeIn 0.3s ease;
     }
 
+    .notify-picker-row {
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #eee;
+    }
+
+    .notify-picker-row:last-of-type { border-bottom: none; }
+    .notify-picker-row:has(+ .notify-picker-summary.show) { border-bottom: none; }
+
+    .notify-picker-checkbox {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px 0 18px;
+    }
+
+    .notify-picker-checkbox input[type="checkbox"] {
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+      accent-color: #1a73e8;
+    }
+
     .notify-picker-item {
       display: block;
-      width: 100%;
+      flex: 1 1 auto;
       text-align: center;
-      padding: 18px 20px;
+      padding: 12px 20px 12px 6px;
       font-size: 16px;
       font-weight: 600;
       color: #1a1a1a;
       background: none;
       border: none;
-      border-bottom: 1px solid #eee;
       cursor: pointer;
     }
 
-    .notify-picker-item:last-child { border-bottom: none; }
     .notify-picker-item:active { background: #f2f6fe; }
+
+    .notify-picker-summary {
+      display: none;
+      padding: 0 20px 10px 44px;
+      font-size: 12px;
+      color: #666;
+      line-height: 1.45;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    .notify-picker-summary:last-child { border-bottom: none; }
+    .notify-picker-summary.show { display: block; }
 
     .field-block {
       margin-bottom: 16px;
@@ -4108,9 +4143,23 @@
 
   <div class="reminder-overlay" id="notifyPickerOverlay">
     <div class="notify-picker-panel">
-      <button type="button" class="notify-picker-item" id="notifyPickDaily">Daily</button>
-      <button type="button" class="notify-picker-item" id="notifyPickWeekly">Weekly</button>
-      <button type="button" class="notify-picker-item" id="notifyPickMonthly">Monthly</button>
+      <div class="notify-picker-row">
+        <label class="notify-picker-checkbox"><input type="checkbox" id="notifyPreviewDaily"></label>
+        <button type="button" class="notify-picker-item" id="notifyPickDaily">Daily</button>
+      </div>
+      <div class="notify-picker-summary" id="notifyPreviewDailySummary"></div>
+
+      <div class="notify-picker-row">
+        <label class="notify-picker-checkbox"><input type="checkbox" id="notifyPreviewWeekly"></label>
+        <button type="button" class="notify-picker-item" id="notifyPickWeekly">Weekly</button>
+      </div>
+      <div class="notify-picker-summary" id="notifyPreviewWeeklySummary"></div>
+
+      <div class="notify-picker-row">
+        <label class="notify-picker-checkbox"><input type="checkbox" id="notifyPreviewMonthly"></label>
+        <button type="button" class="notify-picker-item" id="notifyPickMonthly">Monthly</button>
+      </div>
+      <div class="notify-picker-summary" id="notifyPreviewMonthlySummary"></div>
     </div>
   </div>
 
@@ -4123,8 +4172,6 @@
       </div>
 
       <div id="notifyDailySection">
-      <div style="text-align:center;font-weight:700;color:#1a73e8;font-size:13px;letter-spacing:0.5px;margin-bottom:10px;">DAILY</div>
-
       <div class="setting-card">
         <label style="display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:12px;">
           <input type="checkbox" id="notifyAlertPageCheckbox">
@@ -4163,8 +4210,6 @@
       </div>
 
       <div id="notifyWeeklySection">
-      <div style="text-align:center;font-weight:700;color:#1a73e8;font-size:13px;letter-spacing:0.5px;margin:22px 0 10px;">WEEKLY</div>
-
       <div class="setting-card">
         <div style="display:flex;align-items:center;gap:10px;font-size:14px;">
           <span class="field-label" style="margin:0;">DAY</span>
@@ -4218,8 +4263,6 @@
       </div>
 
       <div id="notifyMonthlySection">
-      <div style="text-align:center;font-weight:700;color:#1a73e8;font-size:13px;letter-spacing:0.5px;margin:22px 0 10px;">MONTHLY</div>
-
       <div class="setting-card">
         <div style="display:flex;align-items:center;gap:10px;font-size:14px;">
           <span class="field-label" style="margin:0;">DATE</span>
@@ -7457,6 +7500,12 @@
     }
 
     document.getElementById('notifySideBtn').addEventListener('click', () => {
+      ['daily', 'weekly', 'monthly'].forEach((period) => {
+        const checkbox = document.getElementById(`notifyPreview${period[0].toUpperCase()}${period.slice(1)}`);
+        const summaryEl = document.getElementById(`notifyPreview${period[0].toUpperCase()}${period.slice(1)}Summary`);
+        checkbox.checked = false;
+        summaryEl.classList.remove('show');
+      });
       document.getElementById('notifyPickerOverlay').classList.add('show');
     });
     document.getElementById('notifyPickerOverlay').addEventListener('click', (e) => {
@@ -7467,6 +7516,48 @@
     document.getElementById('notifyPickMonthly').addEventListener('click', () => openNotifySection('monthly'));
     document.getElementById('closeNotifySettings').addEventListener('click', () => {
       document.getElementById('notifySettingsOverlay').classList.remove('show');
+      document.getElementById('notifyPickerOverlay').classList.add('show');
+    });
+
+    // Picker popup (Daily/Weekly/Monthly) ke left-side checkbox — tick karte
+    // hi us period ke liye jo bhi Alert/Reminder times save hain, unki
+    // summary neeche dikha deta hai, bina settings page ke andar gaye.
+    // Kuch bhi set nahi hai to "No set schedule" dikhta hai.
+    const NOTIFY_PREVIEW_MODES = {
+      daily: ['alert', 'reminder'],
+      weekly: ['weeklyAlert', 'weeklyReminder'],
+      monthly: ['monthlyAlert', 'monthlyReminder'],
+    };
+    const NOTIFY_PREVIEW_PAGE_LABELS = {
+      alert: 'Alert', reminder: 'Reminder',
+      weeklyAlert: 'Alert', weeklyReminder: 'Reminder',
+      monthlyAlert: 'Alert', monthlyReminder: 'Reminder',
+    };
+
+    function buildNotifyPreviewSummary(period) {
+      const modes = NOTIFY_PREVIEW_MODES[period];
+      const parts = [];
+      modes.forEach((mode) => {
+        const cfg = getNotifyModeConfig(mode);
+        const times12 = (cfg.times || []).filter(Boolean).map(to12Hour);
+        if (cfg.on && times12.length) {
+          parts.push(`${NOTIFY_PREVIEW_PAGE_LABELS[mode]}: ${times12.join(', ')}`);
+        }
+      });
+      return parts.length ? parts.join('  •  ') : 'No set schedule';
+    }
+
+    ['daily', 'weekly', 'monthly'].forEach((period) => {
+      const checkbox = document.getElementById(`notifyPreview${period[0].toUpperCase()}${period.slice(1)}`);
+      const summaryEl = document.getElementById(`notifyPreview${period[0].toUpperCase()}${period.slice(1)}Summary`);
+      checkbox.addEventListener('change', () => {
+        if (checkbox.checked) {
+          summaryEl.textContent = buildNotifyPreviewSummary(period);
+          summaryEl.classList.add('show');
+        } else {
+          summaryEl.classList.remove('show');
+        }
+      });
     });
     NOTIFY_MODE_KEYS.forEach((mode) => {
       document.getElementById(perDayInputId(mode)).addEventListener('input', (e) => {
