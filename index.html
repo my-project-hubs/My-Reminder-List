@@ -6699,13 +6699,13 @@
       const r = reminderLists.find(x => x.id === id);
       if (!r) return;
       const titleEl = document.getElementById('viewNotesTitle');
-      if (titleEl) titleEl.textContent = r.listName || 'Notes';
+      if (titleEl) titleEl.textContent = 'Title - ' + (r.listName || 'Untitled');
       const bodyEl = document.getElementById('viewNotesBody');
       if (bodyEl) {
         const notesText = (r.notes || '').trim();
         if (notesText) {
           bodyEl.className = 'notes-view-body';
-          bodyEl.textContent = notesText;
+          bodyEl.textContent = 'Notice ...\n\n' + notesText;
         } else {
           bodyEl.className = 'notes-view-body notes-view-empty';
           bodyEl.textContent = 'No notes written';
@@ -6906,21 +6906,13 @@
         const notesText = ((entry && entry.notes) || (liveReminder && liveReminder.notes) || '').trim();
         const titleEl = document.getElementById('viewNotesTitle');
         if (titleEl) {
-          const name = (entry && entry.listName) || (liveReminder && liveReminder.listName) || 'Untitled';
-          titleEl.textContent = '';
-          const nameSpan = document.createElement('div');
-          nameSpan.textContent = name;
-          const tagSpan = document.createElement('div');
-          tagSpan.textContent = '(Notice)';
-          tagSpan.style.cssText = 'font-size:13px;font-weight:600;color:#666;margin-top:4px;';
-          titleEl.appendChild(nameSpan);
-          titleEl.appendChild(tagSpan);
+          titleEl.textContent = 'Title - ' + ((entry && entry.listName) || (liveReminder && liveReminder.listName) || 'Untitled');
         }
         const bodyEl = document.getElementById('viewNotesBody');
         if (bodyEl) {
           if (notesText) {
             bodyEl.className = 'notes-view-body';
-            bodyEl.textContent = notesText;
+            bodyEl.textContent = 'Notice ...\n\n' + notesText;
           } else {
             bodyEl.className = 'notes-view-body notes-view-empty';
             bodyEl.textContent = 'No notes written';
