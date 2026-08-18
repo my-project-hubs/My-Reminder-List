@@ -1,4 +1,18 @@
 // api/telegram-webhook.js
+// Ye file Telegram ke "Webhook" se call hoti hai — jab bhi aap bot ko koi
+// message bhejte ho, Telegram turant is URL ko hit karta hai (cron ki zaroorat
+// nahi hai, ye instant hai).
+//
+// SUPPORTED MESSAGE (on-demand latest history):
+//   /history          -> latest 1 history
+//   /history 5        -> latest 5 history
+//   /history 10       -> latest 10 history (maximum)
+//   history 3         -> (slash ke bina bhi chalega)
+//
+// ONE-TIME SETUP (isko ek baar apne browser mein khol dena, bas):
+//   https://api.telegram.org/bot<BOT_TOKEN>/setWebhook?url=https://<aapka-vercel-domain>/api/telegram-webhook
+//   <BOT_TOKEN> ki jagah apna asli bot token daalo, aur <aapka-vercel-domain>
+//   ki jagah apni website ka vercel URL (jaise https://mysite.vercel.app)
 
 const FIREBASE_PROJECT_ID = "life-tracker-3a3a8";
 const FIRESTORE_DOC_PATH = "reminderApp/mainData";
@@ -43,25 +57,17 @@ function readJsonField(docData, fieldName, fallback) {
   }
 }
 
-// Helper function: Animated Custom Emoji tag generate karne ke liye
-function createAnimatedEmoji(emojiId, fallbackEmoji = "🚨") {
-  return `<tg-emoji emoji-id="${emojiId}">${fallbackEmoji}</tg-emoji>`;
-}
-
 async function sendTelegramMessage(botToken, chatId, text) {
   const tgUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
   const tgRes = await fetch(tgUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id: chatId,
-      text: text,
-      parse_mode: "HTML" // Animation & Formatting support enabled
-    }),
+    body: JSON.stringify({ chat_id: chatId, text }),
   });
   return tgRes.json();
 }
 
+// "/history", "history", "/history 5", "history10" — sab match ho jayenge.
 function parseHistoryCommand(text) {
   const m = String(text || "").trim().match(/^\/?history\s*(\d{1,2})?\s*$/i);
   if (!m) return null;
@@ -103,6 +109,7 @@ function buildHistoryMessage(entries, requestedCount, reminderById) {
       lines.push(BLANK_PAD_LINE);
     }
     if (h.itemType === "notes") {
+      // Purani snapshots mein notes save nahi hoti thi — us waqt live item se fallback.
       const liveItem = reminderById && reminderById[h.reminderId];
       const noteText = String(h.notes || (liveItem && liveItem.notes) || "").trim();
       lines.push(centerText("Notes", CARD_WIDTH));
@@ -137,6 +144,8 @@ function buildHistoryMessage(entries, requestedCount, reminderById) {
 
 export default async function handler(req, res) {
   try {
+    // Telegram sirf POST bhejta hai. Browser mein khol kar test karne ke liye
+    // GET par ek chhota status dikha dete hain.
     if (req.method !== "POST") {
       return res.status(200).json({ ok: true, info: "Telegram webhook is live." });
     }
@@ -153,16 +162,19 @@ export default async function handler(req, res) {
     }
     const message = (body && (body.message || body.edited_message)) || null;
 
+    // Koi message hi nahi (kisi aur tarah ka Telegram update) — chup-chaap 200 bhej do.
     if (!message || !message.chat || !message.text) {
       return res.status(200).json({ ok: true });
     }
 
+    // Security: sirf apne khud ke chat se aaya command hi process karo.
     if (String(message.chat.id) !== CHAT_ID) {
       return res.status(200).json({ ok: true });
     }
 
     const requestedCount = parseHistoryCommand(message.text);
     if (requestedCount === null) {
+      // History command nahi hai — kuch reply nahi karte, chup rehte hain.
       return res.status(200).json({ ok: true });
     }
 
@@ -182,5 +194,4 @@ export default async function handler(req, res) {
   } catch (err) {
     return res.status(500).json({ ok: false, error: String(err) });
   }
-    }
-  
+}
