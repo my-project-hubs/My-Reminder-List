@@ -112,13 +112,13 @@ function buildHistoryMessage(entries, requestedCount, reminderById) {
       // Purani snapshots mein notes save nahi hoti thi — us waqt live item se fallback.
       const liveItem = reminderById && reminderById[h.reminderId];
       const noteText = String(h.notes || (liveItem && liveItem.notes) || "").trim();
-      lines.push(centerText("Notes", CARD_WIDTH));
+      lines.push(centerText("( Notice )", CARD_WIDTH));
       lines.push(BLANK_PAD_LINE);
       lines.push(`Title - ${h.listName || "Untitled"}`);
       lines.push(BLANK_PAD_LINE);
       if (noteText) {
         const noteLines = noteText.split("\n");
-        lines.push(`Notes - ${noteLines[0]}`);
+        lines.push(`Notice - ${noteLines[0]}`);
         for (let i = 1; i < noteLines.length; i++) lines.push(noteLines[i]);
         lines.push(BLANK_PAD_LINE);
       }
