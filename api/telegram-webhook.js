@@ -102,6 +102,9 @@ function buildHistoryMessage(entries, requestedCount, reminderById) {
       lines.push(BLANK_PAD_LINE);
     }
     lines.push(centerText(h.listName || "Untitled", CARD_WIDTH));
+    if (h.itemType === "notes") {
+      lines.push(centerText("(Notes)", CARD_WIDTH));
+    }
     lines.push(BLANK_PAD_LINE);
     if (h.itemType === "notes") {
       // Purani snapshots mein notes save nahi hoti thi — us waqt live item se fallback.
