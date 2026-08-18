@@ -309,7 +309,7 @@ function buildCombinedMessage(matched, pageMode) {
       // ki position bilkul nahi badal rahe.
       const base = centerText(text, FULL_WIDTH); // purana centered string
       const nameLeftPad = Math.max(0, Math.floor((CARD_WIDTH - String(r.listName || "Untitled").length) / 2));
-      const dot = "🔴";
+      const dot = "♦️";
       if (base.length > nameLeftPad + dot.length) {
         lines.push(base.slice(0, nameLeftPad) + dot + base.slice(nameLeftPad + dot.length));
       } else {
