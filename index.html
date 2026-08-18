@@ -6837,7 +6837,7 @@
           <button type="button" class="hd-delete-btn" aria-label="Delete"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1z"/><path d="M5 6h14"/><path d="M7 6v13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V6"/><line x1="10" y1="10" x2="10" y2="17"/><line x1="14" y1="10" x2="14" y2="17"/></svg></button>
           ${r.itemType === 'notes' ? `<button type="button" class="hd-view-btn" aria-label="View note">👁️</button>` : ''}
           <div class="hd-status ${status}"><span class="hd-dot"></span><span>${statusLabel}</span></div>
-          ${r.itemType === 'notes' ? `<div class="hd-notice-label">Notice</div>` : ''}
+          ${r.itemType === 'notes' ? `<div class="hd-notice-label">(Notice)</div>` : ''}
           <div class="hd-dates"><span class="hd-start">${startDate ? formatDMY(startDate) : '--'}</span><span class="hd-arrow">→</span><span class="hd-end">${endDate ? formatDMY(endDate) : (r.targetDate || '--')}</span></div>
           ${r.itemType === 'notes' ? `<div class="hd-days-price">${(totalDays !== null && !isNaN(totalDays)) ? totalDays : '--'} days</div>` : `
           <div class="hd-days-price">${(totalDays !== null && !isNaN(totalDays)) ? totalDays : '--'} days - ₹${price}</div>
@@ -6905,12 +6905,22 @@
         const liveReminder = entry ? reminderLists.find(x => x.id === entry.reminderId) : null;
         const notesText = ((entry && entry.notes) || (liveReminder && liveReminder.notes) || '').trim();
         const titleEl = document.getElementById('viewNotesTitle');
-        if (titleEl) titleEl.textContent = 'Title - ' + ((entry && entry.listName) || (liveReminder && liveReminder.listName) || 'Untitled');
+        if (titleEl) {
+          const name = (entry && entry.listName) || (liveReminder && liveReminder.listName) || 'Untitled';
+          titleEl.textContent = '';
+          const nameSpan = document.createElement('div');
+          nameSpan.textContent = name;
+          const tagSpan = document.createElement('div');
+          tagSpan.textContent = '(Notice)';
+          tagSpan.style.cssText = 'font-size:13px;font-weight:600;color:#666;margin-top:4px;';
+          titleEl.appendChild(nameSpan);
+          titleEl.appendChild(tagSpan);
+        }
         const bodyEl = document.getElementById('viewNotesBody');
         if (bodyEl) {
           if (notesText) {
             bodyEl.className = 'notes-view-body';
-            bodyEl.textContent = 'Notes - ' + notesText;
+            bodyEl.textContent = notesText;
           } else {
             bodyEl.className = 'notes-view-body notes-view-empty';
             bodyEl.textContent = 'No notes written';
