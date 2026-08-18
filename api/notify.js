@@ -281,22 +281,14 @@ function buildCombinedMessage(matched, pageMode) {
     DIVIDER_LINE,
     BLANK_PAD_LINE,
   ];
-  matched.forEach(({ r, text, dayVal }, idx) => {
+  matched.forEach(({ r, text }, idx) => {
     if (idx !== 0) {
       lines.push(DIVIDER_LINE);
       lines.push(BLANK_PAD_LINE);
     }
     lines.push(centerText(r.listName || "Untitled", CARD_WIDTH));
     lines.push(BLANK_PAD_LINE);
-    // Reminder Page (Alert Page nahi) par, Countdown items ke liye, jab
-    // 15 se kam din bache hon to day-left line ke saath 🚨 laga dete hain.
-    const showAlertIcon =
-      pageMode === "Reminder Page" &&
-      r.counter !== "count" &&
-      dayVal !== null && !isNaN(dayVal) &&
-      dayVal < 15;
-    const dayLeftDisplay = showAlertIcon ? `🚨 ${text} 🚨` : text;
-    lines.push(centerText(dayLeftDisplay, FULL_WIDTH));
+    lines.push(centerText(text, FULL_WIDTH));
     lines.push(BLANK_PAD_LINE);
     lines.push(centerText(cleanTargetDate(r.targetDate), FULL_WIDTH));
     lines.push(BLANK_PAD_LINE);
