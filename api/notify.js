@@ -256,6 +256,20 @@ function centerText(text, width) {
   return " ".repeat(Math.max(0, leftPad)) + t;
 }
 
+// Do lines (jaise Date aur Time) ko EK HI (common) left-padding se align karta
+// hai — dono ki length alag hoti hai isliye centerText() unhe alag-alag pad
+// karta to unka starting point match nahi karta ("aage-piche" dikhta tha).
+// Yahan padding sirf lambi wali line (usually Date) ke hisaab se ek baar
+// calculate hoti hai aur dono lines pe wahi lagti hai, taaki ek seedhi column
+// mein upar-neeche align dikhein.
+function centerPairLines(text1, text2, width) {
+  const t1 = String(text1 || "");
+  const t2 = String(text2 || "");
+  const maxLen = Math.max(t1.length, t2.length);
+  const leftPad = " ".repeat(Math.max(0, Math.floor((width - maxLen) / 2)));
+  return [leftPad + t1, leftPad + t2];
+}
+
 
 
 async function sendTelegramMessage(botToken, chatId, text) {
@@ -311,10 +325,11 @@ function buildCombinedMessage(matched, modeLabel, freqLabel, isReminderMode, now
   const dateStr = now.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata" });
   const weekdayShort = now.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", weekday: "short" });
   const timeStr = to12HourDisplay(nowHHMM);
+  const [dateLine, timeLine] = centerPairLines(`Today - ${dateStr} (${weekdayShort})`, timeStr, CARD_WIDTH);
   const lines = [
     BLANK_PAD_LINE,
-    centerText(`Today - ${dateStr} (${weekdayShort})`, CARD_WIDTH),
-    centerText(timeStr, CARD_WIDTH),
+    dateLine,
+    timeLine,
     BLANK_PAD_LINE,
     centerText(modeLabel, CARD_WIDTH),
     BLANK_PAD_LINE,
