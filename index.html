@@ -4458,7 +4458,8 @@
     // sirf Firestore mein bhi save ho jata hai)
     const REMINDER_APP_KEYS = [
       'reminderLists', 'reminderPageSettings',
-      'lineTextOverrides', 'linePositions', 'alertPageSettings', 'lineAnimations', 'historyPageSettings', 'historyPhotoState', 'historyCountBallState', 'reminderCountBallState'
+      'lineTextOverrides', 'linePositions', 'alertPageSettings', 'lineAnimations', 'historyPageSettings', 'historyPhotoState', 'historyCountBallState', 'reminderCountBallState',
+      'historyLists', 'historyPageHiddenIds', 'hiddenListIds', 'hidePageSettings', 'favouriteAnimations', 'deletedAnimations', 'currentPage'
     ];
     let didMigrate = false;
     REMINDER_APP_KEYS.forEach(key => {
@@ -4600,9 +4601,10 @@
     };
     let hideSettings = JSON.parse(localStorage.getItem('hidePageSettings') || 'null') || { ...hideDefaultSettings };
     const total = 4;
-    // sessionStorage: refresh → same page; browser/tab close → cleared → always Alert (0)
+    // currentPage ab Firestore mein save hota hai (localStorage shim ke through) —
+    // refresh ya kisi bhi device par khulne par wahi page dikhega jahan aap the
     try {
-      const savedPage = parseInt(sessionStorage.getItem('currentPage') || '0', 10);
+      const savedPage = parseInt(localStorage.getItem('currentPage') || '0', 10);
       if (!isNaN(savedPage) && savedPage >= 0 && savedPage < total) current = savedPage;
     } catch (e) {}
     if (current !== 0) {
@@ -4653,7 +4655,7 @@
         if (current === 3) histBtn.classList.add('show');
         else histBtn.classList.remove('show');
       }
-      try { sessionStorage.setItem('currentPage', String(current)); } catch (e) {}
+      try { localStorage.setItem('currentPage', String(current)); } catch (e) {}
     }
 
     const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
