@@ -6705,7 +6705,7 @@
         const notesText = (r.notes || '').trim();
         if (notesText) {
           bodyEl.className = 'notes-view-body';
-          bodyEl.textContent = 'Notice ...\n\n' + notesText;
+          bodyEl.textContent = '(Notice)\n' + notesText;
         } else {
           bodyEl.className = 'notes-view-body notes-view-empty';
           bodyEl.textContent = 'No notes written';
@@ -6912,7 +6912,7 @@
         if (bodyEl) {
           if (notesText) {
             bodyEl.className = 'notes-view-body';
-            bodyEl.textContent = 'Notice ...\n\n' + notesText;
+            bodyEl.textContent = '(Notice)\n' + notesText;
           } else {
             bodyEl.className = 'notes-view-body notes-view-empty';
             bodyEl.textContent = 'No notes written';
