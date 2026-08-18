@@ -266,6 +266,19 @@ function cleanTargetDate(td) {
   return String(td || "--").replace(/[()]/g, "").trim();
 }
 
+// Reminder Page ke liye: sirf countdown-type list (counter !== "count"),
+// jiska dayVal 1 se 15 ke beech ho (15 din ya usse kam baaki), unhi ke aage
+// ek red dot lagana hai — 15 se zyada baaki ho to bilkul nahi aana chahiye.
+function shouldShowRedDot(r, dayVal) {
+  return (
+    r.counter !== "count" &&
+    dayVal !== null &&
+    !isNaN(dayVal) &&
+    dayVal > 0 &&
+    dayVal <= 15
+  );
+}
+
 function buildCombinedMessage(matched, pageMode) {
   const now = new Date();
   const dateStr = now.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata" });
@@ -281,14 +294,16 @@ function buildCombinedMessage(matched, pageMode) {
     DIVIDER_LINE,
     BLANK_PAD_LINE,
   ];
-  matched.forEach(({ r, text }, idx) => {
+  matched.forEach(({ r, text, dayVal }, idx) => {
     if (idx !== 0) {
       lines.push(DIVIDER_LINE);
       lines.push(BLANK_PAD_LINE);
     }
     lines.push(centerText(r.listName || "Untitled", CARD_WIDTH));
     lines.push(BLANK_PAD_LINE);
-    lines.push(centerText(text, FULL_WIDTH));
+    const showDot = pageMode === "Reminder Page" && shouldShowRedDot(r, dayVal);
+    const dayLeftText = showDot ? `🔴 ${text}` : text;
+    lines.push(centerText(dayLeftText, FULL_WIDTH));
     lines.push(BLANK_PAD_LINE);
     lines.push(centerText(cleanTargetDate(r.targetDate), FULL_WIDTH));
     lines.push(BLANK_PAD_LINE);
