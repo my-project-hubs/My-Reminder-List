@@ -910,6 +910,17 @@
       -webkit-tap-highlight-color: transparent;
       overflow: visible;
     }
+    .notify-dot {
+      animation: notifyDotBounce 1.1s ease-in-out infinite;
+      transform-origin: center;
+    }
+    @keyframes notifyDotBounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-2.2px); }
+    }
+    .notify-icon-pulse {
+      animation: none;
+    }
     .notify-side-btn:active {
       transform: scale(0.9);
       box-shadow:
@@ -2959,11 +2970,11 @@
   <button class="settings-side-btn" id="settingsSideBtn" aria-label="Settings">⚙</button>
   <button class="switch-page-btn" id="switchPageBtn" aria-label="Switch Page">⇄</button>
   <button class="notify-side-btn" id="notifySideBtn" aria-label="Notification Settings">
-    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" class="notify-icon-pulse">
       <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-4 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="#1a73e8"/>
-      <circle cx="8" cy="10.5" r="1.4" fill="#ffffff"/>
-      <circle cx="12" cy="10.5" r="1.4" fill="#ffffff"/>
-      <circle cx="16" cy="10.5" r="1.4" fill="#ffffff"/>
+      <circle class="notify-dot" cx="8" cy="10.5" r="1.4" fill="#ffffff" style="animation-delay:0s;"/>
+      <circle class="notify-dot" cx="12" cy="10.5" r="1.4" fill="#ffffff" style="animation-delay:0.15s;"/>
+      <circle class="notify-dot" cx="16" cy="10.5" r="1.4" fill="#ffffff" style="animation-delay:0.3s;"/>
     </svg>
   </button>
 
