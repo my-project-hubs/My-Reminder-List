@@ -1,9 +1,15 @@
 // api/notify.js
 // Ye file cron-job.org se baar-baar call hogi (recommend: har 1 minute mein).
+// Ye Firestore se reminder list padhta hai, jo lists "Alert" mein hain unhi ko
+// dekhta hai, aur un mein se jinka koi "notify time" abhi (IST) match karta hai
+// unhe Telegram pe alag-alag message bhejta hai.
 
 const FIREBASE_PROJECT_ID = "life-tracker-3a3a8";
 const FIRESTORE_DOC_PATH = "reminderApp/mainData";
 
+// Cron kitni der mein chalta hai (minutes). 0 = exact-minute match — website ka
+// time-picker sirf HH:MM (minute-level) precision deta hai, isse zyada tight
+// karne ka koi fayda nahi, isliye ye sabse chhota practical tolerance hai.
 const CRON_INTERVAL_MINUTES = 0;
 
 function parseDMY(str) {
@@ -49,6 +55,7 @@ function computeDayValue(r, today) {
   return daysBetween(today, target);
 }
 
+// Same logic as website's isAlertTriggered() — list "Alert" mein hai ya nahi.
 function isAlertTriggered(r, dayVal) {
   if (dayVal === null || isNaN(dayVal)) return false;
   const alertPageNum = parseInt(r.alertPage, 10);
@@ -60,39 +67,23 @@ function isAlertTriggered(r, dayVal) {
   return dayVal <= alertPageNum;
 }
 
-// 15 din se kam wale par LEFT side Siren Emoji lagane ka function
 function formatDayLeftText(r, dayVal) {
-  let text = "";
   if (dayVal === null || isNaN(dayVal)) {
-    text = r.counter === "count" ? "-- . Months - -- . Days" : "-- . Day Left";
-  } else if (r.counter === "count") {
+    return r.counter === "count" ? "-- . Months - -- . Days" : "-- . Day Left";
+  }
+  if (r.counter === "count") {
     const elapsed = Math.max(0, dayVal);
-    if (elapsed <= 30) text = `${elapsed} . Days`;
-    else {
-      const targetForCount = parseDMY(r.targetDate);
-      const { months, days } = targetForCount
-        ? calendarMonthsDaysBetween(targetForCount, new Date())
-        : { months: Math.floor((elapsed - 1) / 30), days: ((elapsed - 1) % 30) + 1 };
-      text = `${months} . Months - ${days} . Days`;
-    }
-  } else {
-    text = dayVal <= 0 ? "Expire" : `${dayVal} . Day Left`;
+    if (elapsed <= 30) return `${elapsed} . Days`;
+    const targetForCount = parseDMY(r.targetDate);
+    const { months, days } = targetForCount
+      ? calendarMonthsDaysBetween(targetForCount, new Date())
+      : { months: Math.floor((elapsed - 1) / 30), days: ((elapsed - 1) % 30) + 1 };
+    return `${months} . Months - ${days} . Days`;
   }
-
-  // AGAR 15 DIN SE KAM HAIN (YA EXPIRE HAI), TO SIRF LEFT SIDE SIREN ADD KARO
-  // Agar aapke paas Telegram Premium Animated Emoji ID hai, to niche wali line me ID daal sakte hain
-  const CUSTOM_EMOJI_ID = ""; // Example: "5368324170671202286"
-  const sirenEmoji = CUSTOM_EMOJI_ID 
-    ? `<tg-emoji emoji-id="${CUSTOM_EMOJI_ID}">🚨</tg-emoji>` 
-    : "🚨";
-
-  if (dayVal !== null && !isNaN(dayVal) && r.counter !== "count" && dayVal < 15) {
-    return `${sirenEmoji} ${text}`;
-  }
-
-  return text;
+  return dayVal <= 0 ? "Expire" : `${dayVal} . Day Left`;
 }
 
+// Current time in IST as "HH:MM" (Vercel server clock is UTC, so convert).
 function currentISTTimeString() {
   const now = new Date();
   return now.toLocaleString("en-GB", {
@@ -100,7 +91,7 @@ function currentISTTimeString() {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-  });
+  }); // "HH:MM"
 }
 
 function minutesSinceMidnight(hhmm) {
@@ -109,6 +100,7 @@ function minutesSinceMidnight(hhmm) {
   return h * 60 + m;
 }
 
+// Kya koi notifyTime abhi (tolerance window ke andar) match karta hai.
 function hasMatchingTimeNow(notifyTimes, nowHHMM) {
   const nowMin = minutesSinceMidnight(nowHHMM);
   if (nowMin === null || !Array.isArray(notifyTimes)) return false;
@@ -136,6 +128,8 @@ function readJsonField(docData, fieldName, fallback) {
   }
 }
 
+// Ek field ko Firestore mein likh do (sirf usi field ko — updateMask ki wajah
+// se document ke baaki fields chhue tak nahi jaate).
 async function writeFirestoreField(fieldName, value) {
   const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/${FIRESTORE_DOC_PATH}?updateMask.fieldPaths=${fieldName}`;
   const res = await fetch(url, {
@@ -163,6 +157,9 @@ function formatEntryTimeIST(ms) {
   return `${dateStr}  ${timeStr}`;
 }
 
+// Nayi History banne ke 1 ghante baad Telegram par batana hai.
+// "historyNotifiedIds" field mein woh entries track hoti hain jinka message
+// bhej diya gaya hai — taaki dobara wahi entry na bheji jaaye.
 const ONE_HOUR_MS = 60 * 60 * 1000;
 
 async function processDelayedHistoryNotify(docData, BOT_TOKEN, CHAT_ID) {
@@ -170,6 +167,10 @@ async function processDelayedHistoryNotify(docData, BOT_TOKEN, CHAT_ID) {
   const hasNotifiedField = !!(docData?.fields?.historyNotifiedIds);
   const notifiedIds = readJsonField(docData, "historyNotifiedIds", []);
 
+  // Pehli baar chal raha hai (field abhi tak Firestore mein bana hi nahi) —
+  // is waqt maujood saari purani entries ko "already notified" maan lo,
+  // taaki deploy hote hi ek saath sabka message na phat jaaye. Sirf ab ke
+  // baad banne wali NAYI history hi 1-ghante-baad notify hogi.
   if (!hasNotifiedField) {
     const baselineIds = historyLists.map((h) => h.id);
     await writeFirestoreField("historyNotifiedIds", baselineIds);
@@ -216,6 +217,9 @@ async function processDelayedHistoryNotify(docData, BOT_TOKEN, CHAT_ID) {
 
   await sendTelegramMessage(BOT_TOKEN, CHAT_ID, lines.join("\n"));
 
+  // notified list ko update karo: jo abhi bheja + jo pehle se bheja hua tha
+  // (aur history mein ab bhi maujood hai — delete ho chuki purani ids hata do
+  // taaki list hamesha ke liye badhti na jaaye).
   const stillExistingIds = new Set(historyLists.map((h) => h.id));
   const updatedNotified = [...notifiedIds.filter((id) => stillExistingIds.has(id)), ...due.map((h) => h.id)];
   await writeFirestoreField("historyNotifiedIds", updatedNotified);
@@ -223,9 +227,14 @@ async function processDelayedHistoryNotify(docData, BOT_TOKEN, CHAT_ID) {
   return { baselined: false, sent: due.length };
 }
 
+// Card ki width (characters mein) — centering isi ke hisaab se hoti hai.
 const CARD_WIDTH = 24;
+// Braille blank character — dikhta khaali hai, lekin Telegram "asli" blank lines
+// ki tarah usse hata (trim) nahi karta, isliye upar-neeche padding ke liye kaam aata hai.
 const BLANK_PAD_LINE = "⠀";
 
+// Text ko (approx) beech mein laane ke liye left side spaces jodta hai.
+// Telegram ka font monospace nahi hai, isliye ye perfect-center nahi, roughly-center hoga.
 function centerText(text, width) {
   const t = String(text || "");
   if (t.length >= width) return t;
@@ -233,23 +242,26 @@ function centerText(text, width) {
   return " ".repeat(Math.max(0, leftPad)) + t;
 }
 
+
+
 async function sendTelegramMessage(botToken, chatId, text) {
   const tgUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
   const tgRes = await fetch(tgUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id: chatId,
-      text: text,
-      parse_mode: "HTML"
-    }),
+    body: JSON.stringify({ chat_id: chatId, text }),
   });
   return tgRes.json();
 }
 
 const DIVIDER_LINE = "_".repeat(CARD_WIDTH + 6);
+// Day-left aur target-date lines ko poore card ki width (divider jitni chauda)
+// ke hisaab se center karna hai — list-name ka centering (CARD_WIDTH) waisa hi
+// rehne diya hai, sirf yeh dono line poora center mein aayengi.
 const FULL_WIDTH = DIVIDER_LINE.length;
 
+// Target date sirf "DD/MM/YYYY" dikhna chahiye — agar kahin se bhi "()"
+// (ya extra spaces) saath aa jaaye to yahan clean kar dete hain.
 function cleanTargetDate(td) {
   return String(td || "--").replace(/[()]/g, "").trim();
 }
@@ -286,6 +298,7 @@ function buildCombinedMessage(matched, pageMode) {
   return lines.join("\n");
 }
 
+
 export default async function handler(req, res) {
   try {
     const BOT_TOKEN = (process.env.BOT_TOKEN || "").trim();
@@ -299,6 +312,9 @@ export default async function handler(req, res) {
     const today = new Date();
     const nowHHMM = currentISTTimeString();
 
+    // Kam se kam din baaki wali list sabse upar, aur jyada din baaki wali
+    // sabse niche — dayVal ke hisaab se chhote se bade order mein sort.
+    // Jinka date hi valid nahi (dayVal null/NaN), unhe sabse neeche daal dete hain.
     function sortByDayVal(matched) {
       matched.sort((a, b) => {
         const av = (a.dayVal === null || isNaN(a.dayVal)) ? Infinity : a.dayVal;
@@ -308,19 +324,25 @@ export default async function handler(req, res) {
       return matched;
     }
 
+    // Alert Page aur Reminder Page ab apna-apna independent ON/OFF, MSG/DAY
+    // aur Times rakhte hain (Notification Settings mein set kiya hua) —
+    // dono ek dusre se bilkul alag check hote hain, isliye dono ka apna
+    // schedule chal sakta hai bina ek dusre ko overwrite/block kiye.
     function buildMatchesForMode(mode) {
       const matched = [];
       for (const r of lists) {
         const on = mode === "alert" ? r.notifyAlertOn : r.notifyReminderOn;
-        if (!on) continue;
+        if (!on) continue; // is list ke group mein yeh mode hi ON nahi hai
 
         const perDay = parseInt(mode === "alert" ? r.notifyAlertPerDay : r.notifyReminderPerDay, 10) || 0;
-        if (perDay <= 0) continue;
+        if (perDay <= 0) continue; // is mode ke liye notification set hi nahi hai
 
         const times = mode === "alert" ? r.notifyAlertTimes : r.notifyReminderTimes;
-        if (!hasMatchingTimeNow(times, nowHHMM)) continue;
+        if (!hasMatchingTimeNow(times, nowHHMM)) continue; // abhi iska time nahi hai
 
         const dayVal = computeDayValue(r, today);
+        // Alert Page: sirf jinka "day left" alert-condition trigger ho rahi hai.
+        // Reminder Page: saari lists (alert-condition ignore karke).
         if (mode === "alert" && !isAlertTriggered(r, dayVal)) continue;
 
         matched.push({ r, text: formatDayLeftText(r, dayVal), dayVal });
@@ -328,22 +350,28 @@ export default async function handler(req, res) {
       return sortByDayVal(matched);
     }
 
-    // SIRF REMINDER PAGE KA MESSAGE BHEJNA HAI
+    const alertMatches = buildMatchesForMode("alert");
     const reminderMatches = buildMatchesForMode("reminder");
 
     const results = [];
-    if (reminderMatches.length > 0) {
-      const message = buildCombinedMessage(reminderMatches, "Reminder Page");
+    for (const [pageMode, matched] of [
+      ["Alert Page", alertMatches],
+      ["Reminder Page", reminderMatches],
+    ]) {
+      if (matched.length === 0) continue;
+      const message = buildCombinedMessage(matched, pageMode);
       const tgData = await sendTelegramMessage(BOT_TOKEN, CHAT_ID, message);
       results.push({
-        pageMode: "Reminder Page",
-        matchedCount: reminderMatches.length,
+        pageMode,
+        matchedCount: matched.length,
         sent: !!tgData.ok,
-        lists: reminderMatches.map((m) => m.r.listName),
+        lists: matched.map((m) => m.r.listName),
         error: tgData.ok ? undefined : tgData,
       });
     }
 
+    // Feature 2: nayi History bane ke 1 ghante baad alag se batana (Alert/Reminder
+    // ke schedule se bilkul independent — yeh sirf "elapsed time" dekhta hai).
     const historyNotifyResult = await processDelayedHistoryNotify(docData, BOT_TOKEN, CHAT_ID);
 
     return res.status(200).json({
@@ -355,5 +383,4 @@ export default async function handler(req, res) {
   } catch (err) {
     return res.status(500).json({ ok: false, error: String(err) });
   }
-                     }
-    
+}
