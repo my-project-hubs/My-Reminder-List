@@ -1793,6 +1793,7 @@
     }
 
     .reminder-overlay.show { display: flex !important; }
+    #notifyPickerOverlay { justify-content: center !important; }
     /* When Notes view popup is opened from inside History detail, it must render on top */
     #viewNotesOverlay { z-index: 320; }
 
@@ -1817,6 +1818,35 @@
       border-radius: 2px;
       margin: 0 auto 14px;
     }
+
+    .notify-picker-panel {
+      width: calc(100% - 28px);
+      max-width: 420px;
+      background: #fff;
+      border-radius: 16px;
+      margin: 14px auto;
+      padding: 6px 0;
+      box-sizing: border-box;
+      overflow: hidden;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .notify-picker-item {
+      display: block;
+      width: 100%;
+      text-align: center;
+      padding: 18px 20px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #1a1a1a;
+      background: none;
+      border: none;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+    }
+
+    .notify-picker-item:last-child { border-bottom: none; }
+    .notify-picker-item:active { background: #f2f6fe; }
 
     .field-block {
       margin-bottom: 16px;
@@ -4076,14 +4106,23 @@
     </div>
   </div>
 
+  <div class="reminder-overlay" id="notifyPickerOverlay">
+    <div class="notify-picker-panel">
+      <button type="button" class="notify-picker-item" id="notifyPickDaily">Daily</button>
+      <button type="button" class="notify-picker-item" id="notifyPickWeekly">Weekly</button>
+      <button type="button" class="notify-picker-item" id="notifyPickMonthly">Monthly</button>
+    </div>
+  </div>
+
   <div class="reminder-overlay" id="notifySettingsOverlay">
     <div class="reminder-panel">
       <div class="sheet-handle"></div>
       <div class="settings-header">
-        <h2 style="font-size:1.05rem;">Telegram Message System</h2>
+        <h2 style="font-size:1.05rem;" id="notifySettingsTitle">Telegram Message System</h2>
         <button class="close-btn" id="closeNotifySettings">×</button>
       </div>
 
+      <div id="notifyDailySection">
       <div style="text-align:center;font-weight:700;color:#1a73e8;font-size:13px;letter-spacing:0.5px;margin-bottom:10px;">DAILY</div>
 
       <div class="setting-card">
@@ -4121,7 +4160,9 @@
       </div>
 
       <button class="btn-apply" style="display:block;margin:16px auto 0;" id="saveDailyNotifyBtn">SAVE</button>
+      </div>
 
+      <div id="notifyWeeklySection">
       <div style="text-align:center;font-weight:700;color:#1a73e8;font-size:13px;letter-spacing:0.5px;margin:22px 0 10px;">WEEKLY</div>
 
       <div class="setting-card">
@@ -4174,7 +4215,9 @@
       </div>
 
       <button class="btn-apply" style="display:block;margin:16px auto 0;" id="saveWeeklyNotifyBtn">SAVE</button>
+      </div>
 
+      <div id="notifyMonthlySection">
       <div style="text-align:center;font-weight:700;color:#1a73e8;font-size:13px;letter-spacing:0.5px;margin:22px 0 10px;">MONTHLY</div>
 
       <div class="setting-card">
@@ -4219,6 +4262,7 @@
       </div>
 
       <button class="btn-apply" style="display:block;margin:16px auto 0;" id="saveMonthlyNotifyBtn">SAVE</button>
+      </div>
     </div>
   </div>
 
@@ -7392,10 +7436,35 @@
       document.getElementById('notifyMonthlyDateSelect').value = String(list0.notifyMonthlyDate || 1);
     }
 
-    document.getElementById('notifySideBtn').addEventListener('click', () => {
+    // Sirf ek section (Daily/Weekly/Monthly) ke div ko dikhata hai, baaki
+    // do ko chhupa deta hai — taaki full settings page khulne par sirf
+    // wahi section dikhe jiska icon user ne dabaya tha.
+    function showOnlyNotifySection(section) {
+      const map = { daily: 'notifyDailySection', weekly: 'notifyWeeklySection', monthly: 'notifyMonthlySection' };
+      const titles = { daily: 'Daily Notification', weekly: 'Weekly Notification', monthly: 'Monthly Notification' };
+      Object.values(map).forEach((id) => {
+        document.getElementById(id).style.display = 'none';
+      });
+      document.getElementById(map[section]).style.display = 'block';
+      document.getElementById('notifySettingsTitle').textContent = titles[section];
+    }
+
+    function openNotifySection(section) {
       loadNotifySettingsGlobal();
+      showOnlyNotifySection(section);
+      document.getElementById('notifyPickerOverlay').classList.remove('show');
       document.getElementById('notifySettingsOverlay').classList.add('show');
+    }
+
+    document.getElementById('notifySideBtn').addEventListener('click', () => {
+      document.getElementById('notifyPickerOverlay').classList.add('show');
     });
+    document.getElementById('notifyPickerOverlay').addEventListener('click', (e) => {
+      if (e.target.id === 'notifyPickerOverlay') e.target.classList.remove('show');
+    });
+    document.getElementById('notifyPickDaily').addEventListener('click', () => openNotifySection('daily'));
+    document.getElementById('notifyPickWeekly').addEventListener('click', () => openNotifySection('weekly'));
+    document.getElementById('notifyPickMonthly').addEventListener('click', () => openNotifySection('monthly'));
     document.getElementById('closeNotifySettings').addEventListener('click', () => {
       document.getElementById('notifySettingsOverlay').classList.remove('show');
     });
