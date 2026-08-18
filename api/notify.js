@@ -293,15 +293,32 @@ function shouldShowRedDot(r, dayVal) {
   );
 }
 
-function buildCombinedMessage(matched, pageLabel, isReminderMode) {
+// "HH:MM" (24hr) ko "05:23 PM" jaisa 12hr display format mein badalta hai
+// (message ke header mein time dikhane ke liye).
+function to12HourDisplay(hhmm) {
+  const [hStr, mStr] = (hhmm || "").split(":");
+  let h = parseInt(hStr, 10);
+  const m = parseInt(mStr, 10);
+  if (isNaN(h) || isNaN(m)) return "";
+  const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")} ${ampm}`;
+}
+
+function buildCombinedMessage(matched, modeLabel, freqLabel, isReminderMode, nowHHMM) {
   const now = new Date();
   const dateStr = now.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata" });
   const weekdayShort = now.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", weekday: "short" });
+  const timeStr = to12HourDisplay(nowHHMM);
   const lines = [
     BLANK_PAD_LINE,
     centerText(`Today - ${dateStr} (${weekdayShort})`, CARD_WIDTH),
+    centerText(timeStr, CARD_WIDTH),
     BLANK_PAD_LINE,
-    centerText(pageLabel, CARD_WIDTH),
+    centerText(modeLabel, CARD_WIDTH),
+    BLANK_PAD_LINE,
+    centerText(freqLabel, CARD_WIDTH),
     BLANK_PAD_LINE,
     centerText(`Total List - ${matched.length}`, CARD_WIDTH),
     BLANK_PAD_LINE,
@@ -426,25 +443,28 @@ export default async function handler(req, res) {
       return sortByDayVal(matched);
     }
 
-    // pageLabel = message ke andar dikhne wala naam. isReminderMode = red-dot
-    // wala Reminder-Page-specific display logic sirf "reminder" mode mein chale.
+    // modeLabel = "Alert Page" / "Reminder Page" (message mein alag line).
+    // freqLabel = "Daily Notification" / "Weekly Notification" / "Monthly
+    // Notification" (message mein isse alag ek aur line). isReminderMode =
+    // red-dot wala Reminder-Page-specific display logic sirf "reminder" mode
+    // mein chale.
     const NOTIFY_JOBS = [
-      ["daily", "alert", "Alert Page"],
-      ["daily", "reminder", "Reminder Page"],
-      ["weekly", "alert", "Weekly Alert"],
-      ["weekly", "reminder", "Weekly Reminder"],
-      ["monthly", "alert", "Monthly Alert"],
-      ["monthly", "reminder", "Monthly Reminder"],
+      ["daily", "alert", "Alert Page", "Daily Notification"],
+      ["daily", "reminder", "Reminder Page", "Daily Notification"],
+      ["weekly", "alert", "Alert Page", "Weekly Notification"],
+      ["weekly", "reminder", "Reminder Page", "Weekly Notification"],
+      ["monthly", "alert", "Alert Page", "Monthly Notification"],
+      ["monthly", "reminder", "Reminder Page", "Monthly Notification"],
     ];
 
     const results = [];
-    for (const [freq, mode, pageLabel] of NOTIFY_JOBS) {
+    for (const [freq, mode, modeLabel, freqLabel] of NOTIFY_JOBS) {
       const matched = buildMatchesForMode(freq, mode);
       if (matched.length === 0) continue;
-      const message = buildCombinedMessage(matched, pageLabel, mode === "reminder");
+      const message = buildCombinedMessage(matched, modeLabel, freqLabel, mode === "reminder", nowHHMM);
       const tgData = await sendTelegramMessage(BOT_TOKEN, CHAT_ID, message);
       results.push({
-        pageMode: pageLabel,
+        pageMode: `${freqLabel} - ${modeLabel}`,
         matchedCount: matched.length,
         sent: !!tgData.ok,
         lists: matched.map((m) => m.r.listName),
