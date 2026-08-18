@@ -634,6 +634,13 @@
     .hd-status.expired .hd-dot { background: #e02424; }
     .hd-status.upcoming { color: #f59e0b; }
     .hd-status.upcoming .hd-dot { background: #f59e0b; }
+    .hd-notice-label {
+      margin-top: 10px;
+      margin-bottom: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #555;
+    }
     .hd-dates {
       font-size: 20px;
       font-weight: 700;
@@ -4066,7 +4073,7 @@
     <div class="reminder-panel">
       <div class="sheet-handle"></div>
       <div class="settings-header">
-        <h2>Notification Settings</h2>
+        <h2 style="font-size:1.05rem;">Telegram Message System</h2>
         <button class="close-btn" id="closeNotifySettings">×</button>
       </div>
 
@@ -6830,6 +6837,7 @@
           <button type="button" class="hd-delete-btn" aria-label="Delete"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1z"/><path d="M5 6h14"/><path d="M7 6v13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V6"/><line x1="10" y1="10" x2="10" y2="17"/><line x1="14" y1="10" x2="14" y2="17"/></svg></button>
           ${r.itemType === 'notes' ? `<button type="button" class="hd-view-btn" aria-label="View note">👁️</button>` : ''}
           <div class="hd-status ${status}"><span class="hd-dot"></span><span>${statusLabel}</span></div>
+          ${r.itemType === 'notes' ? `<div class="hd-notice-label">Notice</div>` : ''}
           <div class="hd-dates"><span class="hd-start">${startDate ? formatDMY(startDate) : '--'}</span><span class="hd-arrow">→</span><span class="hd-end">${endDate ? formatDMY(endDate) : (r.targetDate || '--')}</span></div>
           ${r.itemType === 'notes' ? `<div class="hd-days-price">${(totalDays !== null && !isNaN(totalDays)) ? totalDays : '--'} days</div>` : `
           <div class="hd-days-price">${(totalDays !== null && !isNaN(totalDays)) ? totalDays : '--'} days - ₹${price}</div>
@@ -6897,12 +6905,12 @@
         const liveReminder = entry ? reminderLists.find(x => x.id === entry.reminderId) : null;
         const notesText = ((entry && entry.notes) || (liveReminder && liveReminder.notes) || '').trim();
         const titleEl = document.getElementById('viewNotesTitle');
-        if (titleEl) titleEl.textContent = (entry && entry.listName) || (liveReminder && liveReminder.listName) || 'Notes';
+        if (titleEl) titleEl.textContent = 'Title - ' + ((entry && entry.listName) || (liveReminder && liveReminder.listName) || 'Untitled');
         const bodyEl = document.getElementById('viewNotesBody');
         if (bodyEl) {
           if (notesText) {
             bodyEl.className = 'notes-view-body';
-            bodyEl.textContent = notesText;
+            bodyEl.textContent = 'Notes - ' + notesText;
           } else {
             bodyEl.className = 'notes-view-body notes-view-empty';
             bodyEl.textContent = 'No notes written';
