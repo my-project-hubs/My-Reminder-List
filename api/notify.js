@@ -303,11 +303,18 @@ function buildCombinedMessage(matched, pageMode) {
     lines.push(BLANK_PAD_LINE);
     const showDot = pageMode === "Reminder Page" && shouldShowRedDot(r, dayVal);
     if (showDot) {
-      // List-name line jitne se left-margin se shuru hoti hai, dot bhi
-      // usi column se shuru ho — taaki dot list-name ke "Z" (pehle letter)
-      // ke bilkul neeche/left aaye, center mein nahi.
+      // "Day Left" text apni purani (center wali) jagah par hi rahega —
+      // sirf dot ko list-name ke left-margin (jahan uska pehla letter
+      // shuru hota hai) wale column mein alag se daal rahe hain, text
+      // ki position bilkul nahi badal rahe.
+      const base = centerText(text, FULL_WIDTH); // purana centered string
       const nameLeftPad = Math.max(0, Math.floor((CARD_WIDTH - String(r.listName || "Untitled").length) / 2));
-      lines.push(" ".repeat(nameLeftPad) + `🔴 ${text}`);
+      const dot = "🔴";
+      if (base.length > nameLeftPad + dot.length) {
+        lines.push(base.slice(0, nameLeftPad) + dot + base.slice(nameLeftPad + dot.length));
+      } else {
+        lines.push(dot + " " + base.replace(/^\s+/, ""));
+      }
     } else {
       lines.push(centerText(text, FULL_WIDTH));
     }
