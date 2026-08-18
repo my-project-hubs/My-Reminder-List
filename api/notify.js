@@ -94,6 +94,20 @@ function currentISTTimeString() {
   }); // "HH:MM"
 }
 
+// Aaj IST mein kaunsa weekday hai — "Sun"/"Mon"/... (website ke Weekly
+// dropdown ki values se match karne ke liye).
+function currentISTWeekdayShort() {
+  const now = new Date();
+  return now.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", weekday: "short" });
+}
+
+// Aaj IST mein mahine ki kaunsi tareekh hai (1-31) — website ke Monthly
+// dropdown ki value se match karne ke liye.
+function currentISTDateOfMonth() {
+  const now = new Date();
+  return parseInt(now.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", day: "2-digit" }), 10);
+}
+
 function minutesSinceMidnight(hhmm) {
   const [h, m] = (hhmm || "").split(":").map((n) => parseInt(n, 10));
   if (isNaN(h) || isNaN(m)) return null;
@@ -279,7 +293,7 @@ function shouldShowRedDot(r, dayVal) {
   );
 }
 
-function buildCombinedMessage(matched, pageMode) {
+function buildCombinedMessage(matched, pageLabel, isReminderMode) {
   const now = new Date();
   const dateStr = now.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata" });
   const weekdayShort = now.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", weekday: "short" });
@@ -287,7 +301,7 @@ function buildCombinedMessage(matched, pageMode) {
     BLANK_PAD_LINE,
     centerText(`Today - ${dateStr} (${weekdayShort})`, CARD_WIDTH),
     BLANK_PAD_LINE,
-    centerText(pageMode, CARD_WIDTH),
+    centerText(pageLabel, CARD_WIDTH),
     BLANK_PAD_LINE,
     centerText(`Total List - ${matched.length}`, CARD_WIDTH),
     BLANK_PAD_LINE,
@@ -301,7 +315,7 @@ function buildCombinedMessage(matched, pageMode) {
     }
     lines.push(centerText(r.listName || "Untitled", CARD_WIDTH));
     lines.push(BLANK_PAD_LINE);
-    const showDot = pageMode === "Reminder Page" && shouldShowRedDot(r, dayVal);
+    const showDot = isReminderMode && shouldShowRedDot(r, dayVal);
     if (showDot) {
       // "Day Left" text apni purani (center wali) jagah par hi rahega —
       // sirf dot ko list-name ke left-margin (jahan uska pehla letter
@@ -353,20 +367,53 @@ export default async function handler(req, res) {
       return matched;
     }
 
+    // Har (freq, mode) jode ke apne Firestore field-naam — website ke
+    // Notification Settings page mein jo naam se save hote hain, wahi yahan
+    // padhte hain. freq: "daily" | "weekly" | "monthly". mode: "alert" | "reminder".
+    function notifyFieldNames(freq, mode) {
+      const modeCap = mode === "alert" ? "Alert" : "Reminder";
+      if (freq === "daily") {
+        return { on: `notify${modeCap}On`, perDay: `notify${modeCap}PerDay`, times: `notify${modeCap}Times` };
+      }
+      const freqCap = freq === "weekly" ? "Weekly" : "Monthly";
+      return { on: `notify${freqCap}${modeCap}On`, perDay: `notify${freqCap}${modeCap}PerDay`, times: `notify${freqCap}${modeCap}Times` };
+    }
+
+    const nowWeekdayShort = currentISTWeekdayShort();
+    const nowDateOfMonth = currentISTDateOfMonth();
+    const list0ForSchedule = lists[0] || {};
+
+    // Weekly sirf usi din chalega jo website ke Weekly "DAY" dropdown mein
+    // chuna gaya hai; Monthly sirf usi tareekh ko jo "DATE" dropdown mein
+    // chuni gayi hai. Daily ke liye yeh gate hamesha true hai (har din chalta hai).
+    function frequencyGatePasses(freq) {
+      if (freq === "daily") return true;
+      if (freq === "weekly") return nowWeekdayShort === (list0ForSchedule.notifyWeeklyDay || "");
+      if (freq === "monthly") {
+        const targetDate = parseInt(list0ForSchedule.notifyMonthlyDate, 10);
+        return !!targetDate && nowDateOfMonth === targetDate;
+      }
+      return false;
+    }
+
     // Alert Page aur Reminder Page ab apna-apna independent ON/OFF, MSG/DAY
     // aur Times rakhte hain (Notification Settings mein set kiya hua) —
     // dono ek dusre se bilkul alag check hote hain, isliye dono ka apna
-    // schedule chal sakta hai bina ek dusre ko overwrite/block kiye.
-    function buildMatchesForMode(mode) {
+    // schedule chal sakta hai bina ek dusre ko overwrite/block kiye. Weekly
+    // aur Monthly bhi Daily jaisa hi structure follow karte hain, bas extra
+    // "aaj sahi din/tareekh hai kya" gate ke saath.
+    function buildMatchesForMode(freq, mode) {
+      if (!frequencyGatePasses(freq)) return [];
+      const fields = notifyFieldNames(freq, mode);
       const matched = [];
       for (const r of lists) {
-        const on = mode === "alert" ? r.notifyAlertOn : r.notifyReminderOn;
+        const on = r[fields.on];
         if (!on) continue; // is list ke group mein yeh mode hi ON nahi hai
 
-        const perDay = parseInt(mode === "alert" ? r.notifyAlertPerDay : r.notifyReminderPerDay, 10) || 0;
+        const perDay = parseInt(r[fields.perDay], 10) || 0;
         if (perDay <= 0) continue; // is mode ke liye notification set hi nahi hai
 
-        const times = mode === "alert" ? r.notifyAlertTimes : r.notifyReminderTimes;
+        const times = r[fields.times];
         if (!hasMatchingTimeNow(times, nowHHMM)) continue; // abhi iska time nahi hai
 
         const dayVal = computeDayValue(r, today);
@@ -379,19 +426,25 @@ export default async function handler(req, res) {
       return sortByDayVal(matched);
     }
 
-    const alertMatches = buildMatchesForMode("alert");
-    const reminderMatches = buildMatchesForMode("reminder");
+    // pageLabel = message ke andar dikhne wala naam. isReminderMode = red-dot
+    // wala Reminder-Page-specific display logic sirf "reminder" mode mein chale.
+    const NOTIFY_JOBS = [
+      ["daily", "alert", "Alert Page"],
+      ["daily", "reminder", "Reminder Page"],
+      ["weekly", "alert", "Weekly Alert"],
+      ["weekly", "reminder", "Weekly Reminder"],
+      ["monthly", "alert", "Monthly Alert"],
+      ["monthly", "reminder", "Monthly Reminder"],
+    ];
 
     const results = [];
-    for (const [pageMode, matched] of [
-      ["Alert Page", alertMatches],
-      ["Reminder Page", reminderMatches],
-    ]) {
+    for (const [freq, mode, pageLabel] of NOTIFY_JOBS) {
+      const matched = buildMatchesForMode(freq, mode);
       if (matched.length === 0) continue;
-      const message = buildCombinedMessage(matched, pageMode);
+      const message = buildCombinedMessage(matched, pageLabel, mode === "reminder");
       const tgData = await sendTelegramMessage(BOT_TOKEN, CHAT_ID, message);
       results.push({
-        pageMode,
+        pageMode: pageLabel,
         matchedCount: matched.length,
         sent: !!tgData.ok,
         lists: matched.map((m) => m.r.listName),
