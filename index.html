@@ -1820,20 +1820,24 @@
     }
 
     .notify-picker-panel {
-      width: calc(100% - 28px);
-      max-width: 460px;
+      width: calc(100% - 24px);
+      max-width: 560px;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
       background: #fff;
       border-radius: 16px;
-      margin: 14px auto;
-      padding: 8px 0;
+      margin: 20px auto;
+      padding: 30px 0;
       box-sizing: border-box;
-      overflow: hidden;
       animation: fadeIn 0.3s ease;
     }
 
     .notify-picker-row {
+      position: relative;
       display: flex;
       align-items: center;
+      justify-content: center;
+      padding: 10px 0;
       border-bottom: 1px solid #eee;
     }
 
@@ -1841,47 +1845,54 @@
     .notify-picker-row:has(+ .notify-picker-summary.show) { border-bottom: none; }
 
     .notify-picker-checkbox {
-      flex: 0 0 auto;
+      position: absolute;
+      left: 26px;
+      top: 50%;
+      transform: translateY(-50%);
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 0 4px 0 18px;
     }
 
     .notify-picker-checkbox input[type="checkbox"] {
-      width: 15px;
-      height: 15px;
+      width: 20px;
+      height: 20px;
       cursor: pointer;
       accent-color: #1a73e8;
     }
 
     .notify-picker-item {
-      display: block;
-      flex: 1 1 auto;
+      display: inline-block;
       text-align: center;
-      padding: 12px 20px 12px 6px;
-      font-size: 16px;
-      font-weight: 600;
-      color: #1a1a1a;
-      background: none;
+      padding: 10px 28px;
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      background: #1a73e8;
+      border-radius: 22px;
       border: none;
       cursor: pointer;
     }
 
-    .notify-picker-item:active { background: #f2f6fe; }
+    .notify-picker-item:active { background: #175dc0; }
 
     .notify-picker-summary {
       display: none;
-      padding: 0 20px 10px 44px;
-      font-size: 12px;
-      color: #666;
-      line-height: 1.45;
-      text-align: left;
+      padding: 6px 22px 20px;
+      font-size: 17px;
+      color: #555;
+      line-height: 1.8;
+      text-align: center;
       border-bottom: 1px solid #eee;
     }
 
     .notify-picker-summary:last-child { border-bottom: none; }
     .notify-picker-summary.show { display: block; }
+
+    .np-line { margin-top: 10px; }
+    .np-line:first-child { margin-top: 0; }
+    .np-line .np-page { display: block; font-weight: 700; font-size: 18px; color: #333; margin-bottom: 4px; }
+    .np-line .np-time-item { display: block; }
 
     .field-block {
       margin-bottom: 16px;
@@ -7534,17 +7545,28 @@
       monthlyAlert: 'Alert', monthlyReminder: 'Reminder',
     };
 
+    function escapeNotifyPreviewText(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // Har page (Alert / Reminder) apni khud ki line mein — naam upar, uske
+    // saare times ek-ek karke neeche apni line mein. Isse kaun sa time kis
+    // page ka hai wo saaf dikhta hai, sab mix hokar ek paragraph nahi banta.
     function buildNotifyPreviewSummary(period) {
       const modes = NOTIFY_PREVIEW_MODES[period];
-      const parts = [];
+      const blocks = [];
       modes.forEach((mode) => {
         const cfg = getNotifyModeConfig(mode);
         const times12 = (cfg.times || []).filter(Boolean).map(to12Hour);
         if (cfg.on && times12.length) {
-          parts.push(`${NOTIFY_PREVIEW_PAGE_LABELS[mode]}: ${times12.join(', ')}`);
+          const label = escapeNotifyPreviewText(NOTIFY_PREVIEW_PAGE_LABELS[mode]);
+          const timeItems = times12.map(t => `<span class="np-time-item">${escapeNotifyPreviewText(t)}</span>`).join('');
+          blocks.push(`<div class="np-line"><span class="np-page">${label}</span>${timeItems}</div>`);
         }
       });
-      return parts.length ? parts.join('  •  ') : 'No set schedule';
+      return blocks.length ? blocks.join('') : 'No set schedule';
     }
 
     ['daily', 'weekly', 'monthly'].forEach((period) => {
@@ -7552,7 +7574,7 @@
       const summaryEl = document.getElementById(`notifyPreview${period[0].toUpperCase()}${period.slice(1)}Summary`);
       checkbox.addEventListener('change', () => {
         if (checkbox.checked) {
-          summaryEl.textContent = buildNotifyPreviewSummary(period);
+          summaryEl.innerHTML = buildNotifyPreviewSummary(period);
           summaryEl.classList.add('show');
         } else {
           summaryEl.classList.remove('show');
@@ -8468,8 +8490,20 @@
       document.getElementById('animOverlay').classList.remove('show');
       hideBatchToolbar();
     }
+    // Close button on the "Choose Animation" (picker) view should only go back
+    // to the lines-list view, not exit the whole animation overlay.
+    function backToAnimLinesView() {
+      hideBatchToolbar();
+      document.getElementById('animLinesView').style.display = 'block';
+      document.getElementById('animPickView').style.display = 'none';
+      renderAnimLinesList();
+      const animPanel = document.querySelector('#animOverlay .anim-panel');
+      if (animPanel) animPanel.scrollTop = 0;
+      const linesList = document.getElementById('animLinesList');
+      if (linesList) linesList.scrollTop = 0;
+    }
     document.getElementById('closeAnimPanel').addEventListener('click', closeAnimPanel);
-    document.getElementById('closeAnimPanel2').addEventListener('click', closeAnimPanel);
+    document.getElementById('closeAnimPanel2').addEventListener('click', backToAnimLinesView);
     document.getElementById('animFavBtn').addEventListener('click', () => {
       showFavouritesOnly = !showFavouritesOnly;
       document.getElementById('animFavBtn').classList.toggle('active', showFavouritesOnly);
