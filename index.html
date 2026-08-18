@@ -4120,6 +4120,8 @@
         </div>
       </div>
 
+      <button class="btn-apply" style="display:block;margin:16px auto 0;" id="saveDailyNotifyBtn">SAVE</button>
+
       <div style="text-align:center;font-weight:700;color:#1a73e8;font-size:13px;letter-spacing:0.5px;margin:22px 0 10px;">WEEKLY</div>
 
       <div class="setting-card">
@@ -4171,6 +4173,8 @@
         </div>
       </div>
 
+      <button class="btn-apply" style="display:block;margin:16px auto 0;" id="saveWeeklyNotifyBtn">SAVE</button>
+
       <div style="text-align:center;font-weight:700;color:#1a73e8;font-size:13px;letter-spacing:0.5px;margin:22px 0 10px;">MONTHLY</div>
 
       <div class="setting-card">
@@ -4214,7 +4218,7 @@
         </div>
       </div>
 
-      <button class="btn-apply" style="display:block;margin:16px auto 0;" id="saveNotifySettingsBtn">Save Notification Settings</button>
+      <button class="btn-apply" style="display:block;margin:16px auto 0;" id="saveMonthlyNotifyBtn">SAVE</button>
     </div>
   </div>
 
@@ -7401,39 +7405,57 @@
         renderNotifyTimeInputs(mode, e.target.value, existing);
       });
     });
-    document.getElementById('saveNotifySettingsBtn').addEventListener('click', () => {
-      // Har mode ke liye checkbox + per-day + times padho, aur khaali-time
-      // rows check karo (agar hh:mm ya AM/PM adhoora chhoda ho to error).
-      const modeLabels = {
-        alert: 'Alert Page', reminder: 'Reminder Page',
-        weeklyAlert: 'Weekly Alert Page', weeklyReminder: 'Weekly Reminder Page',
-        monthlyAlert: 'Monthly Alert Page', monthlyReminder: 'Monthly Reminder Page',
-      };
+    const NOTIFY_MODE_LABELS = {
+      alert: 'Alert Page', reminder: 'Reminder Page',
+      weeklyAlert: 'Weekly Alert Page', weeklyReminder: 'Weekly Reminder Page',
+      monthlyAlert: 'Monthly Alert Page', monthlyReminder: 'Monthly Reminder Page',
+    };
+
+    // Diye gaye modes (jaise sirf Daily ke ['alert','reminder']) ke liye
+    // checkbox + per-day + times padhta hai. Agar koi time row adhoori ho
+    // to error toast dikha kar null return karta hai (save rok deta hai).
+    function collectNotifyModes(modes) {
       const collected = {};
-      for (const mode of NOTIFY_MODE_KEYS) {
+      for (const mode of modes) {
         const on = document.getElementById(NOTIFY_MODE_IDS[mode].checkbox).checked;
         const perDay = Math.max(0, parseInt(document.getElementById(perDayInputId(mode)).value, 10) || 0);
         const raw = readTimeRows24(mode).filter(t => t !== ''); // poori khaali rows ignore
         if (raw.some(t => t === null)) {
-          showReminderToast(`${modeLabels[mode]} ka Time poora nahi hai — hh:mm likho aur AM ya PM select karo`);
-          return;
+          showReminderToast(`${NOTIFY_MODE_LABELS[mode]} ka Time poora nahi hai — hh:mm likho aur AM ya PM select karo`);
+          return null;
         }
         collected[mode] = { on, perDay, times: raw };
       }
-      const weeklyDay = document.getElementById('notifyWeeklyDaySelect').value;
-      const monthlyDate = parseInt(document.getElementById('notifyMonthlyDateSelect').value, 10) || 1;
+      return collected;
+    }
 
-      // Saare box ek hi save button se ek saath save hote hain — jo box
-      // chhua nahi gaya usmein pehle se saved values hi thi (upar load ho
-      // chuki thi), isliye woh apne aap "waisi ki waisi" bach jaati hain.
-      reminderLists = reminderLists.map(r => ({
-        ...r,
+    // Sirf us section ke fields update karta hai — baaki sab fields
+    // (dusre sections ke) `...r` se jaise ke waise bache rehte hain.
+    function applyNotifyFields(fields) {
+      reminderLists = reminderLists.map(r => ({ ...r, ...fields }));
+      saveReminderLists();
+      document.getElementById('notifySettingsOverlay').classList.remove('show');
+      showReminderToast('Saved');
+    }
+
+    document.getElementById('saveDailyNotifyBtn').addEventListener('click', () => {
+      const collected = collectNotifyModes(['alert', 'reminder']);
+      if (!collected) return;
+      applyNotifyFields({
         notifyAlertOn: collected.alert.on,
         notifyAlertPerDay: collected.alert.perDay,
         notifyAlertTimes: collected.alert.times,
         notifyReminderOn: collected.reminder.on,
         notifyReminderPerDay: collected.reminder.perDay,
         notifyReminderTimes: collected.reminder.times,
+      });
+    });
+
+    document.getElementById('saveWeeklyNotifyBtn').addEventListener('click', () => {
+      const collected = collectNotifyModes(['weeklyAlert', 'weeklyReminder']);
+      if (!collected) return;
+      const weeklyDay = document.getElementById('notifyWeeklyDaySelect').value;
+      applyNotifyFields({
         notifyWeeklyDay: weeklyDay,
         notifyWeeklyAlertOn: collected.weeklyAlert.on,
         notifyWeeklyAlertPerDay: collected.weeklyAlert.perDay,
@@ -7441,6 +7463,14 @@
         notifyWeeklyReminderOn: collected.weeklyReminder.on,
         notifyWeeklyReminderPerDay: collected.weeklyReminder.perDay,
         notifyWeeklyReminderTimes: collected.weeklyReminder.times,
+      });
+    });
+
+    document.getElementById('saveMonthlyNotifyBtn').addEventListener('click', () => {
+      const collected = collectNotifyModes(['monthlyAlert', 'monthlyReminder']);
+      if (!collected) return;
+      const monthlyDate = parseInt(document.getElementById('notifyMonthlyDateSelect').value, 10) || 1;
+      applyNotifyFields({
         notifyMonthlyDate: monthlyDate,
         notifyMonthlyAlertOn: collected.monthlyAlert.on,
         notifyMonthlyAlertPerDay: collected.monthlyAlert.perDay,
@@ -7448,10 +7478,7 @@
         notifyMonthlyReminderOn: collected.monthlyReminder.on,
         notifyMonthlyReminderPerDay: collected.monthlyReminder.perDay,
         notifyMonthlyReminderTimes: collected.monthlyReminder.times,
-      }));
-      saveReminderLists();
-      document.getElementById('notifySettingsOverlay').classList.remove('show');
-      showReminderToast('Notification settings saved');
+      });
     });
     /* ==================== NOTIFICATION SETTINGS PAGE END ==================== */
 
