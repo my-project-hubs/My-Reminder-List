@@ -158,8 +158,6 @@ function formatEntryTimeIST(ms) {
 }
 
 // Nayi History banne ke 1 ghante baad Telegram par batana hai.
-// "historyNotifiedIds" field mein woh entries track hoti hain jinka message
-// bhej diya gaya hai — taaki dobara wahi entry na bheji jaaye.
 const ONE_HOUR_MS = 60 * 60 * 1000;
 
 async function processDelayedHistoryNotify(docData, BOT_TOKEN, CHAT_ID) {
@@ -167,10 +165,6 @@ async function processDelayedHistoryNotify(docData, BOT_TOKEN, CHAT_ID) {
   const hasNotifiedField = !!(docData?.fields?.historyNotifiedIds);
   const notifiedIds = readJsonField(docData, "historyNotifiedIds", []);
 
-  // Pehli baar chal raha hai (field abhi tak Firestore mein bana hi nahi) —
-  // is waqt maujood saari purani entries ko "already notified" maan lo,
-  // taaki deploy hote hi ek saath sabka message na phat jaaye. Sirf ab ke
-  // baad banne wali NAYI history hi 1-ghante-baad notify hogi.
   if (!hasNotifiedField) {
     const baselineIds = historyLists.map((h) => h.id);
     await writeFirestoreField("historyNotifiedIds", baselineIds);
@@ -217,9 +211,6 @@ async function processDelayedHistoryNotify(docData, BOT_TOKEN, CHAT_ID) {
 
   await sendTelegramMessage(BOT_TOKEN, CHAT_ID, lines.join("\n"));
 
-  // notified list ko update karo: jo abhi bheja + jo pehle se bheja hua tha
-  // (aur history mein ab bhi maujood hai — delete ho chuki purani ids hata do
-  // taaki list hamesha ke liye badhti na jaaye).
   const stillExistingIds = new Set(historyLists.map((h) => h.id));
   const updatedNotified = [...notifiedIds.filter((id) => stillExistingIds.has(id)), ...due.map((h) => h.id)];
   await writeFirestoreField("historyNotifiedIds", updatedNotified);
@@ -227,14 +218,10 @@ async function processDelayedHistoryNotify(docData, BOT_TOKEN, CHAT_ID) {
   return { baselined: false, sent: due.length };
 }
 
-// Card ki width (characters mein) — centering isi ke hisaab se hoti hai.
+// Card ki width (characters mein)
 const CARD_WIDTH = 24;
-// Braille blank character — dikhta khaali hai, lekin Telegram "asli" blank lines
-// ki tarah usse hata (trim) nahi karta, isliye upar-neeche padding ke liye kaam aata hai.
 const BLANK_PAD_LINE = "⠀";
 
-// Text ko (approx) beech mein laane ke liye left side spaces jodta hai.
-// Telegram ka font monospace nahi hai, isliye ye perfect-center nahi, roughly-center hoga.
 function centerText(text, width) {
   const t = String(text || "");
   if (t.length >= width) return t;
@@ -242,26 +229,28 @@ function centerText(text, width) {
   return " ".repeat(Math.max(0, leftPad)) + t;
 }
 
-
+// Helper function: Kisi bhi Animated Custom Emoji tag ko easily format karne ke liye
+function createAnimatedEmoji(emojiId, fallbackEmoji = "🚨") {
+  return `<tg-emoji emoji-id="${emojiId}">${fallbackEmoji}</tg-emoji>`;
+}
 
 async function sendTelegramMessage(botToken, chatId, text) {
   const tgUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
   const tgRes = await fetch(tgUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: chatId, text }),
+    body: JSON.stringify({
+      chat_id: chatId,
+      text: text,
+      parse_mode: "HTML" // Animation & Formatting support enabled
+    }),
   });
   return tgRes.json();
 }
 
 const DIVIDER_LINE = "_".repeat(CARD_WIDTH + 6);
-// Day-left aur target-date lines ko poore card ki width (divider jitni chauda)
-// ke hisaab se center karna hai — list-name ka centering (CARD_WIDTH) waisa hi
-// rehne diya hai, sirf yeh dono line poora center mein aayengi.
 const FULL_WIDTH = DIVIDER_LINE.length;
 
-// Target date sirf "DD/MM/YYYY" dikhna chahiye — agar kahin se bhi "()"
-// (ya extra spaces) saath aa jaaye to yahan clean kar dete hain.
 function cleanTargetDate(td) {
   return String(td || "--").replace(/[()]/g, "").trim();
 }
@@ -298,7 +287,6 @@ function buildCombinedMessage(matched, pageMode) {
   return lines.join("\n");
 }
 
-
 export default async function handler(req, res) {
   try {
     const BOT_TOKEN = (process.env.BOT_TOKEN || "").trim();
@@ -312,9 +300,6 @@ export default async function handler(req, res) {
     const today = new Date();
     const nowHHMM = currentISTTimeString();
 
-    // Kam se kam din baaki wali list sabse upar, aur jyada din baaki wali
-    // sabse niche — dayVal ke hisaab se chhote se bade order mein sort.
-    // Jinka date hi valid nahi (dayVal null/NaN), unhe sabse neeche daal dete hain.
     function sortByDayVal(matched) {
       matched.sort((a, b) => {
         const av = (a.dayVal === null || isNaN(a.dayVal)) ? Infinity : a.dayVal;
@@ -324,25 +309,19 @@ export default async function handler(req, res) {
       return matched;
     }
 
-    // Alert Page aur Reminder Page ab apna-apna independent ON/OFF, MSG/DAY
-    // aur Times rakhte hain (Notification Settings mein set kiya hua) —
-    // dono ek dusre se bilkul alag check hote hain, isliye dono ka apna
-    // schedule chal sakta hai bina ek dusre ko overwrite/block kiye.
     function buildMatchesForMode(mode) {
       const matched = [];
       for (const r of lists) {
         const on = mode === "alert" ? r.notifyAlertOn : r.notifyReminderOn;
-        if (!on) continue; // is list ke group mein yeh mode hi ON nahi hai
+        if (!on) continue;
 
         const perDay = parseInt(mode === "alert" ? r.notifyAlertPerDay : r.notifyReminderPerDay, 10) || 0;
-        if (perDay <= 0) continue; // is mode ke liye notification set hi nahi hai
+        if (perDay <= 0) continue;
 
         const times = mode === "alert" ? r.notifyAlertTimes : r.notifyReminderTimes;
-        if (!hasMatchingTimeNow(times, nowHHMM)) continue; // abhi iska time nahi hai
+        if (!hasMatchingTimeNow(times, nowHHMM)) continue;
 
         const dayVal = computeDayValue(r, today);
-        // Alert Page: sirf jinka "day left" alert-condition trigger ho rahi hai.
-        // Reminder Page: saari lists (alert-condition ignore karke).
         if (mode === "alert" && !isAlertTriggered(r, dayVal)) continue;
 
         matched.push({ r, text: formatDayLeftText(r, dayVal), dayVal });
@@ -370,8 +349,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // Feature 2: nayi History bane ke 1 ghante baad alag se batana (Alert/Reminder
-    // ke schedule se bilkul independent — yeh sirf "elapsed time" dekhta hai).
     const historyNotifyResult = await processDelayedHistoryNotify(docData, BOT_TOKEN, CHAT_ID);
 
     return res.status(200).json({
@@ -383,4 +360,5 @@ export default async function handler(req, res) {
   } catch (err) {
     return res.status(500).json({ ok: false, error: String(err) });
   }
-}
+    }
+      
