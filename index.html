@@ -4084,6 +4084,8 @@
         <button class="close-btn" id="closeNotifySettings">×</button>
       </div>
 
+      <div style="text-align:center;font-weight:700;color:#1a73e8;font-size:13px;letter-spacing:0.5px;margin-bottom:10px;">DAILY</div>
+
       <div class="setting-card">
         <label style="display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:12px;">
           <input type="checkbox" id="notifyAlertPageCheckbox">
@@ -4114,6 +4116,100 @@
           <div style="flex:0 0 auto;margin-left:auto;display:none;" id="notifyReminderTimesCard">
             <div class="field-label">TIMES</div>
             <div id="notifyReminderTimesContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center;font-weight:700;color:#1a73e8;font-size:13px;letter-spacing:0.5px;margin:22px 0 10px;">WEEKLY</div>
+
+      <div class="setting-card">
+        <div style="display:flex;align-items:center;gap:10px;font-size:14px;">
+          <span class="field-label" style="margin:0;">DAY</span>
+          <select class="field-input" id="notifyWeeklyDaySelect" style="width:auto;padding:12px 10px;">
+            <option value="Sun">Sunday</option>
+            <option value="Mon">Monday</option>
+            <option value="Tue">Tuesday</option>
+            <option value="Wed">Wednesday</option>
+            <option value="Thu">Thursday</option>
+            <option value="Fri">Friday</option>
+            <option value="Sat">Saturday</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="setting-card">
+        <label style="display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:12px;">
+          <input type="checkbox" id="notifyWeeklyAlertPageCheckbox">
+          Alert Page
+        </label>
+        <div style="display:flex;align-items:flex-start;gap:14px;">
+          <div style="flex:0 0 auto;">
+            <div class="field-label">MSG/DAY</div>
+            <input type="number" class="field-input" id="notifyWeeklyAlertMessagesPerDay" min="0" max="20" value="0" style="width:64px;padding:14px 8px;text-align:center;">
+          </div>
+          <div style="flex:0 0 auto;margin-left:auto;display:none;" id="notifyWeeklyAlertTimesCard">
+            <div class="field-label">TIMES</div>
+            <div id="notifyWeeklyAlertTimesContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="setting-card">
+        <label style="display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:12px;">
+          <input type="checkbox" id="notifyWeeklyReminderPageCheckbox">
+          Reminder Page
+        </label>
+        <div style="display:flex;align-items:flex-start;gap:14px;">
+          <div style="flex:0 0 auto;">
+            <div class="field-label">MSG/DAY</div>
+            <input type="number" class="field-input" id="notifyWeeklyReminderMessagesPerDay" min="0" max="20" value="0" style="width:64px;padding:14px 8px;text-align:center;">
+          </div>
+          <div style="flex:0 0 auto;margin-left:auto;display:none;" id="notifyWeeklyReminderTimesCard">
+            <div class="field-label">TIMES</div>
+            <div id="notifyWeeklyReminderTimesContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center;font-weight:700;color:#1a73e8;font-size:13px;letter-spacing:0.5px;margin:22px 0 10px;">MONTHLY</div>
+
+      <div class="setting-card">
+        <div style="display:flex;align-items:center;gap:10px;font-size:14px;">
+          <span class="field-label" style="margin:0;">DATE</span>
+          <select class="field-input" id="notifyMonthlyDateSelect" style="width:auto;padding:12px 10px;"></select>
+        </div>
+      </div>
+
+      <div class="setting-card">
+        <label style="display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:12px;">
+          <input type="checkbox" id="notifyMonthlyAlertPageCheckbox">
+          Alert Page
+        </label>
+        <div style="display:flex;align-items:flex-start;gap:14px;">
+          <div style="flex:0 0 auto;">
+            <div class="field-label">MSG/DAY</div>
+            <input type="number" class="field-input" id="notifyMonthlyAlertMessagesPerDay" min="0" max="20" value="0" style="width:64px;padding:14px 8px;text-align:center;">
+          </div>
+          <div style="flex:0 0 auto;margin-left:auto;display:none;" id="notifyMonthlyAlertTimesCard">
+            <div class="field-label">TIMES</div>
+            <div id="notifyMonthlyAlertTimesContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="setting-card">
+        <label style="display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:12px;">
+          <input type="checkbox" id="notifyMonthlyReminderPageCheckbox">
+          Reminder Page
+        </label>
+        <div style="display:flex;align-items:flex-start;gap:14px;">
+          <div style="flex:0 0 auto;">
+            <div class="field-label">MSG/DAY</div>
+            <input type="number" class="field-input" id="notifyMonthlyReminderMessagesPerDay" min="0" max="20" value="0" style="width:64px;padding:14px 8px;text-align:center;">
+          </div>
+          <div style="flex:0 0 auto;margin-left:auto;display:none;" id="notifyMonthlyReminderTimesCard">
+            <div class="field-label">TIMES</div>
+            <div id="notifyMonthlyReminderTimesContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
           </div>
         </div>
       </div>
@@ -7159,9 +7255,23 @@
       });
     }
 
-    function timesContainerId(mode) { return mode === 'alert' ? 'notifyAlertTimesContainer' : 'notifyReminderTimesContainer'; }
-    function timesCardId(mode) { return mode === 'alert' ? 'notifyAlertTimesCard' : 'notifyReminderTimesCard'; }
-    function perDayInputId(mode) { return mode === 'alert' ? 'notifyAlertMessagesPerDay' : 'notifyReminderMessagesPerDay'; }
+    // Daily/Weekly/Reminder — har ek ke apne Alert Page aur Reminder Page box
+    // hain, is table mein har box ke saare element-id aur Firestore field-naam
+    // ek jagah rakhe hain taaki neeche ka code sabke liye same rahe (repeat
+    // na karna pade).
+    const NOTIFY_MODE_IDS = {
+      alert: { checkbox: 'notifyAlertPageCheckbox', perDay: 'notifyAlertMessagesPerDay', timesCard: 'notifyAlertTimesCard', timesContainer: 'notifyAlertTimesContainer', onField: 'notifyAlertOn', perDayField: 'notifyAlertPerDay', timesField: 'notifyAlertTimes' },
+      reminder: { checkbox: 'notifyReminderPageCheckbox', perDay: 'notifyReminderMessagesPerDay', timesCard: 'notifyReminderTimesCard', timesContainer: 'notifyReminderTimesContainer', onField: 'notifyReminderOn', perDayField: 'notifyReminderPerDay', timesField: 'notifyReminderTimes' },
+      weeklyAlert: { checkbox: 'notifyWeeklyAlertPageCheckbox', perDay: 'notifyWeeklyAlertMessagesPerDay', timesCard: 'notifyWeeklyAlertTimesCard', timesContainer: 'notifyWeeklyAlertTimesContainer', onField: 'notifyWeeklyAlertOn', perDayField: 'notifyWeeklyAlertPerDay', timesField: 'notifyWeeklyAlertTimes' },
+      weeklyReminder: { checkbox: 'notifyWeeklyReminderPageCheckbox', perDay: 'notifyWeeklyReminderMessagesPerDay', timesCard: 'notifyWeeklyReminderTimesCard', timesContainer: 'notifyWeeklyReminderTimesContainer', onField: 'notifyWeeklyReminderOn', perDayField: 'notifyWeeklyReminderPerDay', timesField: 'notifyWeeklyReminderTimes' },
+      monthlyAlert: { checkbox: 'notifyMonthlyAlertPageCheckbox', perDay: 'notifyMonthlyAlertMessagesPerDay', timesCard: 'notifyMonthlyAlertTimesCard', timesContainer: 'notifyMonthlyAlertTimesContainer', onField: 'notifyMonthlyAlertOn', perDayField: 'notifyMonthlyAlertPerDay', timesField: 'notifyMonthlyAlertTimes' },
+      monthlyReminder: { checkbox: 'notifyMonthlyReminderPageCheckbox', perDay: 'notifyMonthlyReminderMessagesPerDay', timesCard: 'notifyMonthlyReminderTimesCard', timesContainer: 'notifyMonthlyReminderTimesContainer', onField: 'notifyMonthlyReminderOn', perDayField: 'notifyMonthlyReminderPerDay', timesField: 'notifyMonthlyReminderTimes' },
+    };
+    const NOTIFY_MODE_KEYS = Object.keys(NOTIFY_MODE_IDS);
+
+    function timesContainerId(mode) { return NOTIFY_MODE_IDS[mode].timesContainer; }
+    function timesCardId(mode) { return NOTIFY_MODE_IDS[mode].timesCard; }
+    function perDayInputId(mode) { return NOTIFY_MODE_IDS[mode].perDay; }
 
     function renderNotifyTimeInputs(mode, count, existingTimes24) {
       const container = document.getElementById(timesContainerId(mode));
@@ -7236,37 +7346,46 @@
       return rows.map(readTimeRow24);
     }
 
-    // Alert Page aur Reminder Page ke apne-apne ALAG (independent) box hain —
-    // dono apna MSG/DAY aur apni Times ek saath screen par dikhte hain.
-    // Ek ko save karne se doosre ka setup kabhi overwrite/delete nahi hota,
-    // kyunki jo box chhua hi nahi gaya, usmein pehle se saved values hi
-    // dikh rahi hoti hain aur save par wahi wapas likh di jaati hain.
+    // Har mode (Daily/Weekly/Monthly x Alert/Reminder) ke apne-apne ALAG
+    // (independent) box hain — sabka apna MSG/DAY aur apni Times ek saath
+    // screen par dikhte hain. Ek ko save karne se doosre ka setup kabhi
+    // overwrite/delete nahi hota, kyunki jo box chhua hi nahi gaya, usmein
+    // pehle se saved values hi dikh rahi hoti hain aur save par wahi wapas
+    // likh di jaati hain.
     function getNotifyModeConfig(mode) {
       const list0 = (reminderLists && reminderLists[0]) || {};
-      if (mode === 'alert') {
-        return {
-          on: !!list0.notifyAlertOn,
-          perDay: list0.notifyAlertPerDay || 0,
-          times: list0.notifyAlertTimes || [],
-        };
-      }
+      const ids = NOTIFY_MODE_IDS[mode];
       return {
-        on: !!list0.notifyReminderOn,
-        perDay: list0.notifyReminderPerDay || 0,
-        times: list0.notifyReminderTimes || [],
+        on: !!list0[ids.onField],
+        perDay: list0[ids.perDayField] || 0,
+        times: list0[ids.timesField] || [],
       };
     }
 
-    function loadNotifySettingsGlobal() {
-      const alertCfg = getNotifyModeConfig('alert');
-      document.getElementById('notifyAlertPageCheckbox').checked = alertCfg.on;
-      document.getElementById(perDayInputId('alert')).value = alertCfg.perDay;
-      renderNotifyTimeInputs('alert', alertCfg.perDay, alertCfg.times);
+    // Monthly "DATE" dropdown mein 1 se 31 tak options daalta hai (ek hi baar).
+    function populateMonthlyDateSelect() {
+      const sel = document.getElementById('notifyMonthlyDateSelect');
+      if (sel.options.length > 0) return;
+      for (let d = 1; d <= 31; d++) {
+        const opt = document.createElement('option');
+        opt.value = String(d);
+        opt.textContent = String(d);
+        sel.appendChild(opt);
+      }
+    }
+    populateMonthlyDateSelect();
 
-      const reminderCfg = getNotifyModeConfig('reminder');
-      document.getElementById('notifyReminderPageCheckbox').checked = reminderCfg.on;
-      document.getElementById(perDayInputId('reminder')).value = reminderCfg.perDay;
-      renderNotifyTimeInputs('reminder', reminderCfg.perDay, reminderCfg.times);
+    function loadNotifySettingsGlobal() {
+      NOTIFY_MODE_KEYS.forEach((mode) => {
+        const cfg = getNotifyModeConfig(mode);
+        document.getElementById(NOTIFY_MODE_IDS[mode].checkbox).checked = cfg.on;
+        document.getElementById(perDayInputId(mode)).value = cfg.perDay;
+        renderNotifyTimeInputs(mode, cfg.perDay, cfg.times);
+      });
+
+      const list0 = (reminderLists && reminderLists[0]) || {};
+      document.getElementById('notifyWeeklyDaySelect').value = list0.notifyWeeklyDay || 'Sun';
+      document.getElementById('notifyMonthlyDateSelect').value = String(list0.notifyMonthlyDate || 1);
     }
 
     document.getElementById('notifySideBtn').addEventListener('click', () => {
@@ -7276,45 +7395,59 @@
     document.getElementById('closeNotifySettings').addEventListener('click', () => {
       document.getElementById('notifySettingsOverlay').classList.remove('show');
     });
-    document.getElementById(perDayInputId('alert')).addEventListener('input', (e) => {
-      const existing = readTimeRows24('alert').filter(t => t && t !== null);
-      renderNotifyTimeInputs('alert', e.target.value, existing);
-    });
-    document.getElementById(perDayInputId('reminder')).addEventListener('input', (e) => {
-      const existing = readTimeRows24('reminder').filter(t => t && t !== null);
-      renderNotifyTimeInputs('reminder', e.target.value, existing);
+    NOTIFY_MODE_KEYS.forEach((mode) => {
+      document.getElementById(perDayInputId(mode)).addEventListener('input', (e) => {
+        const existing = readTimeRows24(mode).filter(t => t && t !== null);
+        renderNotifyTimeInputs(mode, e.target.value, existing);
+      });
     });
     document.getElementById('saveNotifySettingsBtn').addEventListener('click', () => {
-      const alertOn = document.getElementById('notifyAlertPageCheckbox').checked;
-      const reminderOn = document.getElementById('notifyReminderPageCheckbox').checked;
-
-      const alertPerDay = Math.max(0, parseInt(document.getElementById(perDayInputId('alert')).value, 10) || 0);
-      const alertRaw = readTimeRows24('alert').filter(t => t !== ''); // poori khaali rows ignore
-      if (alertRaw.some(t => t === null)) {
-        showReminderToast('Alert Page ka Time poora nahi hai — hh:mm likho aur AM ya PM select karo');
-        return;
+      // Har mode ke liye checkbox + per-day + times padho, aur khaali-time
+      // rows check karo (agar hh:mm ya AM/PM adhoora chhoda ho to error).
+      const modeLabels = {
+        alert: 'Alert Page', reminder: 'Reminder Page',
+        weeklyAlert: 'Weekly Alert Page', weeklyReminder: 'Weekly Reminder Page',
+        monthlyAlert: 'Monthly Alert Page', monthlyReminder: 'Monthly Reminder Page',
+      };
+      const collected = {};
+      for (const mode of NOTIFY_MODE_KEYS) {
+        const on = document.getElementById(NOTIFY_MODE_IDS[mode].checkbox).checked;
+        const perDay = Math.max(0, parseInt(document.getElementById(perDayInputId(mode)).value, 10) || 0);
+        const raw = readTimeRows24(mode).filter(t => t !== ''); // poori khaali rows ignore
+        if (raw.some(t => t === null)) {
+          showReminderToast(`${modeLabels[mode]} ka Time poora nahi hai — hh:mm likho aur AM ya PM select karo`);
+          return;
+        }
+        collected[mode] = { on, perDay, times: raw };
       }
-      const alertTimes = alertRaw;
+      const weeklyDay = document.getElementById('notifyWeeklyDaySelect').value;
+      const monthlyDate = parseInt(document.getElementById('notifyMonthlyDateSelect').value, 10) || 1;
 
-      const reminderPerDay = Math.max(0, parseInt(document.getElementById(perDayInputId('reminder')).value, 10) || 0);
-      const reminderRaw = readTimeRows24('reminder').filter(t => t !== '');
-      if (reminderRaw.some(t => t === null)) {
-        showReminderToast('Reminder Page ka Time poora nahi hai — hh:mm likho aur AM ya PM select karo');
-        return;
-      }
-      const reminderTimes = reminderRaw;
-
-      // Dono box ek hi save button se ek saath save hote hain — jo box chhua
-      // nahi gaya usmein pehle se saved values hi thi (upar load ho chuki thi),
-      // isliye woh apne aap "waisi ki waisi" bach jaati hain.
+      // Saare box ek hi save button se ek saath save hote hain — jo box
+      // chhua nahi gaya usmein pehle se saved values hi thi (upar load ho
+      // chuki thi), isliye woh apne aap "waisi ki waisi" bach jaati hain.
       reminderLists = reminderLists.map(r => ({
         ...r,
-        notifyAlertOn: alertOn,
-        notifyAlertPerDay: alertPerDay,
-        notifyAlertTimes: alertTimes,
-        notifyReminderOn: reminderOn,
-        notifyReminderPerDay: reminderPerDay,
-        notifyReminderTimes: reminderTimes,
+        notifyAlertOn: collected.alert.on,
+        notifyAlertPerDay: collected.alert.perDay,
+        notifyAlertTimes: collected.alert.times,
+        notifyReminderOn: collected.reminder.on,
+        notifyReminderPerDay: collected.reminder.perDay,
+        notifyReminderTimes: collected.reminder.times,
+        notifyWeeklyDay: weeklyDay,
+        notifyWeeklyAlertOn: collected.weeklyAlert.on,
+        notifyWeeklyAlertPerDay: collected.weeklyAlert.perDay,
+        notifyWeeklyAlertTimes: collected.weeklyAlert.times,
+        notifyWeeklyReminderOn: collected.weeklyReminder.on,
+        notifyWeeklyReminderPerDay: collected.weeklyReminder.perDay,
+        notifyWeeklyReminderTimes: collected.weeklyReminder.times,
+        notifyMonthlyDate: monthlyDate,
+        notifyMonthlyAlertOn: collected.monthlyAlert.on,
+        notifyMonthlyAlertPerDay: collected.monthlyAlert.perDay,
+        notifyMonthlyAlertTimes: collected.monthlyAlert.times,
+        notifyMonthlyReminderOn: collected.monthlyReminder.on,
+        notifyMonthlyReminderPerDay: collected.monthlyReminder.perDay,
+        notifyMonthlyReminderTimes: collected.monthlyReminder.times,
       }));
       saveReminderLists();
       document.getElementById('notifySettingsOverlay').classList.remove('show');
