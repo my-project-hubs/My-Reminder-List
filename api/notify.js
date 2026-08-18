@@ -302,8 +302,15 @@ function buildCombinedMessage(matched, pageMode) {
     lines.push(centerText(r.listName || "Untitled", CARD_WIDTH));
     lines.push(BLANK_PAD_LINE);
     const showDot = pageMode === "Reminder Page" && shouldShowRedDot(r, dayVal);
-    const dayLeftText = showDot ? `🔴 ${text}` : text;
-    lines.push(centerText(dayLeftText, FULL_WIDTH));
+    if (showDot) {
+      // List-name line jitne se left-margin se shuru hoti hai, dot bhi
+      // usi column se shuru ho — taaki dot list-name ke "Z" (pehle letter)
+      // ke bilkul neeche/left aaye, center mein nahi.
+      const nameLeftPad = Math.max(0, Math.floor((CARD_WIDTH - String(r.listName || "Untitled").length) / 2));
+      lines.push(" ".repeat(nameLeftPad) + `🔴 ${text}`);
+    } else {
+      lines.push(centerText(text, FULL_WIDTH));
+    }
     lines.push(BLANK_PAD_LINE);
     lines.push(centerText(cleanTargetDate(r.targetDate), FULL_WIDTH));
     lines.push(BLANK_PAD_LINE);
