@@ -1837,7 +1837,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 60px;
       padding: 10px 0;
       margin-bottom: 14px;
       border-bottom: 1px solid #eee;
@@ -1845,21 +1844,6 @@
 
     .notify-picker-row:last-of-type { border-bottom: none; margin-bottom: 0; }
     .notify-picker-row:has(+ .notify-picker-summary.show) { border-bottom: none; }
-
-    .notify-picker-checkbox {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex: 0 0 auto;
-      order: 2;
-    }
-
-    .notify-picker-checkbox input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      cursor: pointer;
-      accent-color: #1a73e8;
-    }
 
     .notify-picker-item {
       display: inline-block;
@@ -1874,7 +1858,6 @@
       border-radius: 22px;
       border: none;
       cursor: pointer;
-      order: 1;
     }
 
     .notify-picker-item:active { background: #175dc0; }
@@ -1887,7 +1870,6 @@
       line-height: 1.8;
       text-align: center;
       border-bottom: 1px solid #eee;
-      transform: translateX(-40px);
     }
 
     .notify-picker-summary:last-child { border-bottom: none; }
@@ -4159,19 +4141,16 @@
   <div class="reminder-overlay" id="notifyPickerOverlay">
     <div class="notify-picker-panel">
       <div class="notify-picker-row">
-        <label class="notify-picker-checkbox"><input type="checkbox" id="notifyPreviewDaily"></label>
         <button type="button" class="notify-picker-item" id="notifyPickDaily">Daily</button>
       </div>
       <div class="notify-picker-summary" id="notifyPreviewDailySummary"></div>
 
       <div class="notify-picker-row">
-        <label class="notify-picker-checkbox"><input type="checkbox" id="notifyPreviewWeekly"></label>
         <button type="button" class="notify-picker-item" id="notifyPickWeekly">Weekly</button>
       </div>
       <div class="notify-picker-summary" id="notifyPreviewWeeklySummary"></div>
 
       <div class="notify-picker-row">
-        <label class="notify-picker-checkbox"><input type="checkbox" id="notifyPreviewMonthly"></label>
         <button type="button" class="notify-picker-item" id="notifyPickMonthly">Monthly</button>
       </div>
       <div class="notify-picker-summary" id="notifyPreviewMonthlySummary"></div>
@@ -7516,10 +7495,9 @@
 
     document.getElementById('notifySideBtn').addEventListener('click', () => {
       ['daily', 'weekly', 'monthly'].forEach((period) => {
-        const checkbox = document.getElementById(`notifyPreview${period[0].toUpperCase()}${period.slice(1)}`);
         const summaryEl = document.getElementById(`notifyPreview${period[0].toUpperCase()}${period.slice(1)}Summary`);
-        checkbox.checked = false;
-        summaryEl.classList.remove('show');
+        summaryEl.innerHTML = buildNotifyPreviewSummary(period);
+        summaryEl.classList.add('show');
       });
       document.getElementById('notifyPickerOverlay').classList.add('show');
     });
@@ -7573,18 +7551,8 @@
       return blocks.length ? blocks.join('') : 'No set schedule';
     }
 
-    ['daily', 'weekly', 'monthly'].forEach((period) => {
-      const checkbox = document.getElementById(`notifyPreview${period[0].toUpperCase()}${period.slice(1)}`);
-      const summaryEl = document.getElementById(`notifyPreview${period[0].toUpperCase()}${period.slice(1)}Summary`);
-      checkbox.addEventListener('change', () => {
-        if (checkbox.checked) {
-          summaryEl.innerHTML = buildNotifyPreviewSummary(period);
-          summaryEl.classList.add('show');
-        } else {
-          summaryEl.classList.remove('show');
-        }
-      });
-    });
+    // Ab checkbox nahi hai — picker khulte hi teeno summary seedha
+    // upar wale click listener mein populate ho jaate hain.
     NOTIFY_MODE_KEYS.forEach((mode) => {
       document.getElementById(perDayInputId(mode)).addEventListener('input', (e) => {
         const existing = readTimeRows24(mode).filter(t => t && t !== null);
