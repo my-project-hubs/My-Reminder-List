@@ -144,6 +144,18 @@ function buildHistoryMessage(entries, requestedCount, reminderById) {
 
 export default async function handler(req, res) {
   try {
+    // Secret-key check: Telegram ka "secret_token" webhook feature header
+    // "X-Telegram-Bot-Api-Secret-Token" mein bhejta hai (setWebhook call mein
+    // secret_token=... pass karke set hota hai). Manual test ke liye ?key=...
+    // query string se bhi diya ja sakta hai.
+    const MY_SECRET_KEY = (process.env.MY_SECRET_KEY || "").trim();
+    const providedKey = String(
+      req.headers["x-telegram-bot-api-secret-token"] || req.query?.key || ""
+    ).trim();
+    if (!MY_SECRET_KEY || providedKey !== MY_SECRET_KEY) {
+      return res.status(401).json({ ok: false, error: "Unauthorized" });
+    }
+
     // Telegram sirf POST bhejta hai. Browser mein khol kar test karne ke liye
     // GET par ek chhota status dikha dete hain.
     if (req.method !== "POST") {
