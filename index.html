@@ -6,7 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Alert | Reminder | History | Hide</title>
+  <meta name="robots" content="noindex, nofollow">
+  <title>Alert | Reminder | History</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Lato:wght@400;500;600;700&family=Open+Sans:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&family=Nunito+Sans:wght@400;500;600;700&family=Raleway:wght@400;500;600;700&family=Ubuntu:wght@400;500;600;700&family=Rubik:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&family=Josefin+Sans:wght@400;500;600;700&family=Work+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Mulish:wght@400;500;600;700&family=Karla:wght@400;500;600;700&family=Titillium+Web:wght@400;500;600;700&family=PT+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&family=Fira+Sans:wght@400;500;600;700&family=Barlow:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=Sora:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Urbanist:wght@400;500;600;700&family=Figtree:wght@400;500;600;700&family=Lexend:wght@400;500;600;700&family=Epilogue:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -33,14 +34,14 @@
 
     .slider {
       display: flex;
-      width: 400%;
+      width: 300%;
       height: 100%;
       transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
       will-change: transform;
     }
 
     .page {
-      width: 25%;
+      width: 33.3334%;
       height: 100%;
       position: relative;
       background: #ffffff;
@@ -101,37 +102,6 @@
     #title-history {
       display: none !important;
     }
-    /* Hide page: remove old black "Hide" title text */
-    #title-hide {
-      display: none !important;
-    }
-
-    /* Hide page: Hide History button bottom-right */
-    #haHistoryBtnPage {
-      position: fixed;
-      right: 14px;
-      bottom: 18px;
-      z-index: 150;
-      border: none;
-      border-radius: 16px;
-      padding: 12px 18px;
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: 0.2px;
-      cursor: pointer;
-      color: #ffffff;
-      background: linear-gradient(180deg, #f8bbd0 0%, #f06292 55%, #e91e63 100%);
-      box-shadow: 0 3px 0 #c2185b, 0 6px 12px rgba(233,30,99,0.25);
-      display: none;
-    }
-    #haHistoryBtnPage.show {
-      display: block;
-    }
-    #haHistoryBtnPage:active {
-      transform: translateY(2px);
-      box-shadow: 0 0 0 #c2185b, 0 1px 3px rgba(233,30,99,0.2);
-    }
-
 
     #historyPageHeading {
       display: none !important;
@@ -395,53 +365,6 @@
       line-height: 1;
       pointer-events: none;
     }
-
-    /* Hide page list cards — same info as Reminder page + History/Unhide */
-    #hideListContainer .hide-list-wrap {
-      border-bottom: 1px solid rgba(0,0,0,0.1);
-      padding-bottom: 10px;
-      margin-bottom: 4px;
-    }
-    #hideListContainer .hide-list-wrap .reminder-list-item {
-      border-bottom: none;
-      padding-bottom: 6px;
-    }
-    #hideListContainer .hide-list-actions {
-      display: flex;
-      gap: 8px;
-      padding: 0 4px 4px;
-      justify-content: flex-end;
-    }
-    #hideListContainer .hide-list-actions button {
-      border: none;
-      border-radius: 12px;
-      padding: 8px 12px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    #hideListContainer .hide-btn-unhide {
-      background: #e6f4ea;
-      color: #137333;
-    }
-    /* Hide page — separate History button (bottom-right) */
-    .hide-history-fab {
-      position: absolute;
-      right: 14px;
-      bottom: 20px;
-      z-index: 60;
-      height: 40px;
-      padding: 0 18px;
-      border-radius: 20px;
-      background: #1a73e8;
-      color: #fff;
-      border: none;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.28);
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .hide-history-fab:active { background: #1558b0; }
 
     /* History page: draggable/resizable photo */
     .history-photo-wrap {
@@ -1490,22 +1413,6 @@
       margin-top: 18px;
     }
 
-    /* Unhide confirm: true center (50% left-right, 50% top-bottom) */
-    #unhideConfirmOverlay.show {
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-    }
-    #unhideConfirmOverlay .settings-panel {
-      width: auto !important;
-      max-width: 320px !important;
-      height: auto !important;
-      max-height: none !important;
-      min-height: 0 !important;
-      margin: 0 auto !important;
-      border-radius: 18px !important;
-    }
-
     /* Delete confirm: first popup — larger than previous */
     #deleteConfirmOverlay.show {
       display: flex !important;
@@ -1611,57 +1518,6 @@
       padding: 14px 24px !important;
       font-size: 16px !important;
       border-radius: 14px !important;
-    }
-
-    /* Hide settings: compact panel — only as tall as content needs */
-    #hideSettingsOverlay .settings-panel {
-      display: flex !important;
-      flex-direction: column !important;
-      height: auto !important;
-      max-height: 50vh !important;
-      min-height: 0 !important;
-      padding-bottom: 20px !important;
-    }
-    #hideSettingsOverlay .hide-settings-body {
-      margin-top: 0;
-      flex-shrink: 0;
-      padding-bottom: 6px;
-    }
-    #hideSettingsOverlay .hide-settings-body .settings-footer {
-      margin-top: 18px;
-    }
-
-    /* Hide History panel — force full body height so empty "No History" can true-center */
-    #hideHistoryOverlay .settings-panel {
-      position: relative !important;
-      display: flex !important;
-      flex-direction: column !important;
-      height: 80vh !important;
-      max-height: 80vh !important;
-      overflow: hidden !important;
-      padding-bottom: 16px !important;
-    }
-    #hideHistoryOverlay #hideHistoryList {
-      position: relative !important;
-      flex: 1 1 auto !important;
-      min-height: 55vh !important;
-      overflow-y: auto !important;
-    }
-    #hideHistoryOverlay #hideHistoryList .hide-history-empty {
-      position: absolute !important;
-      top: 50% !important;
-      left: 50% !important;
-      transform: translate(-50%, -50%) !important;
-      width: max-content !important;
-      max-width: 90% !important;
-      text-align: center !important;
-      color: #999 !important;
-      font-size: 20px !important;
-      font-weight: 700 !important;
-      white-space: nowrap !important;
-      pointer-events: none !important;
-      margin: 0 !important;
-      padding: 0 !important;
     }
 
     .btn-reset {
@@ -3027,6 +2883,73 @@
   </style>
 </head>
 <body>
+  <!-- ===================== PASSWORD GATE ===================== -->
+  <div id="pwGateOverlay" style="position:fixed;inset:0;z-index:999999;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif;">
+    <div style="font-size:1.3rem;font-weight:600;color:#111;">🔒 Password Daaliye</div>
+    <input type="password" id="pwGateInput" placeholder="Password" autocomplete="off" style="width:100%;max-width:280px;padding:12px 14px;border:1px solid #ccc;border-radius:8px;font-size:1rem;outline:none;">
+    <button id="pwGateBtn" style="width:100%;max-width:280px;padding:12px 14px;border:none;border-radius:8px;background:#111;color:#fff;font-size:1rem;font-weight:600;cursor:pointer;">Unlock</button>
+    <div id="pwGateError" style="color:#c0392b;font-size:0.9rem;min-height:18px;"></div>
+  </div>
+  <script>
+    // Poore app ka data (Firebase se) tabhi load hoga jab yeh promise resolve ho.
+    // Neeche wala Firebase module script isी promise ka wait karega.
+    window.__authReady = new Promise((resolve) => {
+      window.__resolveAuth = resolve;
+    });
+
+    (function () {
+      const SESSION_KEY = 'pwGateOk';
+      const overlay = document.getElementById('pwGateOverlay');
+      const input = document.getElementById('pwGateInput');
+      const btn = document.getElementById('pwGateBtn');
+      const errEl = document.getElementById('pwGateError');
+
+      function unlock() {
+        overlay.style.display = 'none';
+        window.__resolveAuth();
+      }
+
+      // Same tab/session mein dobara password na maangna pade
+      if (sessionStorage.getItem(SESSION_KEY) === '1') {
+        unlock();
+        return;
+      }
+
+      async function tryPassword() {
+        const pw = input.value;
+        if (!pw) return;
+        btn.disabled = true;
+        btn.textContent = 'Checking...';
+        errEl.textContent = '';
+        try {
+          const res = await fetch('/api/verify-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: pw })
+          });
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && data.ok) {
+            sessionStorage.setItem(SESSION_KEY, '1');
+            unlock();
+          } else {
+            errEl.textContent = 'Galat password, dobara koshish karein';
+            input.value = '';
+            input.focus();
+          }
+        } catch (e) {
+          errEl.textContent = 'Network error, dobara koshish karein';
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Unlock';
+        }
+      }
+
+      btn.addEventListener('click', tryPassword);
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') tryPassword(); });
+      setTimeout(() => input.focus(), 100);
+    })();
+  </script>
+  <!-- =================== END PASSWORD GATE =================== -->
 
   <button class="settings-side-btn" id="settingsSideBtn" aria-label="Settings">⚙</button>
   <button class="switch-page-btn" id="switchPageBtn" aria-label="Switch Page">⇄</button>
@@ -3059,7 +2982,6 @@
             <div class="color-swatch" id="bgColorSwatch" data-target="bgColor" style="background:#ffffff;display:none !important;width:0;height:0;overflow:hidden;position:absolute;pointer-events:none;"></div>
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:18px;">
-            <button type="button" class="ra-name-btn" id="aaHidePage" style="min-width:88px;padding:11px 14px;font-size:14px;border-radius:12px;">Hide Page</button>
             <button type="button" class="ra-name-btn" id="aaAnimation" style="min-width:88px;padding:11px 14px;font-size:14px;border-radius:12px;">Animation</button>
           </div>
         </div>
@@ -3392,10 +3314,6 @@
         <div class="ra-col">
           <button type="button" class="ra-name-btn" id="raAddNotes">Add New Notes</button>
           <button type="button" class="ra-name-btn" id="raAddReminder">Add New Reminder</button>
-        </div>
-        <div class="ra-col">
-          <button type="button" class="ra-name-btn" id="raHideList">Hide List</button>
-          <button type="button" class="ra-name-btn" id="raHidePage">Hide Page</button>
         </div>
         <div class="ra-col">
           <button type="button" class="ra-name-btn" id="raDelete">Delete</button>
@@ -4019,10 +3937,6 @@
       </div>
 
       <div class="history-settings-body">
-      <div style="display:flex;justify-content:flex-end;margin-bottom:20px;">
-        <button type="button" class="ra-name-btn" id="haHidePage" style="min-width:88px;padding:11px 14px;font-size:14px;border-radius:12px;">Hide Page</button>
-      </div>
-
       <!-- HISTORY LIST -->
       <div class="setting-card">
         <div class="setting-card-title">HISTORY LIST</div>
@@ -4042,49 +3956,6 @@
         <button class="btn-reset" id="historySettingsResetBtn">Reset (this page)</button>
         <button class="btn-apply" id="historySettingsApplyBtn">Apply</button>
       </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="settings-overlay" id="hideSettingsOverlay">
-    <div class="settings-panel">
-      <div class="settings-header">
-        <h2>Settings</h2>
-        <button class="close-btn" id="closeHideSettings">×</button>
-      </div>
-      <div class="settings-tabs">
-        <span class="tab-active">Hide Page</span>
-      </div>
-      <div class="hide-settings-body">
-        <!-- Hide History moved to Hide page bottom-right -->
-
-        <div class="setting-card">
-          <div class="setting-card-title">HIDE TITLE</div>
-          <div class="controls-row">
-            <div class="control-group">
-              <span class="control-label">SIZE</span>
-              <input type="number" id="hideTitleSize" value="45" min="16" max="80">
-            </div>
-            <div class="control-group">
-              <span class="control-label">COLOR</span>
-              <div class="color-swatch" id="hideTitleColorSwatch" data-target="hideTitleColor" style="background:#111111;"></div>
-            </div>
-            <div class="control-group">
-              <span class="control-label">BOLD</span>
-              <div class="toggle" id="hideTitleBold"></div>
-            </div>
-            <div class="control-group">
-              <span class="control-label">FONT</span>
-              <select class="font-select" id="hideTitleFont">
-                <option value="Segoe UI">Default</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        <div class="settings-footer">
-          <button class="btn-reset" id="hideSettingsResetBtn">Reset (this page)</button>
-          <button class="btn-apply" id="hideSettingsApplyBtn">Apply</button>
-        </div>
       </div>
     </div>
   </div>
@@ -4393,21 +4264,6 @@
     </div>
   </div>
 
-  <!-- Hide Lists picker (from Reminder page settings → Hide List) -->
-  <div class="settings-overlay" id="hideListsPickerOverlay">
-    <div class="settings-panel">
-      <div class="settings-header">
-        <h2>Hide Lists&nbsp;&nbsp;<span id="hideListsPickerCount"></span></h2>
-        <button class="close-btn" id="closeHideListsPicker">×</button>
-      </div>
-      <div id="hideListsPickerList" style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;"></div>
-      <div class="settings-footer">
-        <button class="btn-reset" id="hideListsPickerCancelBtn">Cancel</button>
-        <button class="btn-apply" id="hideListsPickerConfirmBtn">Hide Selected</button>
-      </div>
-    </div>
-  </div>
-
   <!-- Delete History Lists (from History page settings) -->
   <div class="settings-overlay" id="deleteHistoryListsOverlay">
     <div class="settings-panel">
@@ -4454,18 +4310,6 @@
       <div id="priceRequiredMessage" style="font-size:16px;color:#555;margin-bottom:22px;line-height:1.45;">Please enter the price first. Save will work after you add the price.</div>
       <div class="settings-footer" style="justify-content:center;gap:12px;margin-top:0;">
         <button class="btn-apply" id="priceRequiredOkBtn" style="background:linear-gradient(180deg,#42a5f5 0%,#1a73e8 55%,#0d47a1 100%);box-shadow:0 4px 0 #0b3d91, 0 8px 16px rgba(26,115,232,0.35);">OK</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Unhide confirmation popup -->
-  <div class="settings-overlay" id="unhideConfirmOverlay" style="z-index:99999;display:none;align-items:center !important;justify-content:center !important;">
-    <div class="settings-panel" style="max-width:320px;width:auto !important;height:auto !important;max-height:none !important;min-height:0 !important;text-align:center;padding:22px 20px 18px;margin:0 auto;border-radius:18px !important;">
-      <div style="font-size:17px;font-weight:700;color:#222;margin-bottom:10px;">Unhide Confirmation</div>
-      <div style="font-size:14.5px;color:#555;margin-bottom:20px;" id="unhideConfirmMessage">Do you really want to unhide?</div>
-      <div class="settings-footer" style="justify-content:center;gap:14px;margin-top:0;">
-        <button class="btn-reset" id="unhideConfirmNoBtn">No</button>
-        <button class="btn-apply" id="unhideConfirmYesBtn" style="background:linear-gradient(180deg,#42a5f5 0%,#1a73e8 55%,#0d47a1 100%);box-shadow:0 4px 0 #0b3d91, 0 8px 16px rgba(26,115,232,0.35);">Yes</button>
       </div>
     </div>
   </div>
@@ -4581,23 +4425,6 @@
       <!-- history photo removed -->
       
     </div>
-    <div class="page">
-      <div class="today-date" id="date-hide"></div>
-      <div class="page-name line-item" id="title-hide">Hide</div>
-      <div class="reminder-list-container" id="hideListContainer" style="padding-top:40px;"></div>
-      <button type="button" id="haHistoryBtnPage">Hide History</button>
-    </div>
-  </div>
-
-  <!-- Hide History: lists that are on Hide page (their history) -->
-  <div class="settings-overlay" id="hideHistoryOverlay">
-    <div class="settings-panel">
-      <div class="settings-header">
-        <h2>Hide History</h2>
-        <button class="close-btn" id="closeHideHistory">×</button>
-      </div>
-      <div id="hideHistoryList"></div>
-    </div>
   </div>
 
   <script type="module">
@@ -4626,6 +4453,10 @@
     const fbApp = initializeApp(firebaseConfig);
     const db = getFirestore(fbApp);
     const cloudDocRef = doc(db, "reminderApp", "mainData");
+
+    // Jab tak sahi password na diya jaaye, yahan se aage koi bhi
+    // Firebase data fetch nahi hoga (password gate script se resolve hota hai).
+    await window.__authReady;
 
     // Ek hi baar poora document fetch karo (app start hone se pehle)
     let cloudCache = {};
@@ -4780,11 +4611,7 @@
     let historySettings = JSON.parse(localStorage.getItem('historyPageSettings') || 'null') || { ...historyDefaultSettings };
     if (!historySettings.listColor) historySettings.listColor = historyDefaultSettings.listColor;
 
-    const hideDefaultSettings = {
-      titleSize: 45, titleColor: '#111111', titleBold: false, titleFont: 'Segoe UI'
-    };
-    let hideSettings = JSON.parse(localStorage.getItem('hidePageSettings') || 'null') || { ...hideDefaultSettings };
-    const total = 4;
+    const total = 3;
     // currentPage ab Firestore mein save hota hai (localStorage shim ke through) —
     // refresh ya kisi bhi device par khulne par wahi page dikhega jahan aap the
     try {
@@ -4792,23 +4619,22 @@
       if (!isNaN(savedPage) && savedPage >= 0 && savedPage < total) current = savedPage;
     } catch (e) {}
     if (current !== 0) {
-      slider.style.transform = `translateX(-${current * 25}%)`;
+      slider.style.transform = `translateX(-${current * 33.3334}%)`;
     }
 
     // Custom text a user has typed into an editable line (date lines, headings) via the ✏️ popup.
     // Keyed by element id. If a line has no override, its normal auto-generated text is used.
     let lineTextOverrides = JSON.parse(localStorage.getItem('lineTextOverrides') || '{}');
-    if (lineTextOverrides['date-alert'] || lineTextOverrides['date-reminder'] || lineTextOverrides['date-history'] || lineTextOverrides['date-hide']) {
+    if (lineTextOverrides['date-alert'] || lineTextOverrides['date-reminder'] || lineTextOverrides['date-history']) {
       delete lineTextOverrides['date-alert'];
       delete lineTextOverrides['date-reminder'];
       delete lineTextOverrides['date-history'];
-      delete lineTextOverrides['date-hide'];
       localStorage.setItem('lineTextOverrides', JSON.stringify(lineTextOverrides));
     }
     function applyLineText(el, defaultText) {
       if (!el) return;
       // Today-date lines use word-rotate animation — never overwrite with plain text
-      if (el.id === 'date-alert' || el.id === 'date-reminder' || el.id === 'date-history' || el.id === 'date-hide') {
+      if (el.id === 'date-alert' || el.id === 'date-reminder' || el.id === 'date-history') {
         return;
       }
       const ov = lineTextOverrides[el.id];
@@ -4819,26 +4645,18 @@
     function goTo(index) {
       const next = Math.max(0, Math.min(index, total - 1));
       // History (2) → Alert (0) wrap: avoid reverse slide animation so cycle feels forward (gol-gol)
-      const wrappingForward = (current === 2 && next === 0) || (current === 3 && next === 0);
+      const wrappingForward = (current === 2 && next === 0);
       if (wrappingForward) {
         slider.style.transition = 'none';
         current = next;
-        slider.style.transform = `translateX(-${current * 25}%)`;
+        slider.style.transform = `translateX(-${current * 33.3334}%)`;
         void slider.offsetWidth; // force reflow
         slider.style.transition = '';
       } else {
         current = next;
-        slider.style.transform = `translateX(-${current * 25}%)`;
+        slider.style.transform = `translateX(-${current * 33.3334}%)`;
       }
 
-      // Hide page: show Hide History btn, hide settings gear
-      var gear = document.getElementById('settingsSideBtn');
-      var histBtn = document.getElementById('haHistoryBtnPage');
-      if (gear) gear.style.display = (current === 3) ? 'none' : '';
-      if (histBtn) {
-        if (current === 3) histBtn.classList.add('show');
-        else histBtn.classList.remove('show');
-      }
       try { localStorage.setItem('currentPage', String(current)); } catch (e) {}
     }
 
@@ -4894,9 +4712,6 @@
       if (forId === 'date-history') {
         return ['Today', dateStr, dayName, 'History Page', 'List - ' + getHistoryListCount()];
       }
-      if (forId === 'date-hide') {
-        return ['Today', dateStr, dayName, 'Hide Page'];
-      }
       return ['Today', dateStr, dayName];
     }
 
@@ -4913,10 +4728,6 @@
       if (forId === 'date-history') {
         // Today, date, day, History Page, List - N
         return [2600, 2600, 2600, 6000, 8000];
-      }
-      if (forId === 'date-hide') {
-        // Today, date, day, Hide Page
-        return [2600, 2600, 2600, 8000];
       }
       return [2600, 2600, 2600];
     }
@@ -4988,7 +4799,7 @@
     }
 
     function refreshDateRotateWords() {
-      ['date-alert', 'date-reminder', 'date-history', 'date-hide'].forEach(function(id) {
+      ['date-alert', 'date-reminder', 'date-history'].forEach(function(id) {
         var state = dateRotateState[id];
         var el = document.getElementById(id);
         if (!el) return;
@@ -5008,11 +4819,9 @@
       var a = document.getElementById('date-alert');
       var r = document.getElementById('date-reminder');
       var hist = document.getElementById('date-history');
-      var h = document.getElementById('date-hide');
       if (a) initDateRotate(a);
       if (r) initDateRotate(r);
       if (hist) initDateRotate(hist);
-      if (h) initDateRotate(h);
       refreshDateRotateWords();
       if (typeof renderReminderList === 'function') renderReminderList();
     }
@@ -5027,19 +4836,6 @@
     })();
     setInterval(refreshDateRotateWords, 60000);
 
-
-
-
-    (function syncHidePageChrome() {
-      var gear = document.getElementById('settingsSideBtn');
-      var histBtn = document.getElementById('haHistoryBtnPage');
-      if (gear) gear.style.display = (typeof current !== 'undefined' && current === 3) ? 'none' : '';
-      if (histBtn) {
-        if (typeof current !== 'undefined' && current === 3) histBtn.classList.add('show');
-        else histBtn.classList.remove('show');
-      }
-    })();
-
     const settingsSideBtn = document.getElementById('settingsSideBtn');
     settingsSideBtn.addEventListener('click', e => {
       e.stopPropagation();
@@ -5052,9 +4848,6 @@
       } else if (current === 2) {
         applyHistorySettingsToUI();
         document.getElementById('historySettingsOverlay').classList.add('show');
-      } else if (current === 3) {
-        // Hide page settings removed — gear hidden on this page
-        return;
       }
     });
 
@@ -5064,10 +4857,8 @@
       switchBtn.classList.remove('spin');
       void switchBtn.offsetWidth; // restart animation on every tap
       switchBtn.classList.add('spin');
-      // Only cycle Alert (0) → Reminder (1) → History (2) → Alert
-      // Hide (3) is reached only via Hide Page button
-      if (current === 3) goTo(0);
-      else goTo((current + 1) % 3);
+      // Cycle Alert (0) → Reminder (1) → History (2) → Alert
+      goTo((current + 1) % 3);
     });
 
     function showMenuToast(msg) {
@@ -5118,7 +4909,6 @@
       const dateEl = document.getElementById('date-alert');
       const dateElReminder = document.getElementById('date-reminder');
       const dateElHistory = document.getElementById('date-history');
-      const dateElHide = document.getElementById('date-hide');
       const titleEl = document.getElementById('title-alert');
 
       // Apply background to ALL pages
@@ -5127,9 +4917,9 @@
       });
       document.body.style.background = settings.bgColor;
 
-      // Today-date styling SHARED on ALL pages (Alert / Reminder / History / Hide)
+      // Today-date styling SHARED on ALL pages (Alert / Reminder / History)
       // Whatever you change in Alert settings (color, size, font, bold) applies everywhere
-      [dateEl, dateElReminder, dateElHistory, dateElHide].forEach(el => {
+      [dateEl, dateElReminder, dateElHistory].forEach(el => {
         if (!el) return;
         if (settings.dateVisible) {
           el.style.display = 'flex';
@@ -5406,65 +5196,6 @@
       renderDeleteRemindersList();
       document.getElementById('deleteRemindersOverlay').classList.add('show');
     });
-    document.getElementById('raHidePage').addEventListener('click', () => {
-      document.getElementById('reminderSettingsOverlay').classList.remove('show');
-      goTo(3);
-    });
-    document.getElementById('aaHidePage').addEventListener('click', () => {
-      document.getElementById('settingsOverlay').classList.remove('show');
-      goTo(3);
-    });
-    document.getElementById('haHidePage').addEventListener('click', () => {
-      document.getElementById('historySettingsOverlay').classList.remove('show');
-      goTo(3);
-    });
-    document.getElementById('raHideList').addEventListener('click', () => {
-      document.getElementById('reminderSettingsOverlay').classList.remove('show');
-      renderHideListsPicker();
-      document.getElementById('hideListsPickerOverlay').classList.add('show');
-    });
-
-    function renderHideListsPicker() {
-      const container = document.getElementById('hideListsPickerList');
-      if (!container) return;
-      const visible = (reminderLists || []).filter(r => !isListHidden(r.id));
-      const countEl = document.getElementById('hideListsPickerCount');
-      if (countEl) countEl.textContent = visible.length ? `(${visible.length})` : '';
-      if (!visible.length) {
-        container.innerHTML = '<div style="color:#888;text-align:center;padding:20px 0;">No lists to hide.</div>';
-        return;
-      }
-      container.innerHTML = visible.map(r => `
-        <label style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:#f5f7fb;border-radius:12px;border:1.5px solid #dfe6f5;">
-          <input type="checkbox" data-id="${r.id}" style="width:20px;height:20px;flex-shrink:0;">
-          <span style="font-weight:600;color:#222;word-break:break-word;">${r.listName || 'Untitled'}</span>
-          <span style="margin-left:auto;color:#888;font-size:13px;white-space:nowrap;">${r.targetDate || ''}</span>
-        </label>
-      `).join('');
-    }
-    document.getElementById('closeHideListsPicker').addEventListener('click', () => {
-      document.getElementById('hideListsPickerOverlay').classList.remove('show');
-    });
-    document.getElementById('hideListsPickerCancelBtn').addEventListener('click', () => {
-      document.getElementById('hideListsPickerOverlay').classList.remove('show');
-    });
-    document.getElementById('hideListsPickerOverlay').addEventListener('click', e => {
-      if (e.target.id === 'hideListsPickerOverlay') e.target.classList.remove('show');
-    });
-    document.getElementById('hideListsPickerConfirmBtn').addEventListener('click', () => {
-      const checked = Array.from(document.querySelectorAll('#hideListsPickerList input[type="checkbox"]:checked')).map(cb => cb.dataset.id);
-      if (!checked.length) {
-        showReminderToast('Select at least one');
-        return;
-      }
-      checked.forEach(id => {
-        if (!hiddenListIds.includes(id)) hiddenListIds.push(id);
-      });
-      saveHiddenListIds();
-      document.getElementById('hideListsPickerOverlay').classList.remove('show');
-      renderReminderList();
-      showReminderToast(`Hidden ${checked.length}`);
-    });
 
     ['rlBold','lnBold','dlBold','tdBold','mdBold'].forEach(id => {
       var el = document.getElementById(id);
@@ -5599,65 +5330,6 @@
       applyHistorySettingsToPage();
       renderReminderList();
     });
-
-    /* ===== Hide page settings ===== */
-    function ensureHideFontOptions() {
-      const dst = document.getElementById('hideTitleFont');
-      const src = document.getElementById('htFont') || document.getElementById('dateFont');
-      if (!dst || !src || dst.options.length > 5) return;
-      const cur = dst.value;
-      dst.innerHTML = src.innerHTML;
-      if (cur) dst.value = cur;
-    }
-    function applyHideSettingsToUI() {
-      ensureHideFontOptions();
-      document.getElementById('hideTitleSize').value = hideSettings.titleSize;
-      document.getElementById('hideTitleColorSwatch').style.background = hideSettings.titleColor;
-      document.getElementById('hideTitleBold').classList.toggle('on', !!hideSettings.titleBold);
-      document.getElementById('hideTitleFont').value = hideSettings.titleFont;
-      syncFontSelectPreview(document.getElementById('hideTitleFont'));
-    }
-    function applyHideSettingsToPage() {
-      const el = document.getElementById('title-hide');
-      if (!el) return;
-      el.style.fontSize = (hideSettings.titleSize || hideDefaultSettings.titleSize) + 'px';
-      el.style.color = hideSettings.titleColor || hideDefaultSettings.titleColor;
-      el.style.fontWeight = hideSettings.titleBold ? '700' : '400';
-      el.style.fontFamily = hideSettings.titleFont || hideDefaultSettings.titleFont;
-    }
-    document.getElementById('closeHideSettings').addEventListener('click', () => {
-      document.getElementById('hideSettingsOverlay').classList.remove('show');
-    });
-    document.getElementById('hideSettingsOverlay').addEventListener('click', e => {
-      if (e.target.id === 'hideSettingsOverlay') e.target.classList.remove('show');
-    });
-    document.getElementById('hideTitleBold').addEventListener('click', function() {
-      this.classList.toggle('on');
-    });
-    document.getElementById('hideSettingsApplyBtn').addEventListener('click', () => {
-      hideSettings.titleSize = parseInt(document.getElementById('hideTitleSize').value) || hideDefaultSettings.titleSize;
-      hideSettings.titleColor = rgbToHex(document.getElementById('hideTitleColorSwatch').style.background) || hideSettings.titleColor;
-      hideSettings.titleBold = document.getElementById('hideTitleBold').classList.contains('on');
-      hideSettings.titleFont = document.getElementById('hideTitleFont').value;
-      // Clear manual fontSize override from linePositions so settings size applies
-      try {
-        const posStore = JSON.parse(localStorage.getItem('linePositions') || '{}');
-        if (posStore['title-hide'] && posStore['title-hide'].fontSize) {
-          delete posStore['title-hide'].fontSize;
-          localStorage.setItem('linePositions', JSON.stringify(posStore));
-        }
-      } catch (e) {}
-      localStorage.setItem('hidePageSettings', JSON.stringify(hideSettings));
-      document.getElementById('hideSettingsOverlay').classList.remove('show');
-      applyHideSettingsToPage();
-    });
-    document.getElementById('hideSettingsResetBtn').addEventListener('click', () => {
-      hideSettings = { ...hideDefaultSettings };
-      localStorage.removeItem('hidePageSettings');
-      applyHideSettingsToUI();
-      applyHideSettingsToPage();
-    });
-    applyHideSettingsToPage();
 
     /* ===== Reminder list: store, render, add, delete ===== */
     function saveReminderLists() {
@@ -6026,125 +5698,7 @@
         }
       }
 
-      // Hide page: same card as Reminder (countdown/count days + date) + History / Unhide
-      const hideContainer = document.getElementById('hideListContainer');
-      if (hideContainer) {
-        const hiddenSorted = (reminderLists || [])
-          .filter(r => isListHidden(r.id))
-          .map(r => ({ r, dayVal: computeDayValue(r, today) }))
-          .sort((a, b) => {
-            const aCount = a.r.counter === 'count';
-            const bCount = b.r.counter === 'count';
-            if (aCount && !bCount) return 1;
-            if (!aCount && bCount) return -1;
-            const av = (a.dayVal === null || isNaN(a.dayVal)) ? Infinity : a.dayVal;
-            const bv = (b.dayVal === null || isNaN(b.dayVal)) ? Infinity : b.dayVal;
-            return av - bv;
-          });
-        if (!hiddenSorted.length) {
-          hideContainer.innerHTML = `
-            <div style="text-align:center;color:#999;font-size:16px;font-weight:600;padding:48px 16px 20px;">
-              No Hide List
-            </div>`;
-        } else {
-          hideContainer.innerHTML = hiddenSorted.map(({ r, dayVal }) => `
-            <div class="hide-list-wrap" data-id="${r.id}">
-              ${buildCardHTML(r, dayVal)}
-              <div class="hide-list-actions">
-                <button type="button" class="hide-btn-unhide" data-act="unhide" data-id="${r.id}">Unhide</button>
-              </div>
-            </div>
-          `).join('');
-        }
-      }
     }
-
-    // Hide page: Unhide on each list — ask confirmation first
-    let pendingUnhideId = null;
-    document.addEventListener('click', e => {
-      const btn = e.target.closest('#hideListContainer button[data-act="unhide"]');
-      if (!btn) return;
-      e.stopPropagation();
-      pendingUnhideId = btn.dataset.id;
-      const msg = document.getElementById('unhideConfirmMessage');
-      if (msg) msg.textContent = 'Do you really want to unhide?';
-      document.getElementById('unhideConfirmOverlay').classList.add('show');
-    });
-    document.getElementById('unhideConfirmNoBtn').addEventListener('click', () => {
-      pendingUnhideId = null;
-      document.getElementById('unhideConfirmOverlay').classList.remove('show');
-    });
-    document.getElementById('unhideConfirmOverlay').addEventListener('click', e => {
-      if (e.target.id === 'unhideConfirmOverlay') {
-        pendingUnhideId = null;
-        e.target.classList.remove('show');
-      }
-    });
-    document.getElementById('unhideConfirmYesBtn').addEventListener('click', () => {
-      if (!pendingUnhideId) {
-        document.getElementById('unhideConfirmOverlay').classList.remove('show');
-        return;
-      }
-      hiddenListIds = hiddenListIds.filter(x => x !== pendingUnhideId);
-      saveHiddenListIds();
-      pendingUnhideId = null;
-      document.getElementById('unhideConfirmOverlay').classList.remove('show');
-      renderReminderList();
-      showReminderToast('Unhidden');
-    });
-
-    // Hide page: separate History button → Hide History panel
-    function renderHideHistoryPanel() {
-      const listEl = document.getElementById('hideHistoryList');
-      if (!listEl) return;
-      const hidden = (reminderLists || []).filter(r => isListHidden(r.id));
-      if (!hidden.length) {
-        listEl.innerHTML = '<div class="hide-history-empty">No History</div>';
-        return;
-      }
-      listEl.innerHTML = hidden.map(r => {
-        const histCount = (historyLists || []).filter(h => h.reminderId === r.id).length;
-        return `
-          <div class="reminder-list-item" data-hide-hist-id="${r.id}" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;">
-            <span style="font-weight:600;color:#222;word-break:break-word;">${r.listName || 'Untitled'}</span>
-            <span style="color:#1a73e8;font-weight:700;flex-shrink:0;">${histCount}</span>
-          </div>
-        `;
-      }).join('');
-    }
-    function openHideHistoryPanel() {
-      try { document.getElementById('hideSettingsOverlay').classList.remove('show'); } catch (e) {}
-      renderHideHistoryPanel();
-      document.getElementById('hideHistoryOverlay').classList.add('show');
-    }
-    const haHistoryBtn = document.getElementById('haHistoryBtn');
-    if (haHistoryBtn) {
-      haHistoryBtn.addEventListener('click', e => {
-        e.stopPropagation();
-        openHideHistoryPanel();
-      });
-    }
-    const haHistoryBtnPage = document.getElementById('haHistoryBtnPage');
-    if (haHistoryBtnPage) {
-      haHistoryBtnPage.addEventListener('click', e => {
-        e.stopPropagation();
-        openHideHistoryPanel();
-      });
-    }
-    document.getElementById('closeHideHistory').addEventListener('click', () => {
-      document.getElementById('hideHistoryOverlay').classList.remove('show');
-    });
-    document.getElementById('hideHistoryOverlay').addEventListener('click', e => {
-      if (e.target.id === 'hideHistoryOverlay') e.target.classList.remove('show');
-    });
-    document.getElementById('hideHistoryList').addEventListener('click', e => {
-      const row = e.target.closest('[data-hide-hist-id]');
-      if (!row) return;
-      e.stopPropagation();
-      const id = row.dataset.hideHistId;
-      document.getElementById('hideHistoryOverlay').classList.remove('show');
-      if (typeof openHistoryDetail === 'function') openHistoryDetail(id);
-    });
 
     renderReminderList();
     applyHistorySettingsToPage();
@@ -7218,8 +6772,8 @@
       const card = e.target.closest('.reminder-list-item');
       if (card) {
         e.stopPropagation();
-        // Edit pencil on Reminder page and Hide page — never on Alert page
-        if (current === 1 || current === 3) showReminderCardPopup(card, card.dataset.id);
+        // Edit pencil on Reminder page — never on Alert page
+        if (current === 1) showReminderCardPopup(card, card.dataset.id);
         // History page: tap a card -> open its (History) detail sheet
         if (current === 2) openHistoryDetail(card.dataset.id);
         return;
@@ -7940,7 +7494,6 @@
         const isDateLine = el.id === 'date-alert' || el.id === 'date-reminder' || el.id === 'date-hide';
         const isAlertTitle = el.id === 'title-alert';
         const isReminderCountLine = el.id === 'reminderPageHeading' || el.id === 'historyPageHeading';
-        const isHideTitle = el.id === 'title-hide';
 
         popupEl = document.createElement('div');
         popupEl.className = 'line-popup';
@@ -7960,11 +7513,6 @@
             <button class="act-move" data-act="moveRight">▶</button>
             <button class="act-move" data-act="moveUp">▲</button>
             <button class="act-move" data-act="moveDown">▼</button>
-          `;
-        } else if (isHideTitle) {
-          popupEl.innerHTML = `
-            <button class="act-pin${pinned ? ' on' : ''}" data-act="${pinned ? 'unpin' : 'pin'}">${pinned ? 'Unpin' : 'Pin'}</button>
-            <button class="act-edit" data-act="edit">✏️</button>
           `;
         } else {
           popupEl.innerHTML = `
@@ -8252,15 +7800,11 @@
         { id: 'title-history', label: 'History Title' },
         { id: 'historyPageHeading', label: 'History List' }
       ];
-      if (pageIndex === 3) return [
-        { id: 'date-hide', label: 'Today Date' },
-        { id: 'title-hide', label: 'Hide Title' }
-      ];
       return [];
     }
 
     function pagePillLabel(i) {
-      return ['ALERT PAGE', 'LIST PAGE', 'HISTORY PAGE', 'HIDE PAGE'][i] || 'PAGE';
+      return ['ALERT PAGE', 'LIST PAGE', 'HISTORY PAGE'][i] || 'PAGE';
     }
 
     function buildAnimCSS(names, speedKey) {
