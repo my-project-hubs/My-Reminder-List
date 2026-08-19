@@ -376,6 +376,15 @@ function buildCombinedMessage(matched, modeLabel, freqLabel, isReminderMode, now
 
 export default async function handler(req, res) {
   try {
+    // Secret-key check: bina sahi MY_SECRET_KEY ke koi bhi is URL ko call
+    // nahi kar payega (query string ?key=... ya header x-secret-key se aa sakta hai —
+    // cron-job.org aur AI agent dono isi tareeke se pass kar sakte hain).
+    const MY_SECRET_KEY = (process.env.MY_SECRET_KEY || "").trim();
+    const providedKey = String(req.query?.key || req.headers["x-secret-key"] || "").trim();
+    if (!MY_SECRET_KEY || providedKey !== MY_SECRET_KEY) {
+      return res.status(401).json({ ok: false, error: "Unauthorized" });
+    }
+
     const BOT_TOKEN = (process.env.BOT_TOKEN || "").trim();
     const CHAT_ID = (process.env.CHAT_ID || "").trim();
     if (!BOT_TOKEN || !CHAT_ID) {
