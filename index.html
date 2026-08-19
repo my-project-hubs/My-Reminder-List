@@ -2954,7 +2954,7 @@
             input.focus();
             return;
           }
-          errEl.textContent = `Bahut baar galat password — ${formatRemaining(remaining)} baad dobara koshish karein`;
+          errEl.textContent = `Too many wrong attempts — try again after ${formatRemaining(remaining)}`;
         }
         tick();
         lockTimerInterval = setInterval(tick, 1000);
@@ -3007,13 +3007,13 @@
           } else {
             const remaining = data.remaining;
             errEl.textContent = remaining != null
-              ? `Galat password, dobara koshish karein (${remaining} chance bache)`
-              : 'Galat password, dobara koshish karein';
+              ? `Wrong password, try again (${remaining} chances left)`
+              : 'Wrong password, try again';
             input.value = '';
             input.focus();
           }
         } catch (e) {
-          errEl.textContent = 'Network error, dobara koshish karein';
+          errEl.textContent = 'Network error, please try again';
         } finally {
           btn.disabled = false;
           btn.textContent = 'Unlock';
