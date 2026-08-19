@@ -2898,13 +2898,28 @@
 
     (function () {
       const SESSION_KEY = 'pwGateOk';
+      const ROLE_KEY = 'pwGateRole';
       const overlay = document.getElementById('pwGateOverlay');
       const input = document.getElementById('pwGateInput');
       const btn = document.getElementById('pwGateBtn');
       const errEl = document.getElementById('pwGateError');
+      let lockTimerInterval = null;
+
+      // Guest role ke liye jo bhi cheezein chhupani hain, unhe yahan lagate hain.
+      // Sirf "Switch Page" button (⇄) guest ke liye chalu rehta hai.
+      function applyRoleRestrictions(role) {
+        window.__userRole = role;
+        if (role !== 'guest') return;
+        const idsToHide = ['settingsSideBtn', 'notifySideBtn'];
+        idsToHide.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.display = 'none';
+        });
+      }
 
       function unlock() {
         overlay.style.display = 'none';
+        applyRoleRestrictions(sessionStorage.getItem(ROLE_KEY) || 'owner');
         window.__resolveAuth();
       }
 
@@ -2913,6 +2928,45 @@
         unlock();
         return;
       }
+
+      function formatRemaining(ms) {
+        const totalSec = Math.max(0, Math.ceil(ms / 1000));
+        const h = Math.floor(totalSec / 3600);
+        const m = Math.floor((totalSec % 3600) / 60);
+        const s = totalSec % 60;
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      }
+
+      function showLockedUI(lockUntil) {
+        if (lockTimerInterval) clearInterval(lockTimerInterval);
+        input.disabled = true;
+        btn.disabled = true;
+        input.style.borderColor = '#c0392b';
+        function tick() {
+          const remaining = lockUntil - Date.now();
+          if (remaining <= 0) {
+            clearInterval(lockTimerInterval);
+            input.disabled = false;
+            btn.disabled = false;
+            input.style.borderColor = '#2563eb';
+            errEl.textContent = '';
+            input.focus();
+            return;
+          }
+          errEl.textContent = `Bahut baar galat password — ${formatRemaining(remaining)} baad dobara koshish karein`;
+        }
+        tick();
+        lockTimerInterval = setInterval(tick, 1000);
+      }
+
+      // Page load hote hi server se pooch lo — pehle se lock to nahi
+      // (yeh sirf status check hai, koi attempt count nahi hoti).
+      fetch('/api/verify-password', { method: 'GET' })
+        .then(r => r.json())
+        .then(data => {
+          if (data && data.locked) showLockedUI(data.lockUntil);
+        })
+        .catch(() => {});
 
       async function tryPassword() {
         const pw = input.value;
@@ -2929,9 +2983,17 @@
           const data = await res.json().catch(() => ({}));
           if (res.ok && data.ok) {
             sessionStorage.setItem(SESSION_KEY, '1');
+            sessionStorage.setItem(ROLE_KEY, data.role || 'owner');
             unlock();
+            return;
+          }
+          if (data.locked) {
+            showLockedUI(data.lockUntil);
           } else {
-            errEl.textContent = 'Galat password, dobara koshish karein';
+            const remaining = data.remaining;
+            errEl.textContent = remaining != null
+              ? `Galat password, dobara koshish karein (${remaining} chance bache)`
+              : 'Galat password, dobara koshish karein';
             input.value = '';
             input.focus();
           }
