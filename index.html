@@ -6461,6 +6461,16 @@
         cancelPendingDelete();
         return;
       }
+      if (pendingDeleteMode === 'historyEntry') {
+        // Delete a single logged snapshot entry from the History detail popup
+        const hid = pendingDeleteIds[0];
+        historyLists = historyLists.filter(x => x.id !== hid);
+        saveHistoryLists();
+        if (currentHistoryDetailId) openHistoryDetail(currentHistoryDetailId);
+        if (typeof renderReminderList === 'function') renderReminderList();
+        cancelPendingDelete();
+        return;
+      }
       if (pendingDeleteMode === 'history') {
         // Remove all history snapshots for selected reminderIds + hide from History page
         const count = pendingDeleteIds.length;
@@ -6747,10 +6757,11 @@
       const delBtn = e.target.closest('.hd-delete-btn');
       if (delBtn) {
         if (hdDeleteTimers[hid]) { clearTimeout(hdDeleteTimers[hid]); delete hdDeleteTimers[hid]; }
-        historyLists = historyLists.filter(x => x.id !== hid);
-        saveHistoryLists();
-        if (currentHistoryDetailId) openHistoryDetail(currentHistoryDetailId);
-        if (typeof renderReminderList === 'function') renderReminderList();
+        pendingDeleteIds = [hid];
+        pendingDeleteMode = 'historyEntry';
+        const msg = document.getElementById('deleteConfirmMessage');
+        if (msg) msg.textContent = 'Are you sure you want to delete this entry?';
+        document.getElementById('deleteConfirmOverlay').classList.add('show');
         return;
       }
       card.classList.add('show-delete');
