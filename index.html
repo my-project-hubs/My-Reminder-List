@@ -2899,6 +2899,7 @@
     (function () {
       const SESSION_KEY = 'pwGateOk';
       const ROLE_KEY = 'pwGateRole';
+      const DEVICE_TOKEN_KEY = 'pwGateDeviceToken';
       const overlay = document.getElementById('pwGateOverlay');
       const input = document.getElementById('pwGateInput');
       const btn = document.getElementById('pwGateBtn');
@@ -2959,9 +2960,23 @@
         lockTimerInterval = setInterval(tick, 1000);
       }
 
+      // Is browser/device ki apni ek permanent random pehchaan (token) —
+      // ye kabhi change nahi hoti (jab tak browser data hi clear na ho).
+      // Sahi Owner password ek baar dene ke baad, ye token server par
+      // "trusted" ke roop mein save ho jaata hai.
+      function getDeviceToken() {
+        let token = localStorage.getItem(DEVICE_TOKEN_KEY);
+        if (!token) {
+          token = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(36).slice(2));
+          localStorage.setItem(DEVICE_TOKEN_KEY, token);
+        }
+        return token;
+      }
+      const deviceToken = getDeviceToken();
+
       // Page load hote hi server se pooch lo — pehle se lock to nahi
       // (yeh sirf status check hai, koi attempt count nahi hoti).
-      fetch('/api/verify-password', { method: 'GET' })
+      fetch('/api/verify-password?deviceToken=' + encodeURIComponent(deviceToken), { method: 'GET' })
         .then(r => r.json())
         .then(data => {
           if (data && data.locked) showLockedUI(data.lockUntil);
@@ -2978,7 +2993,7 @@
           const res = await fetch('/api/verify-password', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password: pw })
+            body: JSON.stringify({ password: pw, deviceToken: deviceToken })
           });
           const data = await res.json().catch(() => ({}));
           if (res.ok && data.ok) {
