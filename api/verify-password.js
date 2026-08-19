@@ -40,8 +40,9 @@ async function writeLockDoc(count, lockUntil) {
 
 export default async function handler(req, res) {
   try {
-    const correctPassword = process.env.SITE_PASSWORD;
-    if (!correctPassword) {
+    const ownerPassword = process.env.SITE_PASSWORD;
+    const guestPassword = process.env.GUEST_PASSWORD;
+    if (!ownerPassword) {
       console.error("SITE_PASSWORD env variable set nahi hai");
       return res.status(500).json({ ok: false, error: "Server not configured" });
     }
@@ -74,12 +75,20 @@ export default async function handler(req, res) {
 
     const { password } = req.body || {};
 
-    if (password && password === correctPassword) {
-      // Sahi password — counter reset kar do.
+    // Owner password — poora access.
+    if (password && password === ownerPassword) {
       if (count !== 0 || lockUntil !== 0) {
         await writeLockDoc(0, 0);
       }
-      return res.status(200).json({ ok: true });
+      return res.status(200).json({ ok: true, role: "owner" });
+    }
+
+    // Guest password — sirf limited access.
+    if (guestPassword && password && password === guestPassword) {
+      if (count !== 0 || lockUntil !== 0) {
+        await writeLockDoc(0, 0);
+      }
+      return res.status(200).json({ ok: true, role: "guest" });
     }
 
     // Galat password — global counter badhao.
