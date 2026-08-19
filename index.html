@@ -6859,6 +6859,8 @@
       const card = e.target.closest('.reminder-list-item');
       if (card) {
         e.stopPropagation();
+        // Guest role: card par tap se kuch bhi na khule (edit popup ho ya history detail).
+        if (window.__userRole === 'guest') return;
         // Edit pencil on Reminder page — never on Alert page
         if (current === 1) showReminderCardPopup(card, card.dataset.id);
         // History page: tap a card -> open its (History) detail sheet
