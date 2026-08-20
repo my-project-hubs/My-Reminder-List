@@ -850,7 +850,7 @@ export default async function handler(req, res) {
         return res.status(200).json({ ok: true });
       }
 
-      // Reminder-page delete (existing feature) takes priority if both are pending.
+      // Reminder-page delete → soft-delete into reminderTrash
       if (pending) {
         if (Date.now() - (pending.requestedAt || 0) > PENDING_DELETE_TIMEOUT_MS) {
           await patchDocFields({ pendingDelete: undefined });
@@ -860,22 +860,24 @@ export default async function handler(req, res) {
         }
 
         const reminderLists = readJsonField(docData, "reminderLists", []);
+        const reminderTrash = readJsonField(docData, "reminderTrash", []);
+        const toMove = reminderLists.find(r => r.id === pending.id);
         const filtered = reminderLists.filter(r => r.id !== pending.id);
+        if (toMove) {
+          reminderTrash.push({ ...toMove, deletedAt: Date.now() });
+        }
 
         await patchDocFields({
           reminderLists: JSON.stringify(filtered),
+          reminderTrash: JSON.stringify(reminderTrash),
           pendingDelete: undefined,
         });
 
-        await sendTelegramMessage(BOT_TOKEN, CHAT_ID, `🗑️ Deleted: ${pending.listName}`);
+        await sendTelegramMessage(BOT_TOKEN, CHAT_ID, `🗑️ Moved to Recycle Bin: ${pending.listName}`);
         return res.status(200).json({ ok: true });
       }
 
-      // History-page delete (new feature) — mirrors the website's own
-      // "Delete History Lists" action exactly: remove every historyLists
-      // snapshot for that reminderId, AND mark the id as hidden so a
-      // still-active (0-history) reminder's placeholder also disappears
-      // from the History page / /hd list.
+      // History-page delete → soft-delete into historyTrash
       if (Date.now() - (pendingHistory.requestedAt || 0) > PENDING_DELETE_TIMEOUT_MS) {
         await patchDocFields({ pendingHistoryDelete: undefined });
         await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
@@ -885,7 +887,21 @@ export default async function handler(req, res) {
 
       const historyLists = readJsonField(docData, "historyLists", []);
       const historyPageHiddenIds = readJsonField(docData, "historyPageHiddenIds", []);
+      const historyTrash = readJsonField(docData, "historyTrash", []);
       const idsToRemove = new Set(pendingHistory.ids || []);
+
+      const snapshots = historyLists.filter(h => idsToRemove.has(h.reminderId));
+      const now = Date.now();
+      idsToRemove.forEach(rid => {
+        const related = snapshots.filter(h => h.reminderId === rid);
+        const listName = (related[0] && related[0].listName) || pendingHistory.listName || 'Untitled';
+        historyTrash.push({
+          id: rid,
+          listName,
+          snapshots: related,
+          deletedAt: now,
+        });
+      });
 
       const filteredHistory = historyLists.filter(h => !idsToRemove.has(h.reminderId));
       const updatedHiddenIds = [...historyPageHiddenIds];
@@ -896,11 +912,12 @@ export default async function handler(req, res) {
       await patchDocFields({
         historyLists: JSON.stringify(filteredHistory),
         historyPageHiddenIds: JSON.stringify(updatedHiddenIds),
+        historyTrash: JSON.stringify(historyTrash),
         pendingHistoryDelete: undefined,
       });
 
       await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
-        `🗑️ Deleted from History page: ${pendingHistory.listName}`);
+        `🗑️ Moved to Recycle Bin: ${pendingHistory.listName}`);
       return res.status(200).json({ ok: true });
     }
 
