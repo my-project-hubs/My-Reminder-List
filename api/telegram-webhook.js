@@ -121,23 +121,6 @@ function formatDMY(dt) {
   return `${d}/${m}/${y}`;
 }
 
-// Website ke formatTimestamp jaisa "DD/MM/YYYY, HH:MM:SS AM/PM" (IST mein).
-function formatTimestampIST(ms) {
-  if (!ms) return "--";
-  const d = new Date(ms);
-  if (isNaN(d.getTime())) return "--";
-  const parts = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Asia/Kolkata",
-    day: "2-digit", month: "2-digit", year: "numeric",
-    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true,
-  }).formatToParts(d);
-  const get = (t) => parts.find(p => p.type === t)?.value || "";
-  const ampm = (get("dayPeriod") || "").toUpperCase();
-  let hour = get("hour");
-  if (hour === "24") hour = "12";
-  return `${get("day")}/${get("month")}/${get("year")}, ${hour}:${get("minute")}:${get("second")} ${ampm}`;
-}
-
 // Website ke openHistoryDetail() jaisa status (ACTIVE/UPCOMING/EXPIRED) —
 // har reminderId ke group ke andar hi decide hota hai, isliye poori
 // historyLists (sirf display hone wali top-N nahi) yahan use hoti hai.
@@ -195,15 +178,16 @@ function buildEntryCardLines(h, status) {
   if (h.itemType === "notes") lines.push(centerText("( Notice )", CARD_WIDTH));
   lines.push(BLANK_PAD_LINE);
   lines.push(centerText(statusLabel, FULL_WIDTH));
+  lines.push(BLANK_PAD_LINE);
   lines.push(centerText(dateRange, FULL_WIDTH));
+  lines.push(BLANK_PAD_LINE);
   if (h.itemType === "notes") {
     lines.push(centerText(`${(totalDays !== null && !isNaN(totalDays)) ? totalDays : "--"} days`, FULL_WIDTH));
   } else {
     lines.push(centerText(`${(totalDays !== null && !isNaN(totalDays)) ? totalDays : "--"} days - ₹${price}`, FULL_WIDTH));
+    lines.push(BLANK_PAD_LINE);
     lines.push(centerText(`Daily Cost ₹${isFinite(dailyCost) ? dailyCost.toFixed(2) : "--"}`, FULL_WIDTH));
   }
-  lines.push(BLANK_PAD_LINE);
-  lines.push(centerText(formatTimestampIST(h.created), FULL_WIDTH));
   return lines;
 }
 
