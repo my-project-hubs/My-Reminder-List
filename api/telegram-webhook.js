@@ -21,6 +21,21 @@
 //     -> bot poochega "Pakka delete karna hai?" — confirm karne ke liye
 //        agla message sirf "yes" bhejo (2 minute ke andar), warna cancel.
 //
+// SUPPORTED MESSAGE (History page: Delete):
+//   /hd
+//     -> bot pehle poori History list bhejta hai (naam ke saath), taaki aap
+//        dekh kar decide kar sako kaunsa delete karna hai.
+//   /hd Name
+//   /hd Gas cylinder
+//     -> bot poochega confirmation ("Are you sure...?") — confirm karne ke
+//        liye agla message sirf "yes" bhejo (2 minute ke andar), warna cancel.
+//     -> agar us naam ki multiple History entries hain, to sab ek saath
+//        delete ho jaayengi.
+//
+// SUPPORTED MESSAGE (Show all commands):
+//   /cm
+//     -> bot replies with the full list of every supported command.
+//
 // ONE-TIME SETUP (isko ek baar apne browser mein khol dena, bas):
 //   https://api.telegram.org/bot<BOT_TOKEN>/setWebhook?url=https://<aapka-vercel-domain>/api/telegram-webhook
 //   <BOT_TOKEN> ki jagah apna asli bot token daalo, aur <aapka-vercel-domain>
@@ -218,7 +233,46 @@ function isYesConfirm(text) {
   return /^yes$/i.test(String(text || "").trim());
 }
 
+// ===== /cm -> lists every supported command =====
+function isCommandListRequest(text) {
+  return /^\/cm$/i.test(String(text || "").trim());
+}
+
+function buildCommandListMessage() {
+  return [
+    "📋 Available Commands",
+    "",
+    "Reminder page:",
+    "/add Name | DD/MM/YYYY | Price | AlertDays | countdown",
+    "/edit Name | DD/MM/YYYY | Price | AlertDays | countdown",
+    "/delete Name",
+    "",
+    "History page:",
+    "/hd  (shows full History list)",
+    "/hd Name  (asks to confirm, then deletes)",
+    "/h 1 to /h 10  (any number 1-10 = that many latest entries)",
+    "",
+    "Other:",
+    "yes  (confirms a pending /delete or /hd)",
+    "/cm  (shows this command list)",
+  ].join("\n");
+}
+
 const PENDING_DELETE_TIMEOUT_MS = 2 * 60 * 1000; // 2 minutes
+
+// "/hd Name" -> Name
+function parseDeleteHistoryCommand(text) {
+  const m = String(text || "").trim().match(/^\/hd\s+(.+)$/is);
+  if (!m) return null;
+  return m[1].trim();
+}
+
+// Reminder names are unique, but History can hold several snapshots with the
+// same listName over time — so this returns ALL matching entries, not just one.
+function findHistoryEntriesByName(historyLists, name) {
+  const target = String(name || "").trim().toLowerCase();
+  return (historyLists || []).filter(h => String(h.listName || "").trim().toLowerCase() === target);
+}
 
 // Sirf "/h <number>" (1 se 10) chalega — number COMPULSORY hai.
 // Bina slash ka "h", "h 5" ya bina number ka akela "/h" ab reply nahi karega.
@@ -418,6 +472,12 @@ export default async function handler(req, res) {
 
     const text = message.text;
 
+    // ===== /cm (lists all supported commands) =====
+    if (isCommandListRequest(text)) {
+      await sendTelegramMessage(BOT_TOKEN, CHAT_ID, buildCommandListMessage());
+      return res.status(200).json({ ok: true });
+    }
+
     // =====  /add Name | DD/MM/YYYY | Price | AlertDays | countdown =====
     const addParts = parseAddCommand(text);
     if (addParts) {
@@ -516,30 +576,96 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
-    // ===== "yes" -> confirms the pending delete =====
+    // ===== "/hd" alone (no name) -> show the full History list first =====
+    if (/^\/hd$/i.test(String(text || "").trim())) {
+      const docData = await fetchDocData();
+      const historyLists = readJsonField(docData, "historyLists", []);
+      const sorted = [...historyLists].sort((a, b) => (b.created || 0) - (a.created || 0));
+      const msgText = buildHistoryMessage(sorted, sorted.length, historyLists) +
+        "\n\nTo delete one, send: /hd Name";
+      await sendTelegramMessage(BOT_TOKEN, CHAT_ID, msgText);
+      return res.status(200).json({ ok: true });
+    }
+
+    // ===== "/hd Name" (History page — asks for confirmation first) =====
+    const deleteHistoryName = parseDeleteHistoryCommand(text);
+    if (deleteHistoryName) {
+      const docData = await fetchDocData();
+      const historyLists = readJsonField(docData, "historyLists", []);
+      const matches = findHistoryEntriesByName(historyLists, deleteHistoryName);
+
+      if (!matches.length) {
+        await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
+          `No History entry found named "${deleteHistoryName}". Please check the name.`);
+        return res.status(200).json({ ok: true });
+      }
+
+      await patchDocFields({
+        pendingHistoryDelete: JSON.stringify({
+          ids: matches.map(h => h.id),
+          listName: deleteHistoryName,
+          requestedAt: Date.now(),
+        }),
+      });
+
+      const countNote = matches.length > 1 ? ` (${matches.length} entries)` : "";
+      await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
+        `⚠️ Are you sure you want to delete "${deleteHistoryName}"${countNote} from History?\nTo confirm, reply with just "yes" (within 2 minutes), otherwise this will be cancelled.`);
+      return res.status(200).json({ ok: true });
+    }
+
+    // ===== "yes" -> confirms a pending delete (Reminder page OR History page) =====
     if (isYesConfirm(text)) {
       const docData = await fetchDocData();
       const pending = readJsonField(docData, "pendingDelete", null);
-      if (!pending) {
+      const pendingHistory = readJsonField(docData, "pendingHistoryDelete", null);
+
+      if (!pending && !pendingHistory) {
         // No pending delete — stay silent.
         return res.status(200).json({ ok: true });
       }
-      if (Date.now() - (pending.requestedAt || 0) > PENDING_DELETE_TIMEOUT_MS) {
-        await patchDocFields({ pendingDelete: undefined });
-        await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
-          "The confirmation window (2 minutes) has expired. Please send /delete Name again.");
+
+      // Reminder-page delete (existing feature) takes priority if both are pending.
+      if (pending) {
+        if (Date.now() - (pending.requestedAt || 0) > PENDING_DELETE_TIMEOUT_MS) {
+          await patchDocFields({ pendingDelete: undefined });
+          await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
+            "The confirmation window (2 minutes) has expired. Please send /delete Name again.");
+          return res.status(200).json({ ok: true });
+        }
+
+        const reminderLists = readJsonField(docData, "reminderLists", []);
+        const filtered = reminderLists.filter(r => r.id !== pending.id);
+
+        await patchDocFields({
+          reminderLists: JSON.stringify(filtered),
+          pendingDelete: undefined,
+        });
+
+        await sendTelegramMessage(BOT_TOKEN, CHAT_ID, `🗑️ Deleted: ${pending.listName}`);
         return res.status(200).json({ ok: true });
       }
 
-      const reminderLists = readJsonField(docData, "reminderLists", []);
-      const filtered = reminderLists.filter(r => r.id !== pending.id);
+      // History-page delete (new feature)
+      if (Date.now() - (pendingHistory.requestedAt || 0) > PENDING_DELETE_TIMEOUT_MS) {
+        await patchDocFields({ pendingHistoryDelete: undefined });
+        await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
+          "The confirmation window (2 minutes) has expired. Please send /hd Name again.");
+        return res.status(200).json({ ok: true });
+      }
+
+      const historyLists = readJsonField(docData, "historyLists", []);
+      const idsToRemove = new Set(pendingHistory.ids || []);
+      const filteredHistory = historyLists.filter(h => !idsToRemove.has(h.id));
 
       await patchDocFields({
-        reminderLists: JSON.stringify(filtered),
-        pendingDelete: undefined,
+        historyLists: JSON.stringify(filteredHistory),
+        pendingHistoryDelete: undefined,
       });
 
-      await sendTelegramMessage(BOT_TOKEN, CHAT_ID, `🗑️ Deleted: ${pending.listName}`);
+      const historyCountNote = (pendingHistory.ids || []).length > 1 ? ` (${pendingHistory.ids.length} entries)` : "";
+      await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
+        `🗑️ Deleted from History: ${pendingHistory.listName}${historyCountNote}`);
       return res.status(200).json({ ok: true });
     }
 
