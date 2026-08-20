@@ -9,15 +9,15 @@
 //   /h 10              -> latest 10 history (maximum)
 //
 // SUPPORTED MESSAGE (Reminder page: Add / Edit / Delete):
-//   /add Naam | DD/MM/YYYY | Price | AlertDays | countdown
+//    /add Name | DD/MM/YYYY | Price | AlertDays | countdown
 //   /add Dish TV | 09/09/2026 | 400 | 15 | countdown
 //     (last part "countdown"/"count" optional — na diya to "countdown" default)
 //
-//   /edit Naam | DD/MM/YYYY | Price | AlertDays | countdown
+//    /edit Name | DD/MM/YYYY | Price | AlertDays | countdown
 //   /edit Dish TV | 10/09/2026 | 450 | 10 | countdown
-//     (Naam se dhoonda jaata hai — naam khud change nahi hota)
+//     (found by current Name — name itself is not changed)
 //
-//   /delete Naam
+//   /delete Name
 //     -> bot poochega "Pakka delete karna hai?" — confirm karne ke liye
 //        agla message sirf "yes" bhejo (2 minute ke andar), warna cancel.
 //
@@ -110,28 +110,28 @@ function genId(prefix) {
   return prefix ? prefix + raw : raw;
 }
 
-// "Naam | DD/MM/YYYY | Price | AlertDays | counter(optional)" -> parsed fields
+// "Name | DD/MM/YYYY | Price | AlertDays | counter(optional)" -> parsed fields
 function parseReminderFieldParts(parts) {
   if (!parts || parts.length < 4) {
-    return { error: "Format galat hai. Sahi format:\n/add Naam | DD/MM/YYYY | Price | AlertDays | countdown" };
+    return { error: "Wrong format. Correct format:\n/add Name | DD/MM/YYYY | Price | AlertDays | countdown" };
   }
   const [listNameRaw, dateRaw, priceRaw, alertRaw, counterRaw] = parts;
   const listName = String(listNameRaw || "").trim();
-  if (!listName) return { error: "List Name khali nahi ho sakta." };
+  if (!listName) return { error: "List Name cannot be empty." };
 
   const targetDate = String(dateRaw || "").trim();
   if (!/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(targetDate)) {
-    return { error: "Date format galat hai. DD/MM/YYYY mein bhejo (jaise 09/09/2026)." };
+    return { error: "Wrong date format. Send it as DD/MM/YYYY (e.g. 09/09/2026)." };
   }
 
   const price = parseFloat(priceRaw);
   if (isNaN(price) || price <= 0) {
-    return { error: "Price sahi number hona chahiye, 0 se zyada." };
+    return { error: "Price must be a valid number greater than 0." };
   }
 
   const alertDaysNum = parseInt(alertRaw, 10);
   if (isNaN(alertDaysNum) || alertDaysNum < 0) {
-    return { error: "Alert Days sahi number hona chahiye (0 ya zyada)." };
+    return { error: "Alert Days must be a valid number (0 or more)." };
   }
 
   const counter = (counterRaw && String(counterRaw).trim().toLowerCase() === "count") ? "count" : "countdown";
@@ -162,15 +162,15 @@ function formatReminderConfirmMessage(heading, entry) {
   const topBlock = [
     heading,
     "",
-    `Naam: ${entry.listName}`,
+    `Name: ${entry.listName}`,
     `Target Date: ${entry.targetDate}`,
     `Price: ₹${entry.price}`,
-    `Alert Page: ${entry.alertPage} din pehle`,
+    `Alert Page: ${entry.alertPage} days before`,
     `Type: ${entry.counter === "count" ? "Count" : "Countdown"}`,
   ].join("\n");
 
-  const spacer = "\n".repeat(6); // 5-6 khaali lines beech mein
-  const bottomSpacer = "\n" + "⠀\n".repeat(6); // niche bhi utni hi khaali jagah (blank-char lines taaki Telegram trim na kare)
+  const spacer = "\n".repeat(6); // 5-6 blank lines in between
+  const bottomSpacer = "\n" + "⠀\n".repeat(6); // same blank space at the bottom (blank-char lines so Telegram doesn't trim them)
 
   return topBlock + spacer + formatReminderCardMessage(entry) + bottomSpacer;
 }
@@ -418,7 +418,7 @@ export default async function handler(req, res) {
 
     const text = message.text;
 
-    // ===== /add Naam | DD/MM/YYYY | Price | AlertDays | countdown =====
+    // =====  /add Name | DD/MM/YYYY | Price | AlertDays | countdown =====
     const addParts = parseAddCommand(text);
     if (addParts) {
       const parsed = parseReminderFieldParts(addParts);
@@ -432,7 +432,7 @@ export default async function handler(req, res) {
 
       if (findReminderByName(reminderLists, parsed.data.listName)) {
         await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
-          `"${parsed.data.listName}" naam se ek list pehle se maujood hai. Alag naam do, ya /edit use karo.`);
+          `A list named "${parsed.data.listName}" already exists. Use a different name, or use /edit.`);
         return res.status(200).json({ ok: true });
       }
 
@@ -446,16 +446,16 @@ export default async function handler(req, res) {
       });
 
       await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
-        formatReminderConfirmMessage("✅ Reminder Add ho gaya", newEntry));
+        formatReminderConfirmMessage("✅ Reminder Added", newEntry));
       return res.status(200).json({ ok: true });
     }
 
-    // ===== /edit Naam | DD/MM/YYYY | Price | AlertDays | countdown =====
+    // ===== /edit Name | DD/MM/YYYY | Price | AlertDays | countdown =====
     const editParts = parseEditCommand(text);
     if (editParts) {
       if (!editParts.length || !editParts[0]) {
         await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
-          "Format galat hai. Sahi format:\n/edit Naam | DD/MM/YYYY | Price | AlertDays | countdown");
+          "Wrong format. Correct format:\n/edit Name | DD/MM/YYYY | Price | AlertDays | countdown");
         return res.status(200).json({ ok: true });
       }
       const searchName = editParts[0];
@@ -466,7 +466,7 @@ export default async function handler(req, res) {
       const existing = findReminderByName(reminderLists, searchName);
       if (!existing) {
         await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
-          `"${searchName}" naam se koi list nahi mili. Naam sahi check karo.`);
+          `No list found named "${searchName}". Please check the name.`);
         return res.status(200).json({ ok: true });
       }
 
@@ -491,11 +491,11 @@ export default async function handler(req, res) {
       });
 
       await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
-        formatReminderConfirmMessage("✅ Reminder Update ho gaya", updatedEntry));
+        formatReminderConfirmMessage("✅ Reminder Updated", updatedEntry));
       return res.status(200).json({ ok: true });
     }
 
-    // ===== /delete Naam (pehle confirm maangega) =====
+    // ===== /delete Name (asks for confirmation first) =====
     const deleteName = parseDeleteCommand(text);
     if (deleteName) {
       const docData = await fetchDocData();
@@ -503,7 +503,7 @@ export default async function handler(req, res) {
       const existing = findReminderByName(reminderLists, deleteName);
       if (!existing) {
         await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
-          `"${deleteName}" naam se koi list nahi mili. Naam sahi check karo.`);
+          `No list found named "${deleteName}". Please check the name.`);
         return res.status(200).json({ ok: true });
       }
 
@@ -516,18 +516,18 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
-    // ===== "yes" -> pending delete confirm karo =====
+    // ===== "yes" -> confirms the pending delete =====
     if (isYesConfirm(text)) {
       const docData = await fetchDocData();
       const pending = readJsonField(docData, "pendingDelete", null);
       if (!pending) {
-        // Koi pending delete hi nahi hai — chup rehte hain.
+        // No pending delete — stay silent.
         return res.status(200).json({ ok: true });
       }
       if (Date.now() - (pending.requestedAt || 0) > PENDING_DELETE_TIMEOUT_MS) {
         await patchDocFields({ pendingDelete: undefined });
         await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
-          "Confirmation ka time (2 minute) khatam ho gaya. Dobara /delete Naam bhejo.");
+          "The confirmation window (2 minutes) has expired. Please send /delete Name again.");
         return res.status(200).json({ ok: true });
       }
 
@@ -546,7 +546,7 @@ export default async function handler(req, res) {
     // ===== /h (latest history view) =====
     const requestedCount = parseHistoryCommand(text);
     if (requestedCount === null) {
-      // Koi bhi supported command nahi hai — kuch reply nahi karte, chup rehte hain.
+      // No supported command matched — stay silent.
       return res.status(200).json({ ok: true });
     }
 
