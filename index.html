@@ -3388,11 +3388,11 @@
       <!-- REMINDER ACTIONS: 2 rows × 3 cols (pair stacked), light grey + white text -->
       <div class="ra-text-actions-grid">
         <div class="ra-col">
-          <button type="button" class="ra-name-btn" id="raAddNotes">Add New Notes</button>
-          <button type="button" class="ra-name-btn" id="raAddReminder">Add New Reminder</button>
+          <button type="button" class="ra-name-btn" id="openReminderRecycleBin">Recycle Bin</button>
         </div>
         <div class="ra-col">
-          <button type="button" class="ra-name-btn" id="openReminderRecycleBin">Recycle Bin</button>
+          <button type="button" class="ra-name-btn" id="raAddNotes">Add New Notes</button>
+          <button type="button" class="ra-name-btn" id="raAddReminder">Add New Reminder</button>
         </div>
         <div class="ra-col">
           <button type="button" class="ra-name-btn" id="raDelete">Delete</button>
@@ -4016,14 +4016,6 @@
       </div>
 
       <div class="history-settings-body">
-      <!-- Recycle Bin icon button -->
-      <div style="text-align:center; margin-bottom:20px;">
-        <div class="control-label" style="margin-bottom:8px;">Recycle</div>
-        <button type="button" id="openHistoryRecycleBin" class="delete-btn" title="Recycle Bin" aria-label="Recycle Bin">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1z"/><path d="M5 6h14"/><path d="M7 6v13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V6"/><line x1="10" y1="10" x2="10" y2="17"/><line x1="14" y1="10" x2="14" y2="17"/></svg>
-        </button>
-      </div>
-
       <!-- HISTORY LIST -->
       <div class="setting-card">
         <div class="setting-card-title">HISTORY LIST</div>
@@ -4031,6 +4023,12 @@
           <div class="control-group">
             <span class="control-label">COLOR</span>
             <div class="color-swatch" id="hlColorSwatch" data-target="hlColor" style="background:#22c55e;"></div>
+          </div>
+          <div class="control-group">
+            <span class="control-label">RECYCLE</span>
+            <button type="button" id="openHistoryRecycleBin" class="delete-btn" title="Recycle Bin" aria-label="Recycle Bin">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1z"/><path d="M5 6h14"/><path d="M7 6v13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V6"/><line x1="10" y1="10" x2="10" y2="17"/><line x1="14" y1="10" x2="14" y2="17"/></svg>
+            </button>
           </div>
           <div class="control-group">
             <span class="control-label">DELETE</span>
