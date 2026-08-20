@@ -141,6 +141,7 @@ function buildHistoryGroupListMessage(groups) {
     BLANK_PAD_LINE,
     BLANK_PAD_LINE,
     dateLine,
+    "",
     timeLine,
     "",
     "History page",
@@ -156,7 +157,7 @@ function buildHistoryGroupListMessage(groups) {
     lines.push(`${g.listName || "Untitled"} — ${g.count} hist`);
     lines.push("");
   });
-  lines.push('To delete one, send: /hd Name');
+  lines.push("/hd Name");
   lines.push(BLANK_PAD_LINE);
   lines.push(BLANK_PAD_LINE);
   lines.push(BLANK_PAD_LINE);
