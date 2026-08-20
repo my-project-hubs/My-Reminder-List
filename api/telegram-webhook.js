@@ -7,7 +7,19 @@
 //   /h                 -> latest 1 history
 //   /h 5               -> latest 5 history
 //   /h 10              -> latest 10 history (maximum)
-//   h 3                -> (slash ke bina bhi chalega)
+//
+// SUPPORTED MESSAGE (Reminder page: Add / Edit / Delete):
+//   /add Naam | DD/MM/YYYY | Price | AlertDays | countdown
+//   /add Dish TV | 09/09/2026 | 400 | 15 | countdown
+//     (last part "countdown"/"count" optional — na diya to "countdown" default)
+//
+//   /edit Naam | DD/MM/YYYY | Price | AlertDays | countdown
+//   /edit Dish TV | 10/09/2026 | 450 | 10 | countdown
+//     (Naam se dhoonda jaata hai — naam khud change nahi hota)
+//
+//   /delete Naam
+//     -> bot poochega "Pakka delete karna hai?" — confirm karne ke liye
+//        agla message sirf "yes" bhejo (2 minute ke andar), warna cancel.
 //
 // ONE-TIME SETUP (isko ek baar apne browser mein khol dena, bas):
 //   https://api.telegram.org/bot<BOT_TOKEN>/setWebhook?url=https://<aapka-vercel-domain>/api/telegram-webhook
@@ -66,6 +78,123 @@ async function sendTelegramMessage(botToken, chatId, text) {
   });
   return tgRes.json();
 }
+
+// ===== Firestore WRITE helper (Add/Edit/Delete ke liye) =====
+// fieldsMap = { fieldName: "jsonString" } -> field ko update karta hai.
+// fieldsMap = { fieldName: undefined }    -> field ko document se DELETE karta hai
+//                                            (Firestore updateMask semantics).
+async function patchDocFields(fieldsMap) {
+  const keys = Object.keys(fieldsMap);
+  const maskParams = keys.map(k => `updateMask.fieldPaths=${encodeURIComponent(k)}`).join("&");
+  const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/${FIRESTORE_DOC_PATH}?${maskParams}`;
+  const fields = {};
+  keys.forEach(k => {
+    if (fieldsMap[k] !== undefined) {
+      fields[k] = { stringValue: fieldsMap[k] };
+    }
+  });
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fields }),
+  });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => "");
+    throw new Error(`Firestore write failed: ${res.status} ${errText}`);
+  }
+  return res.json();
+}
+
+function genId(prefix) {
+  const raw = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  return prefix ? prefix + raw : raw;
+}
+
+// "Naam | DD/MM/YYYY | Price | AlertDays | counter(optional)" -> parsed fields
+function parseReminderFieldParts(parts) {
+  if (!parts || parts.length < 4) {
+    return { error: "Format galat hai. Sahi format:\n/add Naam | DD/MM/YYYY | Price | AlertDays | countdown" };
+  }
+  const [listNameRaw, dateRaw, priceRaw, alertRaw, counterRaw] = parts;
+  const listName = String(listNameRaw || "").trim();
+  if (!listName) return { error: "List Name khali nahi ho sakta." };
+
+  const targetDate = String(dateRaw || "").trim();
+  if (!/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(targetDate)) {
+    return { error: "Date format galat hai. DD/MM/YYYY mein bhejo (jaise 09/09/2026)." };
+  }
+
+  const price = parseFloat(priceRaw);
+  if (isNaN(price) || price <= 0) {
+    return { error: "Price sahi number hona chahiye, 0 se zyada." };
+  }
+
+  const alertDaysNum = parseInt(alertRaw, 10);
+  if (isNaN(alertDaysNum) || alertDaysNum < 0) {
+    return { error: "Alert Days sahi number hona chahiye (0 ya zyada)." };
+  }
+
+  const counter = (counterRaw && String(counterRaw).trim().toLowerCase() === "count") ? "count" : "countdown";
+
+  return { data: { listName, targetDate, price, alertPage: String(alertDaysNum), counter } };
+}
+
+function findReminderByName(reminderLists, name) {
+  const target = String(name || "").trim().toLowerCase();
+  return (reminderLists || []).find(r => String(r.listName || "").trim().toLowerCase() === target);
+}
+
+function buildHistorySnapshotEntry(entry) {
+  return {
+    id: genId("h_"),
+    reminderId: entry.id,
+    listName: entry.listName,
+    targetDate: entry.targetDate,
+    price: entry.price,
+    alertPage: entry.alertPage,
+    counter: entry.counter,
+    itemType: null,
+    created: Date.now(),
+  };
+}
+
+function formatReminderConfirmMessage(heading, entry) {
+  const typeLabel = entry.counter === "count" ? "Count" : "Countdown";
+  return [
+    heading,
+    "",
+    `Naam: ${entry.listName}`,
+    `Target Date: ${entry.targetDate}`,
+    `Price: ₹${entry.price}`,
+    `Alert Page: ${entry.alertPage} din pehle`,
+    `Type: ${typeLabel}`,
+  ].join("\n");
+}
+
+// ---- Command parsers ----
+function parseAddCommand(text) {
+  const m = String(text || "").trim().match(/^\/add\s+(.+)$/is);
+  if (!m) return null;
+  return m[1].split("|").map(s => s.trim());
+}
+
+function parseEditCommand(text) {
+  const m = String(text || "").trim().match(/^\/edit\s+(.+)$/is);
+  if (!m) return null;
+  return m[1].split("|").map(s => s.trim());
+}
+
+function parseDeleteCommand(text) {
+  const m = String(text || "").trim().match(/^\/delete\s+(.+)$/is);
+  if (!m) return null;
+  return m[1].trim();
+}
+
+function isYesConfirm(text) {
+  return /^yes$/i.test(String(text || "").trim());
+}
+
+const PENDING_DELETE_TIMEOUT_MS = 2 * 60 * 1000; // 2 minutes
 
 // Sirf "/h <number>" (1 se 10) chalega — number COMPULSORY hai.
 // Bina slash ka "h", "h 5" ya bina number ka akela "/h" ab reply nahi karega.
@@ -263,9 +392,137 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
-    const requestedCount = parseHistoryCommand(message.text);
+    const text = message.text;
+
+    // ===== /add Naam | DD/MM/YYYY | Price | AlertDays | countdown =====
+    const addParts = parseAddCommand(text);
+    if (addParts) {
+      const parsed = parseReminderFieldParts(addParts);
+      if (parsed.error) {
+        await sendTelegramMessage(BOT_TOKEN, CHAT_ID, parsed.error);
+        return res.status(200).json({ ok: true });
+      }
+      const docData = await fetchDocData();
+      const reminderLists = readJsonField(docData, "reminderLists", []);
+      const historyLists = readJsonField(docData, "historyLists", []);
+
+      if (findReminderByName(reminderLists, parsed.data.listName)) {
+        await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
+          `"${parsed.data.listName}" naam se ek list pehle se maujood hai. Alag naam do, ya /edit use karo.`);
+        return res.status(200).json({ ok: true });
+      }
+
+      const newEntry = { id: genId(), ...parsed.data, created: Date.now() };
+      reminderLists.push(newEntry);
+      historyLists.push(buildHistorySnapshotEntry(newEntry));
+
+      await patchDocFields({
+        reminderLists: JSON.stringify(reminderLists),
+        historyLists: JSON.stringify(historyLists),
+      });
+
+      await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
+        formatReminderConfirmMessage("✅ Reminder Add ho gaya", newEntry));
+      return res.status(200).json({ ok: true });
+    }
+
+    // ===== /edit Naam | DD/MM/YYYY | Price | AlertDays | countdown =====
+    const editParts = parseEditCommand(text);
+    if (editParts) {
+      if (!editParts.length || !editParts[0]) {
+        await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
+          "Format galat hai. Sahi format:\n/edit Naam | DD/MM/YYYY | Price | AlertDays | countdown");
+        return res.status(200).json({ ok: true });
+      }
+      const searchName = editParts[0];
+      const docData = await fetchDocData();
+      const reminderLists = readJsonField(docData, "reminderLists", []);
+      const historyLists = readJsonField(docData, "historyLists", []);
+
+      const existing = findReminderByName(reminderLists, searchName);
+      if (!existing) {
+        await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
+          `"${searchName}" naam se koi list nahi mili. Naam sahi check karo.`);
+        return res.status(200).json({ ok: true });
+      }
+
+      const parsed = parseReminderFieldParts([existing.listName, ...editParts.slice(1)]);
+      if (parsed.error) {
+        await sendTelegramMessage(BOT_TOKEN, CHAT_ID, parsed.error);
+        return res.status(200).json({ ok: true });
+      }
+
+      const targetDateChanged = existing.targetDate !== parsed.data.targetDate;
+      const idx = reminderLists.findIndex(r => r.id === existing.id);
+      const updatedEntry = { ...existing, ...parsed.data };
+      reminderLists[idx] = updatedEntry;
+
+      if (targetDateChanged && (updatedEntry.counter === "countdown" || updatedEntry.counter === "count")) {
+        historyLists.push(buildHistorySnapshotEntry(updatedEntry));
+      }
+
+      await patchDocFields({
+        reminderLists: JSON.stringify(reminderLists),
+        historyLists: JSON.stringify(historyLists),
+      });
+
+      await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
+        formatReminderConfirmMessage("✅ Reminder Update ho gaya", updatedEntry));
+      return res.status(200).json({ ok: true });
+    }
+
+    // ===== /delete Naam (pehle confirm maangega) =====
+    const deleteName = parseDeleteCommand(text);
+    if (deleteName) {
+      const docData = await fetchDocData();
+      const reminderLists = readJsonField(docData, "reminderLists", []);
+      const existing = findReminderByName(reminderLists, deleteName);
+      if (!existing) {
+        await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
+          `"${deleteName}" naam se koi list nahi mili. Naam sahi check karo.`);
+        return res.status(200).json({ ok: true });
+      }
+
+      await patchDocFields({
+        pendingDelete: JSON.stringify({ id: existing.id, listName: existing.listName, requestedAt: Date.now() }),
+      });
+
+      await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
+        `⚠️ Pakka "${existing.listName}" delete karna hai?\nConfirm karne ke liye sirf "yes" bhejo (2 minute ke andar), warna ye cancel ho jaayega.`);
+      return res.status(200).json({ ok: true });
+    }
+
+    // ===== "yes" -> pending delete confirm karo =====
+    if (isYesConfirm(text)) {
+      const docData = await fetchDocData();
+      const pending = readJsonField(docData, "pendingDelete", null);
+      if (!pending) {
+        // Koi pending delete hi nahi hai — chup rehte hain.
+        return res.status(200).json({ ok: true });
+      }
+      if (Date.now() - (pending.requestedAt || 0) > PENDING_DELETE_TIMEOUT_MS) {
+        await patchDocFields({ pendingDelete: undefined });
+        await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
+          "Confirmation ka time (2 minute) khatam ho gaya. Dobara /delete Naam bhejo.");
+        return res.status(200).json({ ok: true });
+      }
+
+      const reminderLists = readJsonField(docData, "reminderLists", []);
+      const filtered = reminderLists.filter(r => r.id !== pending.id);
+
+      await patchDocFields({
+        reminderLists: JSON.stringify(filtered),
+        pendingDelete: undefined,
+      });
+
+      await sendTelegramMessage(BOT_TOKEN, CHAT_ID, `🗑️ Delete ho gaya: ${pending.listName}`);
+      return res.status(200).json({ ok: true });
+    }
+
+    // ===== /h (latest history view) =====
+    const requestedCount = parseHistoryCommand(text);
     if (requestedCount === null) {
-      // History command nahi hai — kuch reply nahi karte, chup rehte hain.
+      // Koi bhi supported command nahi hai — kuch reply nahi karte, chup rehte hain.
       return res.status(200).json({ ok: true });
     }
 
