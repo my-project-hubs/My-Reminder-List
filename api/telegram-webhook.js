@@ -159,16 +159,39 @@ function buildHistorySnapshotEntry(entry) {
 }
 
 function formatReminderConfirmMessage(heading, entry) {
-  const typeLabel = entry.counter === "count" ? "Count" : "Countdown";
-  return [
+  const topBlock = [
     heading,
     "",
     `Naam: ${entry.listName}`,
     `Target Date: ${entry.targetDate}`,
     `Price: ₹${entry.price}`,
     `Alert Page: ${entry.alertPage} din pehle`,
-    `Type: ${typeLabel}`,
+    `Type: ${entry.counter === "count" ? "Count" : "Countdown"}`,
   ].join("\n");
+
+  const spacer = "\n".repeat(6); // 5-6 khaali lines beech mein
+
+  return topBlock + spacer + formatReminderCardMessage(entry);
+}
+
+// Website ke Reminder-page card ("X . Day Left" / "X . Days") jaisa hi text banata hai.
+function computeDayLeftText(entry) {
+  const target = parseDMY(entry.targetDate);
+  if (!target) return "-- . Day Left";
+  const today = istCalendarDate(Date.now());
+  if (entry.counter === "count") {
+    const elapsed = Math.max(0, daysBetween(target, today));
+    if (elapsed <= 30) return `${elapsed} . Days`;
+    const months = Math.floor((elapsed - 1) / 30);
+    const days = ((elapsed - 1) % 30) + 1;
+    return `${months} . Months - ${days} . Days`;
+  }
+  const dayVal = daysBetween(today, target);
+  return dayVal <= 0 ? "Expire" : `${dayVal} . Day Left`;
+}
+
+function formatReminderCardMessage(entry) {
+  return `New Reminder List\n\n${entry.listName}\n\n${computeDayLeftText(entry)}\n\n${entry.targetDate}`;
 }
 
 // ---- Command parsers ----
@@ -488,7 +511,7 @@ export default async function handler(req, res) {
       });
 
       await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
-        `⚠️ Pakka "${existing.listName}" delete karna hai?\nConfirm karne ke liye sirf "yes" bhejo (2 minute ke andar), warna ye cancel ho jaayega.`);
+        `⚠️ Are you sure you want to delete "${existing.listName}"?\nTo confirm, reply with just "yes" (within 2 minutes), otherwise this will be cancelled.`);
       return res.status(200).json({ ok: true });
     }
 
@@ -515,7 +538,7 @@ export default async function handler(req, res) {
         pendingDelete: undefined,
       });
 
-      await sendTelegramMessage(BOT_TOKEN, CHAT_ID, `🗑️ Delete ho gaya: ${pending.listName}`);
+      await sendTelegramMessage(BOT_TOKEN, CHAT_ID, `🗑️ Deleted: ${pending.listName}`);
       return res.status(200).json({ ok: true });
     }
 
