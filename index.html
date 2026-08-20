@@ -5212,6 +5212,11 @@
       const alertPage = document.getElementById('notesAlertPage').value;
       const counter = document.querySelector('#notesCounter button.active')?.dataset.val || 'countdown';
 
+      if (isDuplicateListName(listName, editingNotesId)) {
+        alert(`"${listName}" naam ki list pehle se maujood hai. Alag naam use karo.`);
+        return;
+      }
+
       let toastMsg = 'Notes saved';
       let savedEntry = null;
       let targetDateChanged = false;
@@ -5463,12 +5468,12 @@
     function computeDayValue(r, today) {
       const target = parseDMY(r.targetDate);
       if (!target) return null;
-      // Count = days since target date (forward count)
-      // Countdown = days until target date (reverse count)
+      // Count = days since target date (forward count) — sirf 1 taraf ka din count hota hai
+      // Countdown = days until target date (reverse count) — aaj ka din aur target date, dono count
       if (r.counter === 'count') {
         return daysBetween(target, today);
       }
-      return daysBetween(today, target);
+      return daysBetween(today, target) + 1;
     }
 
     function isAlertTriggered(r, dayVal) {
@@ -6895,6 +6900,11 @@
       });
     })();
 
+    function isDuplicateListName(name, excludeId) {
+      const target = String(name || '').trim().toLowerCase();
+      return reminderLists.some(r => r.id !== excludeId && String(r.listName || '').trim().toLowerCase() === target);
+    }
+
     document.getElementById('saveReminderBtn').addEventListener('click', () => {
       const priceInput = document.getElementById('reminderPrice');
       const priceVal = parseFloat(priceInput.value);
@@ -6907,6 +6917,11 @@
       const targetDate = document.getElementById('reminderTargetDate').value.trim();
       const alertPage = document.getElementById('reminderAlertPage').value;
       const counter = document.querySelector('#reminderCounter button.active')?.dataset.val || 'countdown';
+
+      if (isDuplicateListName(listName, editingReminderId)) {
+        alert(`"${listName}" naam ki list pehle se maujood hai. Alag naam use karo.`);
+        return;
+      }
 
       let toastMsg = 'List saved';
       let savedEntry = null;
