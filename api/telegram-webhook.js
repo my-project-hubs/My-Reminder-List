@@ -109,10 +109,46 @@ function buildHistoryGroupListMessage(groups) {
   if (!groups.length) {
     return "History page is empty — no lists found.";
   }
+
+  // Current IST date + time (message aane ke time ka)
+  const now = new Date();
+  const dateParts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Kolkata",
+    weekday: "short",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).formatToParts(now);
+  const get = (type) => dateParts.find(p => p.type === type)?.value || "";
+  const dateLine = `Today - ${get("day")}/${get("month")}/${get("year")} (${get("weekday")})`;
+
+  const timeParts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Kolkata",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  }).formatToParts(now);
+  const hour = timeParts.find(p => p.type === "hour")?.value || "";
+  const minute = timeParts.find(p => p.type === "minute")?.value || "";
+  const dayPeriod = timeParts.find(p => p.type === "dayPeriod")?.value || "";
+  const timeLine = `${hour}:${minute} ${dayPeriod}`;
+
   const lines = [
     BLANK_PAD_LINE,
-    "📋 History Page Lists",
-    `Total: ${groups.length}`,
+    BLANK_PAD_LINE,
+    BLANK_PAD_LINE,
+    BLANK_PAD_LINE,
+    BLANK_PAD_LINE,
+    BLANK_PAD_LINE,
+    dateLine,
+    timeLine,
+    "",
+    "History page",
+    `Today List - ${groups.length}`,
+    "",
+    "",
+    DIVIDER_LINE,
+    "",
     "",
   ];
   groups.forEach(g => {
@@ -120,6 +156,11 @@ function buildHistoryGroupListMessage(groups) {
     lines.push("");
   });
   lines.push('To delete one, send: /hd Name');
+  lines.push(BLANK_PAD_LINE);
+  lines.push(BLANK_PAD_LINE);
+  lines.push(BLANK_PAD_LINE);
+  lines.push(BLANK_PAD_LINE);
+  lines.push(BLANK_PAD_LINE);
   lines.push(BLANK_PAD_LINE);
   return lines.join("\n");
 }
