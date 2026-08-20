@@ -67,29 +67,149 @@ async function sendTelegramMessage(botToken, chatId, text) {
   return tgRes.json();
 }
 
-// "/h", "h", "/h 5", "h10" — sab match ho jayenge. "/history" ab support nahi hai.
+// Sirf "/h <number>" (1 se 10) chalega — number COMPULSORY hai.
+// Bina slash ka "h", "h 5" ya bina number ka akela "/h" ab reply nahi karega.
 function parseHistoryCommand(text) {
-  const m = String(text || "").trim().match(/^\/?h\s*(\d{1,2})?\s*$/i);
+  const m = String(text || "").trim().match(/^\/h\s+(\d{1,2})$/i);
   if (!m) return null;
-  let n = parseInt(m[1], 10);
-  if (isNaN(n) || n < 1) n = 1;
-  if (n > 10) n = 10;
+  const n = parseInt(m[1], 10);
+  if (isNaN(n) || n < 1 || n > 10) return null;
   return n;
 }
 
-function formatEntryTimeIST(ms) {
-  const d = new Date(ms);
-  const dateStr = d.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata" });
-  const timeStr = d.toLocaleTimeString("en-GB", {
-    timeZone: "Asia/Kolkata",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
-  return `${dateStr}  ${timeStr}`;
+// ===== Neeche wale helpers website ke History card (index.html) ki EXACT
+// same calculation/format ko IST timezone mein replicate karte hain, taaki
+// Telegram ka message hu-bahu website ke card jaisa hi dikhe. =====
+
+function parseDMY(str) {
+  const parts = String(str || "").split("/");
+  if (parts.length !== 3) return null;
+  const d = parseInt(parts[0], 10), m = parseInt(parts[1], 10), y = parseInt(parts[2], 10);
+  if (!d || !m || !y) return null;
+  const dt = new Date(y, m - 1, d);
+  return isNaN(dt.getTime()) ? null : dt;
 }
 
-function buildHistoryMessage(entries, requestedCount, reminderById) {
+function daysBetween(a, b) {
+  const msPerDay = 86400000;
+  const aMid = new Date(a.getFullYear(), a.getMonth(), a.getDate());
+  const bMid = new Date(b.getFullYear(), b.getMonth(), b.getDate());
+  return Math.round((bMid - aMid) / msPerDay);
+}
+
+// ms (absolute timestamp) -> calendar Y/M/D jaisa IST mein dikhega
+// (server kisi bhi timezone mein chal raha ho, phir bhi sahi IST din milega).
+function istDateParts(ms) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(new Date(ms));
+  const get = (t) => parseInt(parts.find(p => p.type === t).value, 10);
+  return { y: get("year"), m: get("month"), d: get("day") };
+}
+
+function istCalendarDate(ms) {
+  const p = istDateParts(ms);
+  return new Date(p.y, p.m - 1, p.d);
+}
+
+function formatDMY(dt) {
+  if (!dt || isNaN(dt.getTime())) return "--";
+  const d = String(dt.getDate()).padStart(2, "0");
+  const m = String(dt.getMonth() + 1).padStart(2, "0");
+  const y = dt.getFullYear();
+  return `${d}/${m}/${y}`;
+}
+
+// Website ke formatTimestamp jaisa "DD/MM/YYYY, HH:MM:SS AM/PM" (IST mein).
+function formatTimestampIST(ms) {
+  if (!ms) return "--";
+  const d = new Date(ms);
+  if (isNaN(d.getTime())) return "--";
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Kolkata",
+    day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true,
+  }).formatToParts(d);
+  const get = (t) => parts.find(p => p.type === t)?.value || "";
+  const ampm = (get("dayPeriod") || "").toUpperCase();
+  let hour = get("hour");
+  if (hour === "24") hour = "12";
+  return `${get("day")}/${get("month")}/${get("year")}, ${hour}:${get("minute")}:${get("second")} ${ampm}`;
+}
+
+// Website ke openHistoryDetail() jaisa status (ACTIVE/UPCOMING/EXPIRED) —
+// har reminderId ke group ke andar hi decide hota hai, isliye poori
+// historyLists (sirf display hone wali top-N nahi) yahan use hoti hai.
+function computeStatusMap(historyLists) {
+  const groups = {};
+  historyLists.forEach(h => {
+    const key = h.reminderId || h.id;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(h);
+  });
+
+  const today = istCalendarDate(Date.now());
+  const statusById = {};
+
+  Object.values(groups).forEach(group => {
+    const sorted = [...group].sort((a, b) => (b.created || 0) - (a.created || 0));
+
+    const notExpired = sorted
+      .filter(r => r.counter !== "count")
+      .map(r => ({ r, end: parseDMY(r.targetDate) }))
+      .filter(x => x.end && daysBetween(today, x.end) >= 0)
+      .sort((a, b) => a.end - b.end);
+    const activeId = notExpired.length ? notExpired[0].r.id : null;
+    const upcomingMap = {};
+    notExpired.forEach(x => { upcomingMap[x.r.id] = (x.r.id === activeId) ? "active" : "upcoming"; });
+
+    sorted.forEach((r, i) => {
+      const isCount = r.counter === "count";
+      statusById[r.id] = isCount ? (i === 0 ? "active" : "expired") : (upcomingMap[r.id] || "expired");
+    });
+  });
+
+  return statusById;
+}
+
+// Ek entry ka poora card-block, EXACT website History card jaisa:
+// STATUS / start -> end date / "X days - ₹Y" / "Daily Cost ₹Z" / timestamp
+// (Notes item ke liye price/daily-cost nahi hote, website jaisa hi).
+function buildEntryCardLines(h, status) {
+  const startDate = h.created ? istCalendarDate(h.created) : null;
+  const endDate = parseDMY(h.targetDate);
+  const isCount = h.counter === "count";
+  let totalDays = null;
+  if (startDate && endDate) {
+    const span = daysBetween(startDate, endDate);
+    totalDays = isCount ? span : (span + 1);
+  }
+  const price = (h.price !== undefined && h.price !== null) ? h.price : 0;
+  const dailyCost = (totalDays && totalDays > 0) ? (price / totalDays) : price;
+  const statusLabel = status === "upcoming" ? "UPCOMING" : (status === "active" ? "ACTIVE" : "EXPIRED");
+  const dateRange = `${startDate ? formatDMY(startDate) : "--"} -> ${endDate ? formatDMY(endDate) : cleanTargetDate(h.targetDate)}`;
+
+  const lines = [];
+  lines.push(centerText(h.listName || "Untitled", CARD_WIDTH));
+  if (h.itemType === "notes") lines.push(centerText("( Notice )", CARD_WIDTH));
+  lines.push(BLANK_PAD_LINE);
+  lines.push(centerText(statusLabel, FULL_WIDTH));
+  lines.push(centerText(dateRange, FULL_WIDTH));
+  if (h.itemType === "notes") {
+    lines.push(centerText(`${(totalDays !== null && !isNaN(totalDays)) ? totalDays : "--"} days`, FULL_WIDTH));
+  } else {
+    lines.push(centerText(`${(totalDays !== null && !isNaN(totalDays)) ? totalDays : "--"} days - ₹${price}`, FULL_WIDTH));
+    lines.push(centerText(`Daily Cost ₹${isFinite(dailyCost) ? dailyCost.toFixed(2) : "--"}`, FULL_WIDTH));
+  }
+  lines.push(BLANK_PAD_LINE);
+  lines.push(centerText(formatTimestampIST(h.created), FULL_WIDTH));
+  return lines;
+}
+
+function buildHistoryMessage(entries, requestedCount, allHistoryLists) {
+  const statusById = computeStatusMap(allHistoryLists);
+
   const lines = [
     BLANK_PAD_LINE,
     centerText("Latest History", CARD_WIDTH),
@@ -108,34 +228,9 @@ function buildHistoryMessage(entries, requestedCount, reminderById) {
       lines.push(DIVIDER_LINE);
       lines.push(BLANK_PAD_LINE);
     }
-    if (h.itemType === "notes") {
-      // Purani snapshots mein notes save nahi hoti thi — us waqt live item se fallback.
-      const liveItem = reminderById && reminderById[h.reminderId];
-      const noteText = String(h.notes || (liveItem && liveItem.notes) || "").trim();
-      lines.push(centerText("( Notice )", CARD_WIDTH));
-      lines.push(BLANK_PAD_LINE);
-      lines.push(`Title - ${h.listName || "Untitled"}`);
-      lines.push(BLANK_PAD_LINE);
-      if (noteText) {
-        const noteLines = noteText.split("\n");
-        lines.push(`Notice - ${noteLines[0]}`);
-        for (let i = 1; i < noteLines.length; i++) lines.push(noteLines[i]);
-        lines.push(BLANK_PAD_LINE);
-      }
-      lines.push(centerText(cleanTargetDate(h.targetDate), FULL_WIDTH));
-      lines.push(BLANK_PAD_LINE);
-    } else {
-      lines.push(centerText(h.listName || "Untitled", CARD_WIDTH));
-      lines.push(BLANK_PAD_LINE);
-      lines.push(centerText(cleanTargetDate(h.targetDate), FULL_WIDTH));
-      if (h.price !== undefined && h.price !== null && h.price !== "") {
-        lines.push(BLANK_PAD_LINE);
-        lines.push(centerText(`₹ ${h.price}`, FULL_WIDTH));
-      }
-      lines.push(BLANK_PAD_LINE);
-      lines.push(centerText(`Added - ${formatEntryTimeIST(h.created)}`, FULL_WIDTH));
-      lines.push(BLANK_PAD_LINE);
-    }
+    const status = statusById[h.id] || "expired";
+    lines.push(...buildEntryCardLines(h, status));
+    lines.push(BLANK_PAD_LINE);
   });
   lines.push(DIVIDER_LINE);
   lines.push(BLANK_PAD_LINE);
@@ -192,14 +287,11 @@ export default async function handler(req, res) {
 
     const docData = await fetchDocData();
     const historyLists = readJsonField(docData, "historyLists", []);
-    const reminderLists = readJsonField(docData, "reminderLists", []);
-    const reminderById = {};
-    reminderLists.forEach(r => { if (r && r.id) reminderById[r.id] = r; });
 
     const sorted = [...historyLists].sort((a, b) => (b.created || 0) - (a.created || 0));
     const top = sorted.slice(0, requestedCount);
 
-    const msgText = buildHistoryMessage(top, requestedCount, reminderById);
+    const msgText = buildHistoryMessage(top, requestedCount, historyLists);
     const tgData = await sendTelegramMessage(BOT_TOKEN, CHAT_ID, msgText);
 
     return res.status(200).json({ ok: true, sent: !!tgData.ok, count: top.length });
