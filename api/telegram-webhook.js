@@ -40,6 +40,10 @@
 //   /cm
 //     -> bot replies with the full list of every supported command.
 //
+// SUPPORTED MESSAGE (Reminder page: list all):
+//   /rp
+//     -> bot shows every current reminder list (name only), with date/time header.
+//
 // ONE-TIME SETUP (isko ek baar apne browser mein khol dena, bas):
 //   https://api.telegram.org/bot<BOT_TOKEN>/setWebhook?url=https://<aapka-vercel-domain>/api/telegram-webhook
 //   <BOT_TOKEN> ki jagah apna asli bot token daalo, aur <aapka-vercel-domain>
@@ -383,6 +387,8 @@ function buildCommandListMessage() {
     "",
     "/delete Name",
     "",
+    "/rp — show all reminder lists",
+    "",
     longDivider,
     "",
     "History page:",
@@ -406,6 +412,70 @@ function buildCommandListMessage() {
 }
 
 const PENDING_DELETE_TIMEOUT_MS = 2 * 60 * 1000; // 2 minutes
+
+// ===== /rp -> show all current reminder lists =====
+function isReminderListRequest(text) {
+  return /^\/rp$/i.test(String(text || "").trim());
+}
+
+function buildReminderListMessage(reminderLists) {
+  const now = new Date();
+  const dateParts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Kolkata",
+    weekday: "short",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).formatToParts(now);
+  const get = (type) => dateParts.find(p => p.type === type)?.value || "";
+  const dateLine = `Today - ${get("day")}/${get("month")}/${get("year")} (${get("weekday")})`;
+
+  const timeParts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Kolkata",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  }).formatToParts(now);
+  const hour = timeParts.find(p => p.type === "hour")?.value || "";
+  const minute = timeParts.find(p => p.type === "minute")?.value || "";
+  const dayPeriod = timeParts.find(p => p.type === "dayPeriod")?.value || "";
+  const timeLine = `${hour}:${minute} ${dayPeriod}`;
+
+  const longDivider = "_".repeat(CARD_WIDTH + 12);
+
+  const lines = [
+    BLANK_PAD_LINE,
+    BLANK_PAD_LINE,
+    BLANK_PAD_LINE,
+    dateLine,
+    "",
+    timeLine,
+    "",
+    "Reminder page",
+    "",
+    `Total List - ${(reminderLists || []).length}`,
+    "",
+    "",
+    longDivider,
+    "",
+    "",
+  ];
+
+  if (!reminderLists || !reminderLists.length) {
+    lines.push("No reminders found.");
+    lines.push("");
+  } else {
+    reminderLists.forEach(r => {
+      lines.push(r.listName || "Untitled");
+      lines.push("");
+    });
+  }
+
+  lines.push(BLANK_PAD_LINE);
+  lines.push(BLANK_PAD_LINE);
+  lines.push(BLANK_PAD_LINE);
+  return lines.join("\n");
+}
 
 // "/hd Name" -> Name
 function parseDeleteHistoryCommand(text) {
@@ -554,7 +624,7 @@ function buildHistoryMessage(entries, requestedCount, allHistoryLists) {
     BLANK_PAD_LINE,
   ];
   if (entries.length === 0) {
-    lines.push(centerText("Koi History Nahi Mili", FULL_WIDTH));
+    lines.push(centerText("No History Found", FULL_WIDTH));
     lines.push(BLANK_PAD_LINE);
   }
   entries.forEach((h, idx) => {
@@ -618,6 +688,14 @@ export default async function handler(req, res) {
     // ===== /cm (lists all supported commands) =====
     if (isCommandListRequest(text)) {
       await sendTelegramMessage(BOT_TOKEN, CHAT_ID, buildCommandListMessage());
+      return res.status(200).json({ ok: true });
+    }
+
+    // ===== /rp (show all current reminder lists) =====
+    if (isReminderListRequest(text)) {
+      const docData = await fetchDocData();
+      const reminderLists = readJsonField(docData, "reminderLists", []);
+      await sendTelegramMessage(BOT_TOKEN, CHAT_ID, buildReminderListMessage(reminderLists));
       return res.status(200).json({ ok: true });
     }
 
