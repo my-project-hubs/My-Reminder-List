@@ -170,8 +170,9 @@ function formatReminderConfirmMessage(heading, entry) {
   ].join("\n");
 
   const spacer = "\n".repeat(6); // 5-6 khaali lines beech mein
+  const bottomSpacer = "\n" + "⠀\n".repeat(6); // niche bhi utni hi khaali jagah (blank-char lines taaki Telegram trim na kare)
 
-  return topBlock + spacer + formatReminderCardMessage(entry);
+  return topBlock + spacer + formatReminderCardMessage(entry) + bottomSpacer;
 }
 
 // Website ke Reminder-page card ("X . Day Left" / "X . Days") jaisa hi text banata hai.
@@ -186,7 +187,7 @@ function computeDayLeftText(entry) {
     const days = ((elapsed - 1) % 30) + 1;
     return `${months} . Months - ${days} . Days`;
   }
-  const dayVal = daysBetween(today, target);
+  const dayVal = daysBetween(today, target) + 1; // aaj ka din aur target date, dono count
   return dayVal <= 0 ? "Expire" : `${dayVal} . Day Left`;
 }
 
