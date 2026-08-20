@@ -3385,6 +3385,11 @@
 
       <div style="text-align:center; color:#1a73e8; font-weight:700; font-size:1.15rem; margin-bottom:72px;">Reminder Page</div>
 
+      <!-- Recycle Bin button -->
+      <div style="text-align:center; margin-bottom:20px;">
+        <button type="button" id="openReminderRecycleBin" style="background:#e91e63;color:#fff;border:none;border-radius:12px;padding:12px 28px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 3px 0 #ad1457,0 6px 12px rgba(233,30,99,0.3);">Recycle Bin</button>
+      </div>
+
       <!-- REMINDER ACTIONS: 2 rows × 3 cols (pair stacked), light grey + white text -->
       <div class="ra-text-actions-grid">
         <div class="ra-col">
@@ -4013,6 +4018,11 @@
       </div>
 
       <div class="history-settings-body">
+      <!-- Recycle Bin button -->
+      <div style="text-align:center; margin-bottom:20px;">
+        <button type="button" id="openHistoryRecycleBin" style="background:#e91e63;color:#fff;border:none;border-radius:12px;padding:12px 28px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 3px 0 #ad1457,0 6px 12px rgba(233,30,99,0.3);">Recycle Bin</button>
+      </div>
+
       <!-- HISTORY LIST -->
       <div class="setting-card">
         <div class="setting-card-title">HISTORY LIST</div>
@@ -4379,6 +4389,18 @@
     </div>
   </div>
 
+  <!-- Recycle Bin overlay (shared for Reminder / History) -->
+  <div class="settings-overlay" id="recycleBinOverlay" style="z-index:99990;">
+    <div class="settings-panel" style="max-width:520px;width:92% !important;height:auto !important;max-height:80vh !important;min-height:0 !important;text-align:center;padding:28px 22px 24px;margin:0 auto;border-radius:22px !important;overflow-y:auto;">
+      <div class="settings-header" style="margin-bottom:12px;">
+        <h2 id="recycleBinTitle" style="font-size:22px;">Recycle Bin</h2>
+        <button class="close-btn" id="closeRecycleBin">×</button>
+      </div>
+      <div id="recycleBinList" style="text-align:left;min-height:80px;"></div>
+      <div id="recycleBinEmpty" style="color:#888;font-size:16px;padding:24px 0;display:none;">Recycle Bin is empty</div>
+    </div>
+  </div>
+
   <!-- Price required popup (Add / Edit Reminder) -->
   <div class="settings-overlay" id="priceRequiredOverlay" style="z-index:100001;">
     <div class="settings-panel" style="max-width:420px;min-width:280px;width:auto !important;height:auto !important;max-height:none !important;min-height:0 !important;text-align:center;padding:28px 26px 22px;margin:0 auto;border-radius:20px !important;">
@@ -4550,7 +4572,8 @@
     const REMINDER_APP_KEYS = [
       'reminderLists', 'reminderPageSettings',
       'lineTextOverrides', 'linePositions', 'alertPageSettings', 'lineAnimations', 'historyPageSettings', 'historyPhotoState', 'historyCountBallState', 'reminderCountBallState',
-      'historyLists', 'historyPageHiddenIds', 'hiddenListIds', 'hidePageSettings', 'favouriteAnimations', 'deletedAnimations', 'currentPage'
+      'historyLists', 'historyPageHiddenIds', 'hiddenListIds', 'hidePageSettings', 'favouriteAnimations', 'deletedAnimations', 'currentPage',
+      'reminderTrash', 'historyTrash'
     ];
     let didMigrate = false;
     REMINDER_APP_KEYS.forEach(key => {
@@ -4644,6 +4667,15 @@
     }
     function isListHidden(id) {
       return hiddenListIds.includes(id);
+    }
+    // Recycle Bin (soft-delete) — separate for Reminder page and History page
+    let reminderTrash = JSON.parse(localStorage.getItem('reminderTrash') || '[]');
+    function saveReminderTrash() {
+      localStorage.setItem('reminderTrash', JSON.stringify(reminderTrash));
+    }
+    let historyTrash = JSON.parse(localStorage.getItem('historyTrash') || '[]');
+    function saveHistoryTrash() {
+      localStorage.setItem('historyTrash', JSON.stringify(historyTrash));
     }
     // History = independent, append-only log. A NEW snapshot entry is added ONLY when:
     //  (a) a brand-new Countdown reminder is created, or
@@ -6462,6 +6494,25 @@
         cancelPendingDelete();
         return;
       }
+      if (pendingDeleteMode === 'permanentTrash' && pendingPermanentTrash) {
+        const { mode, index } = pendingPermanentTrash;
+        if (mode === 'reminder') {
+          if (index >= 0 && index < reminderTrash.length) {
+            reminderTrash.splice(index, 1);
+            saveReminderTrash();
+          }
+        } else {
+          if (index >= 0 && index < historyTrash.length) {
+            historyTrash.splice(index, 1);
+            saveHistoryTrash();
+          }
+        }
+        pendingPermanentTrash = null;
+        cancelPendingDelete();
+        renderRecycleBinList();
+        showReminderToast('Permanently deleted');
+        return;
+      }
       if (!pendingDeleteIds.length) {
         cancelPendingDelete();
         return;
@@ -6477,8 +6528,21 @@
         return;
       }
       if (pendingDeleteMode === 'history') {
-        // Remove all history snapshots for selected reminderIds + hide from History page
+        // Soft-delete: move history snapshots + group info into historyTrash
         const count = pendingDeleteIds.length;
+        const snapshots = historyLists.filter(h => pendingDeleteIds.includes(h.reminderId));
+        const now = Date.now();
+        pendingDeleteIds.forEach(rid => {
+          const related = snapshots.filter(h => h.reminderId === rid);
+          const listName = (related[0] && related[0].listName) || 'Untitled';
+          historyTrash.push({
+            id: rid,
+            listName: listName,
+            snapshots: related,
+            deletedAt: now
+          });
+        });
+        saveHistoryTrash();
         historyLists = historyLists.filter(h => !pendingDeleteIds.includes(h.reminderId));
         saveHistoryLists();
         pendingDeleteIds.forEach(id => {
@@ -6488,15 +6552,22 @@
         renderReminderList();
         cancelPendingDelete();
         document.getElementById('deleteHistoryListsOverlay').classList.remove('show');
-        showReminderToast(`Deleted ${count}`);
+        showReminderToast(`Moved to Recycle Bin (${count})`);
       } else {
+        // Soft-delete: move full reminder entries into reminderTrash
         const count = pendingDeleteIds.length;
+        const now = Date.now();
+        const toTrash = reminderLists.filter(r => pendingDeleteIds.includes(r.id));
+        toTrash.forEach(r => {
+          reminderTrash.push({ ...r, deletedAt: now });
+        });
+        saveReminderTrash();
         reminderLists = reminderLists.filter(r => !pendingDeleteIds.includes(r.id));
         saveReminderLists();
         renderReminderList();
         cancelPendingDelete();
         document.getElementById('deleteRemindersOverlay').classList.remove('show');
-        showReminderToast(`Deleted ${count}`);
+        showReminderToast(`Moved to Recycle Bin (${count})`);
       }
     }
 
@@ -6520,6 +6591,118 @@
     // Second Yes → actually delete
     document.getElementById('deleteReallyYesBtn').addEventListener('click', () => {
       performPendingDelete();
+    });
+
+    /* ===== Recycle Bin (Reminder + History) ===== */
+    let recycleBinMode = 'reminder'; // 'reminder' | 'history'
+    let pendingPermanentTrash = null; // { mode, index }
+
+    function openRecycleBin(mode) {
+      recycleBinMode = mode;
+      const title = document.getElementById('recycleBinTitle');
+      if (title) title.textContent = mode === 'history' ? 'History Recycle Bin' : 'Reminder Recycle Bin';
+      renderRecycleBinList();
+      document.getElementById('recycleBinOverlay').classList.add('show');
+    }
+
+    function renderRecycleBinList() {
+      const listEl = document.getElementById('recycleBinList');
+      const emptyEl = document.getElementById('recycleBinEmpty');
+      if (!listEl || !emptyEl) return;
+      const items = recycleBinMode === 'history' ? historyTrash : reminderTrash;
+      listEl.innerHTML = '';
+      if (!items.length) {
+        emptyEl.style.display = 'block';
+        return;
+      }
+      emptyEl.style.display = 'none';
+      items.forEach((item, idx) => {
+        const name = item.listName || 'Untitled';
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 10px;border-bottom:1px solid #eee;';
+        row.innerHTML = `
+          <div style="font-size:16px;font-weight:600;color:#222;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</div>
+          <div style="display:flex;gap:8px;flex-shrink:0;">
+            <button type="button" data-rb-restore="${idx}" style="background:#1a73e8;color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer;">Restore</button>
+            <button type="button" data-rb-perm="${idx}" style="background:#e91e63;color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer;">Delete Forever</button>
+          </div>`;
+        listEl.appendChild(row);
+      });
+    }
+
+    function restoreFromTrash(index) {
+      if (recycleBinMode === 'reminder') {
+        if (index < 0 || index >= reminderTrash.length) return;
+        const item = reminderTrash[index];
+        const { deletedAt, ...rest } = item;
+        // Avoid duplicate name
+        if (reminderLists.some(r => String(r.listName || '').trim().toLowerCase() === String(rest.listName || '').trim().toLowerCase())) {
+          showReminderToast('A list with this name already exists');
+          return;
+        }
+        reminderLists.push(rest);
+        saveReminderLists();
+        reminderTrash.splice(index, 1);
+        saveReminderTrash();
+        renderReminderList();
+        renderRecycleBinList();
+        showReminderToast('Restored');
+      } else {
+        if (index < 0 || index >= historyTrash.length) return;
+        const item = historyTrash[index];
+        // Put snapshots back
+        if (Array.isArray(item.snapshots) && item.snapshots.length) {
+          item.snapshots.forEach(s => historyLists.push(s));
+          saveHistoryLists();
+        }
+        // Un-hide on History page
+        historyPageHiddenIds = historyPageHiddenIds.filter(id => id !== item.id);
+        saveHistoryPageHiddenIds();
+        historyTrash.splice(index, 1);
+        saveHistoryTrash();
+        renderReminderList();
+        renderRecycleBinList();
+        showReminderToast('Restored');
+      }
+    }
+
+    function requestPermanentDeleteFromTrash(index) {
+      pendingPermanentTrash = { mode: recycleBinMode, index };
+      // Reuse existing double-confirm overlays with English text
+      const msg1 = document.getElementById('deleteConfirmMessage');
+      const msg2 = document.getElementById('deleteReallyMessage');
+      if (msg1) msg1.textContent = 'Do you want to permanently delete this?';
+      if (msg2) msg2.textContent = 'Are you sure you really want to permanently delete this list?';
+      // Temporarily override performPendingDelete path via a flag
+      pendingDeleteMode = 'permanentTrash';
+      pendingDeleteIds = [String(index)];
+      document.getElementById('deleteConfirmOverlay').classList.add('show');
+    }
+
+    document.getElementById('openReminderRecycleBin')?.addEventListener('click', () => {
+      document.getElementById('reminderSettingsOverlay')?.classList.remove('show');
+      openRecycleBin('reminder');
+    });
+    document.getElementById('openHistoryRecycleBin')?.addEventListener('click', () => {
+      document.getElementById('historySettingsOverlay')?.classList.remove('show');
+      openRecycleBin('history');
+    });
+    document.getElementById('closeRecycleBin')?.addEventListener('click', () => {
+      document.getElementById('recycleBinOverlay')?.classList.remove('show');
+    });
+    document.getElementById('recycleBinOverlay')?.addEventListener('click', e => {
+      if (e.target.id === 'recycleBinOverlay') e.target.classList.remove('show');
+    });
+    document.getElementById('recycleBinList')?.addEventListener('click', e => {
+      const restoreBtn = e.target.closest('[data-rb-restore]');
+      const permBtn = e.target.closest('[data-rb-perm]');
+      if (restoreBtn) {
+        const idx = parseInt(restoreBtn.getAttribute('data-rb-restore'), 10);
+        restoreFromTrash(idx);
+      } else if (permBtn) {
+        const idx = parseInt(permBtn.getAttribute('data-rb-perm'), 10);
+        requestPermanentDeleteFromTrash(idx);
+      }
     });
 
     /* ===== Tap a card once -> small popup with a pencil (Edit) icon.
