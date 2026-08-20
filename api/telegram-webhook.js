@@ -112,8 +112,9 @@ function buildHistoryGroupListMessage(groups) {
   const lines = ["📋 History Page Lists", ""];
   groups.forEach(g => {
     lines.push(`${g.listName || "Untitled"} — ${g.count} hist`);
+    lines.push("");
   });
-  lines.push("", 'To delete one, send: /hd Name');
+  lines.push('To delete one, send: /hd Name');
   return lines.join("\n");
 }
 async function fetchDocData() {
@@ -297,9 +298,8 @@ function buildCommandListMessage() {
     "/delete Name",
     "",
     "History page:",
-    "/hd  (shows full History list)",
-    "/hd Name  (asks to confirm, then deletes)",
-    "/h 1 to /h 10  (any number 1-10 = that many latest entries)",
+    "/hd — delete",
+    "/h 1 to /h 10 — latest history",
     "",
     "Other:",
     "yes  (confirms a pending /delete or /hd)",
