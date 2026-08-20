@@ -23,14 +23,18 @@
 //
 // SUPPORTED MESSAGE (History page: Delete):
 //   /hd
-//     -> bot pehle poori History list bhejta hai (naam ke saath), taaki aap
-//        dekh kar decide kar sako kaunsa delete karna hai.
+//     -> bot poori History-page list bhejta hai (real completed entries +
+//        abhi-tak-0-baar-complete-hui active countdown/count reminders bhi,
+//        bilkul waisa hi jaisa website ke History page par "List - N" count
+//        mein dikhta hai), taaki aap dekh kar decide kar sako.
 //   /hd Name
 //   /hd Gas cylinder
 //     -> bot poochega confirmation ("Are you sure...?") — confirm karne ke
 //        liye agla message sirf "yes" bhejo (2 minute ke andar), warna cancel.
-//     -> agar us naam ki multiple History entries hain, to sab ek saath
-//        delete ho jaayengi.
+//     -> "yes" karne par website ke apne "Delete History Lists" feature jaisa
+//        hi hota hai: us list ki saari history snapshots hat jaati hain AUR
+//        wo History page se hamesha ke liye hide ho jaati hai (chahe wo
+//        active reminder ho jiski abhi tak koi history na bani ho).
 //
 // SUPPORTED MESSAGE (Show all commands):
 //   /cm
@@ -67,6 +71,51 @@ function cleanTargetDate(td) {
   return String(td || "--").replace(/[()]/g, "").trim();
 }
 
+// Replicates the website's exact History-page grouping (index.html
+// renderDeleteHistoryListsList / getHistoryListCount): one group per
+// reminderId — built from real historyLists snapshots, PLUS a "0 hist"
+// placeholder group for every active countdown/count reminder that hasn't
+// completed even once yet. Groups hidden via historyPageHiddenIds or
+// hiddenListIds are excluded, same as the website.
+function buildHistoryGroups(historyLists, reminderLists, historyPageHiddenIds, hiddenListIds) {
+  const groups = {};
+  (historyLists || []).forEach(h => {
+    if (!h.reminderId) return;
+    if (!groups[h.reminderId]) {
+      groups[h.reminderId] = { id: h.reminderId, listName: h.listName, count: 0 };
+    }
+    groups[h.reminderId].count += 1;
+    groups[h.reminderId].listName = h.listName;
+  });
+  (reminderLists || []).forEach(r => {
+    if (r.counter !== "countdown" && r.counter !== "count") return;
+    if (!groups[r.id]) {
+      groups[r.id] = { id: r.id, listName: r.listName, count: 0 };
+    } else {
+      groups[r.id].listName = r.listName;
+    }
+  });
+  const hiddenA = historyPageHiddenIds || [];
+  const hiddenB = hiddenListIds || [];
+  return Object.values(groups).filter(g => !hiddenA.includes(g.id) && !hiddenB.includes(g.id));
+}
+
+function findHistoryGroupsByName(groups, name) {
+  const target = String(name || "").trim().toLowerCase();
+  return (groups || []).filter(g => String(g.listName || "").trim().toLowerCase() === target);
+}
+
+function buildHistoryGroupListMessage(groups) {
+  if (!groups.length) {
+    return "History page is empty — no lists found.";
+  }
+  const lines = ["📋 History Page Lists", ""];
+  groups.forEach(g => {
+    lines.push(`${g.listName || "Untitled"} — ${g.count} hist`);
+  });
+  lines.push("", 'To delete one, send: /hd Name');
+  return lines.join("\n");
+}
 async function fetchDocData() {
   const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/${FIRESTORE_DOC_PATH}`;
   const res = await fetch(url);
@@ -267,12 +316,8 @@ function parseDeleteHistoryCommand(text) {
   return m[1].trim();
 }
 
-// Reminder names are unique, but History can hold several snapshots with the
-// same listName over time — so this returns ALL matching entries, not just one.
-function findHistoryEntriesByName(historyLists, name) {
-  const target = String(name || "").trim().toLowerCase();
-  return (historyLists || []).filter(h => String(h.listName || "").trim().toLowerCase() === target);
-}
+// Reminder names are unique, but History groups (see buildHistoryGroups below)
+// are keyed by reminderId — findHistoryGroupsByName does the name lookup now.
 
 // Sirf "/h <number>" (1 se 10) chalega — number COMPULSORY hai.
 // Bina slash ka "h", "h 5" ya bina number ka akela "/h" ab reply nahi karega.
@@ -576,14 +621,15 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
-    // ===== "/hd" alone (no name) -> show the full History list first =====
+    // ===== "/hd" alone (no name) -> show the full History-page list first =====
     if (/^\/hd$/i.test(String(text || "").trim())) {
       const docData = await fetchDocData();
       const historyLists = readJsonField(docData, "historyLists", []);
-      const sorted = [...historyLists].sort((a, b) => (b.created || 0) - (a.created || 0));
-      const msgText = buildHistoryMessage(sorted, sorted.length, historyLists) +
-        "\n\nTo delete one, send: /hd Name";
-      await sendTelegramMessage(BOT_TOKEN, CHAT_ID, msgText);
+      const reminderLists = readJsonField(docData, "reminderLists", []);
+      const historyPageHiddenIds = readJsonField(docData, "historyPageHiddenIds", []);
+      const hiddenListIds = readJsonField(docData, "hiddenListIds", []);
+      const groups = buildHistoryGroups(historyLists, reminderLists, historyPageHiddenIds, hiddenListIds);
+      await sendTelegramMessage(BOT_TOKEN, CHAT_ID, buildHistoryGroupListMessage(groups));
       return res.status(200).json({ ok: true });
     }
 
@@ -592,25 +638,28 @@ export default async function handler(req, res) {
     if (deleteHistoryName) {
       const docData = await fetchDocData();
       const historyLists = readJsonField(docData, "historyLists", []);
-      const matches = findHistoryEntriesByName(historyLists, deleteHistoryName);
+      const reminderLists = readJsonField(docData, "reminderLists", []);
+      const historyPageHiddenIds = readJsonField(docData, "historyPageHiddenIds", []);
+      const hiddenListIds = readJsonField(docData, "hiddenListIds", []);
+      const groups = buildHistoryGroups(historyLists, reminderLists, historyPageHiddenIds, hiddenListIds);
+      const matches = findHistoryGroupsByName(groups, deleteHistoryName);
 
       if (!matches.length) {
         await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
-          `No History entry found named "${deleteHistoryName}". Please check the name.`);
+          `No list found named "${deleteHistoryName}" on the History page. Please check the name (send /hd to see the full list).`);
         return res.status(200).json({ ok: true });
       }
 
       await patchDocFields({
         pendingHistoryDelete: JSON.stringify({
-          ids: matches.map(h => h.id),
+          ids: matches.map(g => g.id), // reminderId(s) — same key the website groups by
           listName: deleteHistoryName,
           requestedAt: Date.now(),
         }),
       });
 
-      const countNote = matches.length > 1 ? ` (${matches.length} entries)` : "";
       await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
-        `⚠️ Are you sure you want to delete "${deleteHistoryName}"${countNote} from History?\nTo confirm, reply with just "yes" (within 2 minutes), otherwise this will be cancelled.`);
+        `⚠️ Are you sure you want to delete "${deleteHistoryName}" from the History page?\nTo confirm, reply with just "yes" (within 2 minutes), otherwise this will be cancelled.`);
       return res.status(200).json({ ok: true });
     }
 
@@ -646,7 +695,11 @@ export default async function handler(req, res) {
         return res.status(200).json({ ok: true });
       }
 
-      // History-page delete (new feature)
+      // History-page delete (new feature) — mirrors the website's own
+      // "Delete History Lists" action exactly: remove every historyLists
+      // snapshot for that reminderId, AND mark the id as hidden so a
+      // still-active (0-history) reminder's placeholder also disappears
+      // from the History page / /hd list.
       if (Date.now() - (pendingHistory.requestedAt || 0) > PENDING_DELETE_TIMEOUT_MS) {
         await patchDocFields({ pendingHistoryDelete: undefined });
         await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
@@ -655,17 +708,23 @@ export default async function handler(req, res) {
       }
 
       const historyLists = readJsonField(docData, "historyLists", []);
+      const historyPageHiddenIds = readJsonField(docData, "historyPageHiddenIds", []);
       const idsToRemove = new Set(pendingHistory.ids || []);
-      const filteredHistory = historyLists.filter(h => !idsToRemove.has(h.id));
+
+      const filteredHistory = historyLists.filter(h => !idsToRemove.has(h.reminderId));
+      const updatedHiddenIds = [...historyPageHiddenIds];
+      idsToRemove.forEach(id => {
+        if (!updatedHiddenIds.includes(id)) updatedHiddenIds.push(id);
+      });
 
       await patchDocFields({
         historyLists: JSON.stringify(filteredHistory),
+        historyPageHiddenIds: JSON.stringify(updatedHiddenIds),
         pendingHistoryDelete: undefined,
       });
 
-      const historyCountNote = (pendingHistory.ids || []).length > 1 ? ` (${pendingHistory.ids.length} entries)` : "";
       await sendTelegramMessage(BOT_TOKEN, CHAT_ID,
-        `🗑️ Deleted from History: ${pendingHistory.listName}${historyCountNote}`);
+        `🗑️ Deleted from History page: ${pendingHistory.listName}`);
       return res.status(200).json({ ok: true });
     }
 
