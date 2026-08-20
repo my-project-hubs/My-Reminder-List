@@ -133,10 +133,10 @@ function buildHistoryGroupListMessage(groups) {
   const dayPeriod = timeParts.find(p => p.type === "dayPeriod")?.value || "";
   const timeLine = `${hour}:${minute} ${dayPeriod}`;
 
+  // Divider sirf is message ke liye thoda lamba (double nahi)
+  const longDivider = "_".repeat(CARD_WIDTH + 12);
+
   const lines = [
-    BLANK_PAD_LINE,
-    BLANK_PAD_LINE,
-    BLANK_PAD_LINE,
     BLANK_PAD_LINE,
     BLANK_PAD_LINE,
     BLANK_PAD_LINE,
@@ -144,10 +144,11 @@ function buildHistoryGroupListMessage(groups) {
     timeLine,
     "",
     "History page",
+    "",
     `Today List - ${groups.length}`,
     "",
     "",
-    DIVIDER_LINE,
+    longDivider,
     "",
     "",
   ];
@@ -336,21 +337,62 @@ function isCommandListRequest(text) {
 }
 
 function buildCommandListMessage() {
+  // Current IST date + time (message aane ke time ka)
+  const now = new Date();
+  const dateParts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Kolkata",
+    weekday: "short",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).formatToParts(now);
+  const get = (type) => dateParts.find(p => p.type === type)?.value || "";
+  const dateLine = `Today - ${get("day")}/${get("month")}/${get("year")} (${get("weekday")})`;
+
+  const timeParts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Kolkata",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  }).formatToParts(now);
+  const hour = timeParts.find(p => p.type === "hour")?.value || "";
+  const minute = timeParts.find(p => p.type === "minute")?.value || "";
+  const dayPeriod = timeParts.find(p => p.type === "dayPeriod")?.value || "";
+  const timeLine = `${hour}:${minute} ${dayPeriod}`;
+
+  // Divider left se right tak (double nahi)
+  const longDivider = "_".repeat(CARD_WIDTH + 12);
+
   return [
-    "📋 Available Commands",
+    BLANK_PAD_LINE,
+    BLANK_PAD_LINE,
+    BLANK_PAD_LINE,
+    dateLine,
+    timeLine,
+    "",
+    "All Common list",
+    "",
+    longDivider,
     "",
     "Reminder page:",
     "/add Name | DD/MM/YYYY | Price | AlertDays | countdown",
     "/edit Name | DD/MM/YYYY | Price | AlertDays | countdown",
     "/delete Name",
     "",
+    "",
     "History page:",
     "/hd — delete",
     "/h 1 to /h 10 — latest history",
     "",
+    "",
     "Other:",
-    "yes  (confirms a pending /delete or /hd)",
     "/cm  (shows this command list)",
+    BLANK_PAD_LINE,
+    BLANK_PAD_LINE,
+    BLANK_PAD_LINE,
+    BLANK_PAD_LINE,
+    BLANK_PAD_LINE,
+    BLANK_PAD_LINE,
   ].join("\n");
 }
 
