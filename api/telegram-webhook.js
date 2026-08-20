@@ -157,13 +157,12 @@ function buildHistoryGroupListMessage(groups) {
     lines.push(`${g.listName || "Untitled"} — ${g.count} hist`);
     lines.push("");
   });
+  lines.push(BLANK_PAD_LINE);
+  lines.push(BLANK_PAD_LINE);
+  lines.push(BLANK_PAD_LINE);
+  lines.push(longDivider);
+  lines.push("");
   lines.push("If you want to delete any of these lines, then add the line you want to delete with this ( /hd name ) command, leaving a space, and send it.");
-  lines.push(BLANK_PAD_LINE);
-  lines.push(BLANK_PAD_LINE);
-  lines.push(BLANK_PAD_LINE);
-  lines.push(BLANK_PAD_LINE);
-  lines.push(BLANK_PAD_LINE);
-  lines.push(BLANK_PAD_LINE);
   return lines.join("\n");
 }
 async function fetchDocData() {
