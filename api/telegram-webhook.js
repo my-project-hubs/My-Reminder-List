@@ -282,7 +282,7 @@ function formatReminderConfirmMessage(heading, entry) {
     `Name: ${entry.listName}`,
     `Target Date: ${entry.targetDate}`,
     `Price: ₹${entry.price}`,
-    `Alert Page: ${entry.alertPage} days before`,
+    `Alert Page: ${entry.alertPage}`,
     `Type: ${entry.counter === "count" ? "Count" : "Countdown"}`,
   ].join("\n");
 
