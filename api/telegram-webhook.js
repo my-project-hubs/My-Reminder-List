@@ -109,12 +109,18 @@ function buildHistoryGroupListMessage(groups) {
   if (!groups.length) {
     return "History page is empty — no lists found.";
   }
-  const lines = ["📋 History Page Lists", ""];
+  const lines = [
+    BLANK_PAD_LINE,
+    "📋 History Page Lists",
+    `Total: ${groups.length}`,
+    "",
+  ];
   groups.forEach(g => {
     lines.push(`${g.listName || "Untitled"} — ${g.count} hist`);
     lines.push("");
   });
   lines.push('To delete one, send: /hd Name');
+  lines.push(BLANK_PAD_LINE);
   return lines.join("\n");
 }
 async function fetchDocData() {
